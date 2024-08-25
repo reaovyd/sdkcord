@@ -29,3 +29,5 @@
 #![deny(unsafe_code, unreachable_pub)]
 
 pub mod conn;
+pub mod opcode;
+pub mod payload;
