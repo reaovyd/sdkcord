@@ -1,7 +1,6 @@
 use std::io;
 
 use bytes::BufMut;
-use thiserror::Error;
 use tokio_util::codec::Encoder as TokioEncoder;
 
 use super::IntermediateData;
@@ -10,7 +9,7 @@ use super::IntermediateData;
 pub(crate) struct Encoder;
 
 impl TokioEncoder<IntermediateData> for Encoder {
-    type Error = Error;
+    type Error = io::Error;
 
     fn encode(
         &mut self,
@@ -27,11 +26,4 @@ impl TokioEncoder<IntermediateData> for Encoder {
 
         Ok(())
     }
-}
-
-#[derive(Debug, Error)]
-#[non_exhaustive]
-pub(crate) enum Error {
-    #[error("Encoding error: {0}")]
-    EncodeError(#[from] io::Error),
 }

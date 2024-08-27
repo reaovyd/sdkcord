@@ -35,7 +35,7 @@ impl IntermediateData {
     }
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Error)]
+#[derive(Debug, Error, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 #[non_exhaustive]
 pub(crate) enum Error {
     #[error("Payload too large! Received {0} bytes")]
