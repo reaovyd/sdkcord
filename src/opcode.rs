@@ -1,37 +1,36 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+use thiserror::Error;
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u32)]
-#[non_exhaustive]
 pub enum Opcode {
     Handshake = 0,
     Frame = 1,
     Close = 2,
+    Hello = 3,
 }
 
-impl From<u32> for Opcode {
-    fn from(v: u32) -> Self {
-        match v {
-            0 => Self::Handshake,
-            1 => Self::Frame,
-            2 => Self::Close,
-            _ => panic!("Invalid opcodes that have not been implemented yet"),
+impl TryFrom<u32> for Opcode {
+    type Error = Error;
+
+    fn try_from(opcode: u32) -> Result<Self, Self::Error> {
+        match opcode {
+            0 => Ok(Self::Handshake),
+            1 => Ok(Self::Frame),
+            2 => Ok(Self::Close),
+            3 => Ok(Self::Hello),
+            fail => Err(Error::InvalidOpcode(fail)),
         }
     }
 }
 
 impl From<Opcode> for u32 {
-    fn from(v: Opcode) -> Self {
-        v as u32
+    fn from(opcode: Opcode) -> Self {
+        opcode as u32
     }
 }
 
-impl From<[u8; 4]> for Opcode {
-    fn from(value: [u8; 4]) -> Self {
-        Opcode::from(u32::from_le_bytes(value))
-    }
-}
-
-impl From<Opcode> for [u8; 4] {
-    fn from(value: Opcode) -> Self {
-        u32::from(value).to_le_bytes()
-    }
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Error)]
+pub enum Error {
+    #[error("Opcode {0} is not currently supported by the application.")]
+    InvalidOpcode(u32),
 }

@@ -4,8 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1.39.3", features = ["full"] }
-anyhow = { version = "1.0.86" }
 serde = { version = "1.0.208", features = ["derive"] }
 serde_json = { version = "1.0.125" }
 thiserror = { version = "1.0.63" }
+bytes = { version = "1.7.1", features = ["serde"] }
+tokio-util = { version = "0.7.11", features = ["codec"] }
+
+[dependencies.tokio]
+version = "1.39.3"
+features = ["rt-multi-thread", "net", "sync"]
+
+[dev-dependencies]
+pretty_assertions = { version = "1.4.0" }
