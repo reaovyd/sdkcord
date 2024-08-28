@@ -10,6 +10,10 @@ thiserror = { version = "1.0.63" }
 bytes = { version = "1.7.1", features = ["serde"] }
 tokio-util = { version = "0.7.11", features = ["codec"] }
 futures = { version = "0.3.30" }
+tracing = { version = "0.1.40", features = ["log"] }
+tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
+strum = { version = "0.26.3" }
+strum_macros = { version = "0.26.4" }
 
 [dependencies.tokio]
 version = "1.39.3"

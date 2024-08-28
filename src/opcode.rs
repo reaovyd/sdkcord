@@ -1,6 +1,9 @@
+use std::fmt::Display;
+
+use strum_macros::EnumString;
 use thiserror::Error;
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, EnumString)]
 #[repr(u32)]
 pub enum Opcode {
     Handshake = 0,
@@ -26,6 +29,12 @@ impl TryFrom<u32> for Opcode {
 impl From<Opcode> for u32 {
     fn from(opcode: Opcode) -> Self {
         opcode as u32
+    }
+}
+
+impl Display for Opcode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
 

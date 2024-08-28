@@ -2,6 +2,7 @@ use std::io;
 
 use bytes::BufMut;
 use tokio_util::codec::Encoder as TokioEncoder;
+use tracing::instrument;
 
 use super::IntermediateData;
 
@@ -11,6 +12,7 @@ pub(crate) struct Encoder;
 impl TokioEncoder<IntermediateData> for Encoder {
     type Error = io::Error;
 
+    #[instrument(name = "codec::Encoder::encode", skip(self, dst), level = "trace")]
     fn encode(
         &mut self,
         item: IntermediateData,

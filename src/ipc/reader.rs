@@ -1,10 +1,11 @@
-use std::{error::Error, io::ErrorKind};
+use std::io::ErrorKind;
 
 use futures::StreamExt;
 use tokio::net::unix::OwnedReadHalf;
 use tokio_util::codec::FramedRead;
+use tracing::{instrument, trace};
 
-use crate::codec::{decoder::Decoder, Error as CodecError, IntermediateDataSender};
+use crate::codec::{decoder::Decoder, IntermediateData, IntermediateDataSender};
 
 type IPCReader = OwnedReadHalf;
 
@@ -15,21 +16,25 @@ pub(crate) struct Reader {
 }
 
 impl Reader {
-    #[inline(always)]
+    #[instrument(
+        "ipc::reader::Reader::new",
+        skip(reader, decoder, de_tx),
+        level = "trace"
+    )]
     pub(crate) fn new(reader: IPCReader, decoder: Decoder, de_tx: IntermediateDataSender) -> Self {
         let inner = FramedRead::new(reader, decoder);
         Self { inner, de_tx }
     }
 
+    #[instrument("ipc::reader::Reader::start_loop", skip(self), level = "trace")]
     pub(crate) async fn start_loop(mut self) {
         while let Some(resp) = self.inner.next().await {
+            trace!("Received decoded data bytes from IPC");
             match resp {
                 Ok(intrm_data) => {
+                    trace!("Intermediate data received was successful");
                     let sender = self.de_tx.clone();
-                    tokio::spawn(async move {
-                        // TODO: panic or log? think i'll slap panic for now?
-                        sender.send(intrm_data).await.expect("reader half is dead");
-                    });
+                    tokio::spawn(send(sender, intrm_data));
                 }
                 Err(err) => {
                     if let ErrorKind::InvalidData = err.kind() {
@@ -42,4 +47,13 @@ impl Reader {
             };
         }
     }
+}
+
+#[instrument("ipc::reader::Reader::send", skip(sender, intrm_data), level = "trace")]
+async fn send(sender: IntermediateDataSender, intrm_data: IntermediateData) {
+    trace!("Sending intermediate data over to deserializer...");
+    sender
+        .send(intrm_data)
+        .await
+        .expect("reader half is dead...")
 }

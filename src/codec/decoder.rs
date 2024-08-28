@@ -2,6 +2,7 @@ use std::io;
 
 use bytes::Buf;
 use tokio_util::codec::Decoder as TokioDecoder;
+use tracing::{instrument, trace, warn};
 
 use crate::{codec::MAX_FRAME_SIZE, opcode::Opcode};
 
@@ -15,6 +16,7 @@ impl TokioDecoder for Decoder {
 
     type Error = io::Error;
 
+    #[instrument(name = "codec::Decoder::decode", skip(self, src), level = "trace")]
     fn decode(&mut self, src: &mut bytes::BytesMut) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < OPCODE_SIZE + PAYLOAD_SIZE {
             return Ok(None);
@@ -29,6 +31,7 @@ impl TokioDecoder for Decoder {
         let payload_len = u32::from_le_bytes(payload_len_bytes) as usize;
 
         if payload_len > MAX_FRAME_SIZE {
+            warn!("Payload length {payload_len} found to be too large!");
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 super::Error::PayloadTooLarge(payload_len),
@@ -36,6 +39,10 @@ impl TokioDecoder for Decoder {
         }
 
         if src.len() < OPCODE_SIZE + PAYLOAD_SIZE + payload_len {
+            trace!(
+                "Length is still not enough; got {}... Reserving space for size of full frame",
+                src.len()
+            );
             src.reserve(OPCODE_SIZE + PAYLOAD_SIZE + payload_len);
             return Ok(None);
         }
@@ -43,6 +50,7 @@ impl TokioDecoder for Decoder {
         let payload =
             src[(OPCODE_SIZE + PAYLOAD_SIZE)..(OPCODE_SIZE + PAYLOAD_SIZE + payload_len)].to_vec();
         src.advance(OPCODE_SIZE + PAYLOAD_SIZE + payload_len);
+        trace!("Decoded data: Opcode {opcode}, payload_len {payload_len}");
         Ok(Some(IntermediateData::new(opcode, payload).map_err(
             |err| io::Error::new(io::ErrorKind::InvalidData, err),
         )?))
