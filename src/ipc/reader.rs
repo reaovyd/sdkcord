@@ -3,7 +3,7 @@ use std::io::ErrorKind;
 use futures::StreamExt;
 use tokio::net::unix::OwnedReadHalf;
 use tokio_util::codec::FramedRead;
-use tracing::{instrument, trace};
+use tracing::{error, instrument, trace};
 
 use crate::codec::{decoder::Decoder, IntermediateData, IntermediateDataSender};
 
@@ -33,15 +33,16 @@ impl Reader {
             trace!("Received decoded data bytes from IPC");
             match resp {
                 Ok(intrm_data) => {
-                    trace!("Intermediate data received was successful");
+                    trace!("Intermediate data received was successful. Spawning task to send...");
                     let sender = self.de_tx.clone();
                     tokio::spawn(send(sender, intrm_data));
                 }
                 Err(err) => {
                     if let ErrorKind::InvalidData = err.kind() {
+                        error!("Error had invalid data (continuing...): {}", err);
                         continue;
                     } else {
-                        // TODO: panic or break? will just break for now? but definitely log here
+                        error!("Error (quitting...): {}", err);
                         break;
                     }
                 }

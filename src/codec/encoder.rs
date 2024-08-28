@@ -2,7 +2,7 @@ use std::io;
 
 use bytes::BufMut;
 use tokio_util::codec::Encoder as TokioEncoder;
-use tracing::instrument;
+use tracing::{instrument, trace};
 
 use super::IntermediateData;
 
@@ -22,6 +22,7 @@ impl TokioEncoder<IntermediateData> for Encoder {
         let payload = item.payload();
         let payload_len = payload.len() as u32;
 
+        trace!("Storing opcode, payload_len, payload inside buffer");
         dst.put_u32_le(opcode);
         dst.put_u32_le(payload_len);
         dst.put(payload);
