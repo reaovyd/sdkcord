@@ -1,4 +1,5 @@
 use thiserror::Error;
+use tokio::sync::mpsc::{Receiver, Sender};
 
 use crate::opcode::Opcode;
 
@@ -9,6 +10,9 @@ const MAX_FRAME_SIZE: usize = 1_000_000_000;
 const OPCODE_SIZE: usize = std::mem::size_of::<Opcode>();
 const PAYLOAD_SIZE: usize = std::mem::size_of::<u32>();
 
+pub(crate) type IntermediateDataReceiver = Receiver<IntermediateData>;
+pub(crate) type IntermediateDataSender = Sender<IntermediateData>;
+
 #[derive(Debug, Clone, Hash)]
 pub(crate) struct IntermediateData {
     opcode: Opcode,
@@ -18,7 +22,7 @@ pub(crate) struct IntermediateData {
 impl IntermediateData {
     #[inline(always)]
     pub(crate) fn new(opcode: Opcode, payload: Vec<u8>) -> Result<Self, Error> {
-        if OPCODE_SIZE + PAYLOAD_SIZE + payload.len() > MAX_FRAME_SIZE {
+        if payload.len() > MAX_FRAME_SIZE {
             return Err(Error::PayloadTooLarge(payload.len()));
         }
         Ok(Self { opcode, payload })

@@ -1,12 +1,4 @@
-use std::process::exit;
-
-use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    net::UnixStream,
-};
-
 const XDG_RUNTIME_DIR: &str = env!("XDG_RUNTIME_DIR");
 const DISCORD_IPC_PREFIX: &str = "discord-ipc-";
 const JSON_STRING: &str = r#"
@@ -73,8 +65,7 @@ struct Assets {
     small_text: String,
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
+fn main() {
     // let payload = Payload {
     //     nonce: "f48f6176-4afb-4c03-b1b8-d960861f5216".to_string(),
     //     args: PayloadArgs {
@@ -193,5 +184,4 @@ async fn main() -> Result<()> {
     //         eprintln!("Couldn't find a Discord IPC instance from {}!", socket_path);
     //     }
     // }
-    Ok(())
 }

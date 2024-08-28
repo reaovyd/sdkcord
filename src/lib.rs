@@ -29,4 +29,6 @@
 #![deny(unsafe_code, unreachable_pub)]
 
 mod codec;
+mod ipc;
+
 pub mod opcode;
