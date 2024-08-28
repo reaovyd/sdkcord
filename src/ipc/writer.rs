@@ -1,15 +1,18 @@
+use std::io;
+
 use futures::SinkExt;
 use tokio::net::unix::OwnedWriteHalf;
 use tokio_util::codec::FramedWrite;
 use tracing::{error, info, instrument, trace};
 
-use crate::codec::{encoder::Encoder, IntermediateDataReceiver};
+use crate::codec::{encoder::Encoder, IntermediateData, IntermediateDataReceiver};
 
-type IPCWriter = OwnedWriteHalf;
+type IPCSocket = OwnedWriteHalf;
+type IPCWriter = FramedWrite<IPCSocket, Encoder>;
 
 #[derive(Debug)]
 pub(crate) struct Writer {
-    inner: FramedWrite<IPCWriter, Encoder>,
+    inner: IPCWriter,
     ser_rx: IntermediateDataReceiver,
 }
 
@@ -20,7 +23,7 @@ impl Writer {
         level = "trace"
     )]
     pub(crate) fn new(
-        writer: IPCWriter,
+        writer: IPCSocket,
         encoder: Encoder,
         ser_rx: IntermediateDataReceiver,
     ) -> Self {
@@ -32,7 +35,7 @@ impl Writer {
     pub(crate) async fn start_loop(mut self) {
         while let Some(intrm_data) = self.ser_rx.recv().await {
             trace!("Received intermediate data from the serializer");
-            if let Err(err) = self.inner.send(intrm_data).await {
+            if let Err(err) = send(&mut self.inner, intrm_data).await {
                 error!("Error: quitting now because of {err}");
                 break;
             } else {
@@ -40,4 +43,9 @@ impl Writer {
             }
         }
     }
+}
+
+#[instrument("ipc::writer::Writer::send", skip(sender, intrm_data), level = "trace")]
+async fn send(sender: &mut IPCWriter, intrm_data: IntermediateData) -> Result<(), io::Error> {
+    sender.send(intrm_data).await
 }

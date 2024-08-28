@@ -7,11 +7,12 @@ use tracing::{instrument, trace};
 
 use crate::codec::{decoder::Decoder, IntermediateData, IntermediateDataSender};
 
-type IPCReader = OwnedReadHalf;
+type IPCSocket = OwnedReadHalf;
+type IPCReader = FramedRead<IPCSocket, Decoder>;
 
 #[derive(Debug)]
 pub(crate) struct Reader {
-    inner: FramedRead<IPCReader, Decoder>,
+    inner: IPCReader,
     de_tx: IntermediateDataSender,
 }
 
@@ -21,7 +22,7 @@ impl Reader {
         skip(reader, decoder, de_tx),
         level = "trace"
     )]
-    pub(crate) fn new(reader: IPCReader, decoder: Decoder, de_tx: IntermediateDataSender) -> Self {
+    pub(crate) fn new(reader: IPCSocket, decoder: Decoder, de_tx: IntermediateDataSender) -> Self {
         let inner = FramedRead::new(reader, decoder);
         Self { inner, de_tx }
     }
