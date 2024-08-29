@@ -12,6 +12,16 @@ pub enum Opcode {
     Hello = 3,
 }
 
+impl Opcode {
+    pub const fn as_u32(&self) -> u32 {
+        *self as u32
+    }
+
+    pub const fn into_u32(self) -> u32 {
+        self as u32
+    }
+}
+
 impl TryFrom<u32> for Opcode {
     type Error = Error;
 
@@ -42,4 +52,60 @@ impl Display for Opcode {
 pub enum Error {
     #[error("Opcode {0} is not currently supported by the application.")]
     InvalidOpcode(u32),
+}
+
+#[cfg(test)]
+mod tests {
+    use pretty_assertions::assert_eq;
+
+    use super::Opcode;
+
+    #[test]
+    fn test_opcode_display() {
+        [
+            (Opcode::Handshake, "Handshake"),
+            (Opcode::Frame, "Frame"),
+            (Opcode::Close, "Close"),
+            (Opcode::Hello, "Hello"),
+        ]
+        .into_iter()
+        .for_each(|(opcode, expected)| {
+            assert_eq!(format!("{}", opcode), expected.to_string());
+        });
+    }
+
+    #[test]
+    fn test_convert_opcode_to_u32() {
+        [
+            (Opcode::Handshake, 0),
+            (Opcode::Frame, 1),
+            (Opcode::Close, 2),
+            (Opcode::Hello, 3),
+        ]
+        .into_iter()
+        .for_each(|(opcode, expected)| {
+            assert_eq!(opcode as u32, expected);
+        });
+    }
+
+    #[test]
+    fn test_convert_u32_to_opcode_should_succeed() {
+        [
+            (0, Opcode::Handshake),
+            (1, Opcode::Frame),
+            (2, Opcode::Close),
+            (3, Opcode::Hello),
+        ]
+        .into_iter()
+        .for_each(|(actual, expected_opcode)| {
+            assert_eq!(Opcode::try_from(actual).unwrap(), expected_opcode);
+        });
+    }
+
+    #[test]
+    #[should_panic(expected = "InvalidOpcode")]
+    fn test_convert_u32_to_opcode_should_fail() {
+        let num = 34;
+        Opcode::try_from(num).unwrap();
+    }
 }

@@ -45,3 +45,27 @@ pub(crate) enum Error {
     #[error("Payload too large! Received {0} bytes")]
     PayloadTooLarge(usize),
 }
+
+#[cfg(test)]
+mod tests {
+    use pretty_assertions::assert_eq;
+
+    use crate::opcode::Opcode;
+
+    use super::IntermediateData;
+
+    #[test]
+    fn test_intermediate_happy() {
+        let data = IntermediateData::new(Opcode::Frame, vec![b'b', b'a']).unwrap();
+        assert_eq!(data.opcode(), Opcode::Frame);
+        assert_eq!(data.payload().len(), 2);
+        assert_eq!(data.payload(), &[b'b', b'a']);
+    }
+
+    #[test]
+    #[should_panic(expected = "PayloadTooLarge")]
+    fn test_intermediate_large_payload() {
+        let vec = vec![b'x'; 1_000_000_001];
+        IntermediateData::new(Opcode::Frame, vec).unwrap();
+    }
+}
