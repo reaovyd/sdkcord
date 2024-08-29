@@ -2,11 +2,22 @@ use std::io;
 
 use bytes::Buf;
 use tokio_util::codec::Decoder as TokioDecoder;
-use tracing::{instrument, trace, warn};
+use tracing::{
+    instrument,
+    trace,
+    warn,
+};
 
-use crate::{codec::MAX_FRAME_SIZE, opcode::Opcode};
+use crate::{
+    codec::MAX_FRAME_SIZE,
+    opcode::Opcode,
+};
 
-use super::{IntermediateData, OPCODE_SIZE, PAYLOAD_SIZE};
+use super::{
+    IntermediateData,
+    OPCODE_SIZE,
+    PAYLOAD_SIZE,
+};
 
 #[derive(Debug, Default, Clone)]
 pub(crate) struct Decoder;
@@ -51,8 +62,9 @@ impl TokioDecoder for Decoder {
             src[(OPCODE_SIZE + PAYLOAD_SIZE)..(OPCODE_SIZE + PAYLOAD_SIZE + payload_len)].to_vec();
         src.advance(OPCODE_SIZE + PAYLOAD_SIZE + payload_len);
         trace!("Decoded data: Opcode {opcode}, payload_len {payload_len}");
-        Ok(Some(IntermediateData::new(opcode, payload).map_err(
-            |err| io::Error::new(io::ErrorKind::InvalidData, err),
-        )?))
+        Ok(Some(
+            IntermediateData::new(opcode, payload)
+                .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?,
+        ))
     }
 }

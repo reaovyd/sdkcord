@@ -3,12 +3,17 @@ use std::io::ErrorKind;
 use futures::StreamExt;
 use tokio::net::unix::OwnedReadHalf;
 use tokio_util::codec::FramedRead;
-use tracing::{error, instrument, trace};
+use tracing::{
+    error,
+    instrument,
+    trace,
+};
 
-use crate::codec::{decoder::Decoder, IntermediateData, IntermediateDataSender};
-
-type IPCSocket = OwnedReadHalf;
-type IPCReader = FramedRead<IPCSocket, Decoder>;
+use crate::codec::{
+    decoder::Decoder,
+    IntermediateData,
+    IntermediateDataSender,
+};
 
 #[derive(Debug)]
 pub(crate) struct Reader {
@@ -17,11 +22,7 @@ pub(crate) struct Reader {
 }
 
 impl Reader {
-    #[instrument(
-        "ipc::reader::Reader::new",
-        skip(reader, decoder, de_tx),
-        level = "trace"
-    )]
+    #[instrument("ipc::reader::Reader::new", skip(reader, decoder, de_tx), level = "trace")]
     pub(crate) fn new(reader: IPCSocket, decoder: Decoder, de_tx: IntermediateDataSender) -> Self {
         let inner = FramedRead::new(reader, decoder);
         Self { inner, de_tx }
@@ -54,8 +55,8 @@ impl Reader {
 #[instrument("ipc::reader::Reader::send", skip(sender, intrm_data), level = "trace")]
 async fn send(sender: IntermediateDataSender, intrm_data: IntermediateData) {
     trace!("Sending intermediate data over to deserializer...");
-    sender
-        .send(intrm_data)
-        .await
-        .expect("reader half is dead...")
+    sender.send(intrm_data).await.expect("reader half is dead...")
 }
+
+type IPCSocket = OwnedReadHalf;
+type IPCReader = FramedRead<IPCSocket, Decoder>;

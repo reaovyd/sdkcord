@@ -2,7 +2,10 @@ use std::io;
 
 use bytes::BufMut;
 use tokio_util::codec::Encoder as TokioEncoder;
-use tracing::{instrument, trace};
+use tracing::{
+    instrument,
+    trace,
+};
 
 use super::IntermediateData;
 
@@ -43,7 +46,11 @@ mod tests {
     use tokio_util::codec::Encoder as _;
 
     use crate::{
-        codec::{IntermediateData, OPCODE_SIZE, PAYLOAD_SIZE},
+        codec::{
+            IntermediateData,
+            OPCODE_SIZE,
+            PAYLOAD_SIZE,
+        },
         opcode::Opcode,
     };
 
@@ -60,9 +67,6 @@ mod tests {
         assert_eq!(bytes_mut.len(), 11);
         // must be little endian
         assert_eq!(bytes_mut[..OPCODE_SIZE], [3, 0, 0, 0]);
-        assert_eq!(
-            bytes_mut[OPCODE_SIZE..(OPCODE_SIZE + PAYLOAD_SIZE)],
-            [3, 0, 0, 0]
-        );
+        assert_eq!(bytes_mut[OPCODE_SIZE..(OPCODE_SIZE + PAYLOAD_SIZE)], [3, 0, 0, 0]);
     }
 }

@@ -3,12 +3,18 @@ use std::io;
 use futures::SinkExt;
 use tokio::net::unix::OwnedWriteHalf;
 use tokio_util::codec::FramedWrite;
-use tracing::{error, info, instrument, trace};
+use tracing::{
+    error,
+    info,
+    instrument,
+    trace,
+};
 
-use crate::codec::{encoder::Encoder, IntermediateData, IntermediateDataReceiver};
-
-type IPCSocket = OwnedWriteHalf;
-type IPCWriter = FramedWrite<IPCSocket, Encoder>;
+use crate::codec::{
+    encoder::Encoder,
+    IntermediateData,
+    IntermediateDataReceiver,
+};
 
 #[derive(Debug)]
 pub(crate) struct Writer {
@@ -17,11 +23,7 @@ pub(crate) struct Writer {
 }
 
 impl Writer {
-    #[instrument(
-        "ipc::writer::Writer::new",
-        skip(writer, encoder, ser_rx),
-        level = "trace"
-    )]
+    #[instrument("ipc::writer::Writer::new", skip(writer, encoder, ser_rx), level = "trace")]
     pub(crate) fn new(
         writer: IPCSocket,
         encoder: Encoder,
@@ -49,3 +51,6 @@ impl Writer {
 async fn send(sender: &mut IPCWriter, intrm_data: IntermediateData) -> Result<(), io::Error> {
     sender.send(intrm_data).await
 }
+
+type IPCSocket = OwnedWriteHalf;
+type IPCWriter = FramedWrite<IPCSocket, Encoder>;

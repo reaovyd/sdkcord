@@ -76,30 +76,20 @@ mod tests {
 
     #[test]
     fn test_convert_opcode_to_u32() {
-        [
-            (Opcode::Handshake, 0),
-            (Opcode::Frame, 1),
-            (Opcode::Close, 2),
-            (Opcode::Hello, 3),
-        ]
-        .into_iter()
-        .for_each(|(opcode, expected)| {
-            assert_eq!(opcode as u32, expected);
-        });
+        [(Opcode::Handshake, 0), (Opcode::Frame, 1), (Opcode::Close, 2), (Opcode::Hello, 3)]
+            .into_iter()
+            .for_each(|(opcode, expected)| {
+                assert_eq!(opcode as u32, expected);
+            });
     }
 
     #[test]
     fn test_convert_u32_to_opcode_should_succeed() {
-        [
-            (0, Opcode::Handshake),
-            (1, Opcode::Frame),
-            (2, Opcode::Close),
-            (3, Opcode::Hello),
-        ]
-        .into_iter()
-        .for_each(|(actual, expected_opcode)| {
-            assert_eq!(Opcode::try_from(actual).unwrap(), expected_opcode);
-        });
+        [(0, Opcode::Handshake), (1, Opcode::Frame), (2, Opcode::Close), (3, Opcode::Hello)]
+            .into_iter()
+            .for_each(|(actual, expected_opcode)| {
+                assert_eq!(Opcode::try_from(actual).unwrap(), expected_opcode);
+            });
     }
 
     #[test]

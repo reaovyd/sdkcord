@@ -1,5 +1,8 @@
 use thiserror::Error;
-use tokio::sync::mpsc::{Receiver, Sender};
+use tokio::sync::mpsc::{
+    Receiver,
+    Sender,
+};
 
 use crate::opcode::Opcode;
 

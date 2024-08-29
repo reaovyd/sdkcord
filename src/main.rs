@@ -1,4 +1,7 @@
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 const XDG_RUNTIME_DIR: &str = env!("XDG_RUNTIME_DIR");
 const DISCORD_IPC_PREFIX: &str = "discord-ipc-";
 const JSON_STRING: &str = r#"
@@ -78,7 +81,8 @@ fn main() {
     //     v: 1,
     //     client_id: "1276759902551015485".to_string(),
     // };
-    // let payload_disconnect_activity = serde_json::to_vec(&PayloadDisconnectActivity {
+    // let payload_disconnect_activity =
+    // serde_json::to_vec(&PayloadDisconnectActivity {
     //     cmd: "SET_ACTIVITY".to_string(),
     //     args: EmptyDisconnectArgs {
     //         pid: std::process::id(),
@@ -86,11 +90,13 @@ fn main() {
     //     nonce: "c9f07f0e-cbf1-4e5a-aa3d-6dceb967968d".to_string(),
     // })
     // .unwrap();
-    // let json = serde_json::from_slice::<serde_json::Value>(&payload_disconnect_activity).unwrap();
-    // println!("{:#}", json);
+    // let json =
+    // serde_json::from_slice::<serde_json::Value>(&
+    // payload_disconnect_activity).unwrap(); println!("{:#}", json);
     // let mut bytes_disconnect_activity = (1u32).to_le_bytes().to_vec();
-    // bytes_disconnect_activity.extend((payload_disconnect_activity.len() as u32).to_le_bytes());
-    // bytes_disconnect_activity.extend(payload_disconnect_activity);
+    // bytes_disconnect_activity.extend((payload_disconnect_activity.len() as
+    // u32).to_le_bytes()); bytes_disconnect_activity.
+    // extend(payload_disconnect_activity);
 
     // println!("{:?}", bytes_disconnect_activity);
     // println!("{}", num_cpus::get());
@@ -115,11 +121,12 @@ fn main() {
     //     nonce: "647d814a-4cf8-4fbb-948f-898abd24f55b".to_string(),
     // })
     // .unwrap();
-    // let json = serde_json::from_slice::<serde_json::Value>(&payload_set_activity).unwrap();
-    // println!("{:#}", json);
+    // let json =
+    // serde_json::from_slice::<serde_json::Value>(&payload_set_activity).
+    // unwrap(); println!("{:#}", json);
     // let mut bytes_set_activity = (1u32).to_le_bytes().to_vec();
-    // bytes_set_activity.extend((payload_set_activity.len() as u32).to_le_bytes());
-    // bytes_set_activity.extend(payload_set_activity);
+    // bytes_set_activity.extend((payload_set_activity.len() as
+    // u32).to_le_bytes()); bytes_set_activity.extend(payload_set_activity);
 
     // let payload = serde_json::to_vec(&payload).unwrap();
     // println!(
@@ -135,8 +142,9 @@ fn main() {
     // println!("{:?}", bytes);
 
     // for i in 0..10 {
-    //     let socket_path = format!("{XDG_RUNTIME_DIR}/{DISCORD_IPC_PREFIX}{i}");
-    //     if let Ok(mut stream) = UnixStream::connect(&socket_path).await {
+    //     let socket_path =
+    // format!("{XDG_RUNTIME_DIR}/{DISCORD_IPC_PREFIX}{i}");     if let
+    // Ok(mut stream) = UnixStream::connect(&socket_path).await {
     //         println!("IPC Client connected to {}", socket_path);
     //         let (mut reader, mut writer) = stream.into_split();
     //         println!("Authorizing payload to Discord IPC");
@@ -181,7 +189,7 @@ fn main() {
     //         while (true) {}
     //         exit(0);
     //     } else {
-    //         eprintln!("Couldn't find a Discord IPC instance from {}!", socket_path);
-    //     }
+    //         eprintln!("Couldn't find a Discord IPC instance from {}!",
+    // socket_path);     }
     // }
 }
