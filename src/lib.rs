@@ -29,7 +29,8 @@
 )]
 #![deny(unsafe_code, unreachable_pub)]
 
+mod actor;
 mod codec;
-mod ipc;
+mod convert;
 
 pub mod opcode;
