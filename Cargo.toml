@@ -14,6 +14,9 @@ tracing = { version = "0.1.40", features = ["log"] }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
 strum = { version = "0.26.3" }
 strum_macros = { version = "0.26.4" }
+paste = { version = "1.0.15" }
+derive_builder = { version = "0.20.1" }
+uuid = { version = "1.10.0", features = ["serde", "v4"] }
 
 [dependencies.tokio]
 version = "1.39.3"
