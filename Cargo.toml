@@ -17,10 +17,14 @@ strum_macros = { version = "0.26.4" }
 paste = { version = "1.0.15" }
 derive_builder = { version = "0.20.1" }
 uuid = { version = "1.10.0", features = ["serde", "v4"] }
+anyhow = { version = "1.0.86" }
+reqwest = { version = "0.12.7", features = ["json"] }
+serde_urlencoded = { version = "0.7.1" }
+serde_with = { version = "3.9.0" }
 
 [dependencies.tokio]
 version = "1.39.3"
-features = ["rt-multi-thread", "net", "sync"]
+features = ["rt-multi-thread", "net", "sync", "macros", "io-util"]
 
 [dev-dependencies]
 pretty_assertions = { version = "1.4.0" }
