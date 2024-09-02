@@ -1,17 +1,20 @@
+pub use channel::*;
+pub use guild::*;
+
 mod macros {
     macro_rules! make_request_payload {
         ($request_name: ident) => {
             #[derive(Debug, Clone, Serialize)]
             pub struct $request_name {
                 nonce: Uuid,
-                args: EmptyArgs 
+                args: EmptyArgs
             }
 
             impl $request_name {
                 pub fn new() -> Self {
                     Self {
                         nonce: Uuid::new_v4(),
-                        args: EmptyArgs::default() 
+                        args: EmptyArgs::default()
                     }
                 }
             }
@@ -24,9 +27,9 @@ mod macros {
 
             #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
             pub struct EmptyArgs {
-                #[serde(flatten)] 
+                #[serde(flatten)]
                 #[serde(skip_serializing_if = "Option::is_none")]
-                inner: Option<()>, 
+                inner: Option<()>,
             }
         };
         ($request_name: ident, $(($field_name: ident, $field_type: ty, $field_doc: expr)),*) => {
@@ -64,6 +67,6 @@ mod macros {
     }
     pub(crate) use make_request_payload;
 }
-pub use guild::*;
 
+mod channel;
 mod guild;

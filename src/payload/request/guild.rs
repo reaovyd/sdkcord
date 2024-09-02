@@ -47,6 +47,7 @@ mod get_guild_tests {
         assert_eq!(guild.args.timeout, None);
 
         let serialized = serde_json::to_string(&guild).unwrap();
+        assert!(serialized.contains("\"guild_id\":"));
         assert!(!serialized.contains("\"timeout\":"))
     }
 
@@ -63,6 +64,7 @@ mod get_guild_tests {
         assert_eq!(guild.args.timeout, Some(32));
 
         let serialized = serde_json::to_string(&guild).unwrap();
+        assert!(serialized.contains("\"guild_id\":"));
         assert!(serialized.contains("\"timeout\":32"))
     }
 }
