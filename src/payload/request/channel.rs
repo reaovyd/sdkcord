@@ -2,7 +2,6 @@ use super::macros::make_request_payload;
 use derive_builder::Builder;
 use paste::paste;
 use serde::Serialize;
-use serde_with::skip_serializing_none;
 use uuid::Uuid;
 
 make_request_payload!(

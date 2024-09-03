@@ -3,16 +3,15 @@ use crate::payload::request::macros::make_request_payload;
 use derive_builder::Builder;
 use paste::paste;
 use serde::Serialize;
-use serde_with::skip_serializing_none;
 use uuid::Uuid;
 
 make_request_payload!(
     GetGuild,
     #[doc = "Used to retrieve guild information from the client"],
     (guild_id, String, "id of the guild to get"),
-    (timeout, Option<u32>, "asynchronously get guild with time to wait before timing out")
+    (timeout, Option<u32>, "asynchronously get guild with time to wait before timing out", #[serde(skip_serializing_if = "Option::is_none")])
 );
-make_request_payload!(GetGuilds, 
+make_request_payload!(GetGuilds,
     #[doc = "Used to retrieve a list of guilds from the client"]
 );
 

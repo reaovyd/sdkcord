@@ -4,7 +4,6 @@ use derive_builder::Builder;
 use ordered_float::OrderedFloat;
 use paste::paste;
 use serde::Serialize;
-use serde_with::skip_serializing_none;
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -12,17 +11,17 @@ make_request_payload!(
     SetUserVoiceSettings,
     #[doc = "Used to change voice settings of users in voice channels"],
     (user_id, String, "user id"),
-    (pan, Option<Pan>, "set the pan of the user"),
-    (volume, Option<Volume>, "set the volume of user (defaults to 100, min 0, max 200)"),
-    (mute, Option<bool>, "set the mute state of the user")
+    (pan, Option<Pan>, "set the pan of the user", #[serde(skip_serializing_if = "Option::is_none")]),
+    (volume, Option<Volume>, "set the volume of user (defaults to 100, min 0, max 200)", #[serde(skip_serializing_if = "Option::is_none")]),
+    (mute, Option<bool>, "set the mute state of the user", #[serde(skip_serializing_if = "Option::is_none")])
 );
 
 make_request_payload!(SelectVoiceChannel,
     #[doc = "Used to join or leave a voice channel, group dm, or dm"],
-    (channel_id, String, "channel id to join (or null to leave)"),
-    (timeout, Option<u32>, "asynchronously join channel with time to wait before timing out"),
-    (force, Option<bool>, "forces a user to join a voice channel"),
-    (navigate, Option<bool>, "after joining the voice channel, navigate to it in the client")
+    (channel_id, Option<String>, "channel id to join (or null to leave)"),
+    (timeout, Option<u32>, "asynchronously join channel with time to wait before timing out", #[serde(skip_serializing_if = "Option::is_none")]),
+    (force, Option<bool>, "forces a user to join a voice channel", #[serde(skip_serializing_if = "Option::is_none")]),
+    (navigate, Option<bool>, "after joining the voice channel, navigate to it in the client", #[serde(skip_serializing_if = "Option::is_none")])
 );
 
 make_request_payload!(

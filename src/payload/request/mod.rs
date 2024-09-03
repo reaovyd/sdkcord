@@ -39,7 +39,7 @@ mod macros {
                 }
             }
         };
-        ($request_name: ident, $(#[$request_doc:meta]),*, $(($field_name: ident, $field_type: ty, $field_doc: expr)),*) => {
+        ($request_name: ident, $(#[$request_doc:meta]),*, $(($field_name: ident, $field_type: ty, $field_doc: expr $(,#[$skip_serial: meta])* )),*) => {
             #[derive(Debug, Clone, Serialize)]
             $(
                 #[$request_doc]
@@ -50,7 +50,7 @@ mod macros {
             }
 
             paste! {
-                #[skip_serializing_none]
+
                 #[derive(Builder, Debug, Clone, Serialize, PartialEq, Eq, Hash)]
                 #[builder(derive(Debug))]
                 // lint isn't catching a /**/ comment where the Errors section is according to
@@ -59,6 +59,9 @@ mod macros {
                 pub struct [<$request_name Args>] {
                     $(
                         #[doc = $field_doc]
+                        $(
+                            #[$skip_serial]
+                        )*
                         $field_name: $field_type
                     ),*
                 }
