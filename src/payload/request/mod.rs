@@ -14,8 +14,9 @@ pub struct EmptyArgs {
 
 mod macros {
     macro_rules! make_request_payload {
-        ($request_name: ident) => {
+        ($request_name: ident, $request_doc: expr) => {
             #[derive(Debug, Clone, Serialize)]
+            #[doc = $request_doc]
             pub struct $request_name {
                 nonce: Uuid,
                 args: EmptyArgs
@@ -36,8 +37,9 @@ mod macros {
                 }
             }
         };
-        ($request_name: ident, $(($field_name: ident, $field_type: ty, $field_doc: expr)),*) => {
+        ($request_name: ident, $request_doc: expr, $(($field_name: ident, $field_type: ty, $field_doc: expr)),*) => {
             #[derive(Debug, Clone, Serialize)]
+            #[doc = $request_doc]
             pub struct $request_name {
                 nonce: Uuid,
                 args: paste!([<$request_name Args>])

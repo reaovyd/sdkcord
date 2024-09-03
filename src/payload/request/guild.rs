@@ -8,10 +8,11 @@ use uuid::Uuid;
 
 make_request_payload!(
     GetGuild,
-    (guild_id, String, "Id of the guild to get"),
+    "Used to retrieve guild information from the client",
+    (guild_id, String, "id of the guild to get"),
     (timeout, Option<u32>, "asynchronously get guild with time to wait before timing out")
 );
-make_request_payload!(GetGuilds);
+make_request_payload!(GetGuilds, "Used to retrieve a list of guilds from the client");
 
 #[cfg(test)]
 mod get_guild_tests {
