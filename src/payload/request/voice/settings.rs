@@ -1,5 +1,4 @@
-use super::EmptyArgs;
-use crate::payload::request::macros::make_request_payload;
+use crate::payload::request::{macros::make_request_payload, EmptyArgs};
 use derive_builder::Builder;
 use ordered_float::OrderedFloat;
 use paste::paste;
@@ -16,17 +15,23 @@ make_request_payload!(
     (mute, Option<bool>, "set the mute state of the user", #[serde(skip_serializing_if = "Option::is_none")])
 );
 
-make_request_payload!(SelectVoiceChannel,
-    #[doc = "Used to join or leave a voice channel, group dm, or dm"],
-    (channel_id, Option<String>, "channel id to join (or null to leave)"),
-    (timeout, Option<u32>, "asynchronously join channel with time to wait before timing out", #[serde(skip_serializing_if = "Option::is_none")]),
-    (force, Option<bool>, "forces a user to join a voice channel", #[serde(skip_serializing_if = "Option::is_none")]),
-    (navigate, Option<bool>, "after joining the voice channel, navigate to it in the client", #[serde(skip_serializing_if = "Option::is_none")])
+make_request_payload!(
+    GetVoiceSettings,
+    #[doc = "Used to retrieve the client's voice settings"]
 );
 
+// TODO: add input, output, mode objects
 make_request_payload!(
-    GetSelectedVoiceChannel,
-    #[doc = "Used to get the current voice channel the client is in"]
+    SetVoiceSettings,
+    #[doc = "Used to set the client's voice settings"],
+    #[doc = "When setting voice settings, all fields are optional. Only passed fields are updated."],
+    (automatic_gain_control, Option<bool>, "state of automatic gain control",#[serde(skip_serializing_if = "Option::is_none")]),
+    (echo_cancellation, Option<bool>, "state of echo cancellation",#[serde(skip_serializing_if = "Option::is_none")]),
+    (noise_suppression, Option<bool>, "state of noise suppression",#[serde(skip_serializing_if = "Option::is_none")]),
+    (qos, Option<bool>, "state of voice quality of service",#[serde(skip_serializing_if = "Option::is_none")]),
+    (silence_warning, Option<bool>, "state of silence warning notice",#[serde(skip_serializing_if = "Option::is_none")]),
+    (deaf, Option<bool>, "state of self-deafen",#[serde(skip_serializing_if = "Option::is_none")]),
+    (mute, Option<bool>, "state of self-mute",#[serde(skip_serializing_if = "Option::is_none")])
 );
 
 /// `Error`s that occur when trying to build the [`SetUserVoiceSettings`]

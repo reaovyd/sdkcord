@@ -18,7 +18,8 @@ make_request_payload!(
 
 make_request_payload!(SelectTextChannel,
     #[doc = "Used to join or leave a text channel, group dm, or dm"],
-    (channel_id, String, "channel id to join (or null to leave)")
+    (channel_id, Option<String>, "channel id to join (or null/Option::None to leave)"),
+    (timeout, Option<u32>, "asynchronously join channel with time to wait before timing out", #[serde(skip_serializing_if = "Option::is_none")])
 );
 
 #[cfg(test)]
