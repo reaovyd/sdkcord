@@ -10,7 +10,7 @@ use uuid::Uuid;
 
 make_request_payload!(
     SetUserVoiceSettings,
-    "Used to change voice settings of users in voice channels",
+    #[doc = "Used to change voice settings of users in voice channels"],
     (user_id, String, "user id"),
     (pan, Option<Pan>, "set the pan of the user"),
     (volume, Option<Volume>, "set the volume of user (defaults to 100, min 0, max 200)"),
@@ -18,8 +18,8 @@ make_request_payload!(
 );
 
 make_request_payload!(SelectVoiceChannel,
-    "Used to join or leave a voice channel, group dm, or dm",
-    (channel_id, String, "channel id to join (or null/Option::None to leave)"),
+    #[doc = "Used to join or leave a voice channel, group dm, or dm"],
+    (channel_id, String, "channel id to join (or null to leave)"),
     (timeout, Option<u32>, "asynchronously join channel with time to wait before timing out"),
     (force, Option<bool>, "forces a user to join a voice channel"),
     (navigate, Option<bool>, "after joining the voice channel, navigate to it in the client")
@@ -27,7 +27,7 @@ make_request_payload!(SelectVoiceChannel,
 
 make_request_payload!(
     GetSelectedVoiceChannel,
-    "Used to get the current voice channel the client is in"
+    #[doc = "Used to get the current voice channel the client is in"]
 );
 
 /// `Error`s that occur when trying to build the [`SetUserVoiceSettings`]
