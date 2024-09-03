@@ -1,5 +1,8 @@
 pub use channel::*;
 pub use guild::*;
+pub use voice::*;
+// TODO: subscriptions - bit of a special case since it includes the `evt` now.
+// somehow want to tightly couple the evt enum Event enum and
 
 mod macros {
     macro_rules! make_request_payload {
@@ -70,3 +73,4 @@ mod macros {
 
 mod channel;
 mod guild;
+mod voice;
