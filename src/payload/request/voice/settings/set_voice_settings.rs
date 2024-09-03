@@ -29,6 +29,7 @@ pub struct InputVoiceSettings(VoiceSettings);
 pub struct OutputVoiceSettings(VoiceSettings);
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Builder)]
+#[builder(build_fn(validate = "Self::validate_boundaries"))]
 pub struct ModeVoiceSettings {
     /// Voice setting mode type
     #[serde(rename = "type")]
@@ -40,15 +41,30 @@ pub struct ModeVoiceSettings {
     /// Shortcut key combos for PTT
     shortcut: Shortcut,
     /// The PTT release delay (in ms) (min: 0, max: 2000)
-    delay: OrderedFloat<f32> 
+    delay: OrderedFloat<f32>,
 }
 
 impl ModeVoiceSettingsBuilder {
+    const MIN_THRESHOLD: OrderedFloat<f32> = OrderedFloat(-100.0);
+    const MAX_THRESHOLD: OrderedFloat<f32> = OrderedFloat(0.0);
+
+    fn validate_boundaries(&self) -> Result<(), SetVoiceSettingsError> {
+        if let (Some(delay), Some(threshold)) = (self.delay, self.threshold) {
+            if delay < Self::MIN_THRESHOLD || delay > Self::MAX_THRESHOLD {
+                return Err(SetVoiceSettingsError::DelayBoundary { delay: delay.0 });
+            }
+
+            if threshold < Self::MIN_THRESHOLD || threshold > Self::MAX_THRESHOLD {
+                return Err(SetVoiceSettingsError::ThresholdBoundary { threshold: threshold.0 });
+            }
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-/// The mode type for the mode in voice settings 
+/// The mode type for the mode in voice settings
 ///
 /// It must be either `PUSH_TO_TALK` or `VOICE_ACTIVITY`
 pub enum ModeType {
@@ -63,10 +79,10 @@ pub struct Shortcut {
     /// The key type. See [`KeyType`]
     #[serde(rename = "type")]
     key_type: KeyType,
-    /// The key code 
+    /// The key code
     code: u32,
-    /// The key name 
-    name: String
+    /// The key name
+    name: String,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
@@ -76,7 +92,7 @@ pub enum KeyType {
     KeyboardKey = 0,
     MouseButton = 1,
     KeyboardModifierKey = 2,
-    GamepadButton = 3
+    GamepadButton = 3,
 }
 
 impl OutputVoiceSettings {
@@ -197,8 +213,13 @@ pub enum SetVoiceSettingsError {
         vol: f32,
     },
     #[error("Error setting threshold; got value {threshold}")]
-    ThresholdBoundary {
-        threshold: f32
-    }
+    ThresholdBoundary { threshold: f32 },
+    #[error("Error setting delay; got value {delay}")]
+    DelayBoundary { delay: f32 },
 }
 
+impl From<SetVoiceSettingsError> for ModeVoiceSettingsBuilderError {
+    fn from(value: SetVoiceSettingsError) -> Self {
+        ModeVoiceSettingsBuilderError::ValidationError(value.to_string())
+    }
+}

@@ -9,4 +9,3 @@ make_request_payload!(
     GetVoiceSettings,
     #[doc = "Used to retrieve the client's voice settings"]
 );
-
