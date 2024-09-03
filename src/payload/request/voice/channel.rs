@@ -1,4 +1,7 @@
-use crate::payload::request::{macros::make_request_payload, EmptyArgs};
+use crate::payload::request::{
+    macros::make_request_payload,
+    EmptyArgs,
+};
 use derive_builder::Builder;
 use paste::paste;
 use serde::Serialize;
@@ -16,4 +19,3 @@ make_request_payload!(
     GetSelectedVoiceChannel,
     #[doc = "Used to get the current voice channel the client is in"]
 );
-
