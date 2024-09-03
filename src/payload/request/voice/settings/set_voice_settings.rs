@@ -13,6 +13,7 @@ make_request_payload!(
     #[doc = "When setting voice settings, all fields are optional. Only passed fields are updated."],
     (input, Option<InputVoiceSettings>, "input settings", #[serde(skip_serializing_if = "Option::is_none")]),
     (output, Option<OutputVoiceSettings>, "output settings", #[serde(skip_serializing_if = "Option::is_none")]),
+    (mode, Option<ModeVoiceSettings>, "voice mode settings", #[serde(skip_serializing_if = "Option::is_none")]),
     (automatic_gain_control, Option<bool>, "state of automatic gain control", #[serde(skip_serializing_if = "Option::is_none")]),
     (echo_cancellation, Option<bool>, "state of echo cancellation", #[serde(skip_serializing_if = "Option::is_none")]),
     (noise_suppression, Option<bool>, "state of noise suppression", #[serde(skip_serializing_if = "Option::is_none")]),
@@ -193,7 +194,9 @@ pub struct DeviceObject {
 }
 
 impl DeviceObject {
-    pub const fn new(id: String, name: String) -> Self {
+    pub fn new(id: &str, name: &str) -> Self {
+        let id = id.to_string();
+        let name = name.to_string();
         Self { id, name }
     }
 }
