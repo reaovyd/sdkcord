@@ -1,3 +1,4 @@
+use super::EmptyArgs;
 use crate::payload::request::macros::make_request_payload;
 use derive_builder::Builder;
 use paste::paste;

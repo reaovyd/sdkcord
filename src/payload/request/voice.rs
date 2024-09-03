@@ -1,3 +1,4 @@
+use super::EmptyArgs;
 use crate::payload::request::macros::make_request_payload;
 use derive_builder::Builder;
 use ordered_float::OrderedFloat;
@@ -7,12 +8,68 @@ use serde_with::skip_serializing_none;
 use thiserror::Error;
 use uuid::Uuid;
 
+make_request_payload!(
+    SetUserVoiceSettings,
+    (user_id, String, "user id"),
+    (pan, Option<Pan>, "set the pan of the user"),
+    (volume, Option<Volume>, "set the volume of user (defaults to 100, min 0, max 200)"),
+    (mute, Option<bool>, "set the mute state of the user")
+);
+
+make_request_payload!(SelectVoiceChannel,
+    (channel_id, String, "channel id to join (or null to leave)"),
+    (timeout, Option<u32>, "asynchronously join channel with time to wait before timing out"),
+    (force, Option<bool>, "forces a user to join a voice channel"),
+    (navigate, Option<bool>, "after joining the voice channel, navigate to it in the client")
+);
+
+make_request_payload!(GetSelectedVoiceChannel);
+
+/// `Error`s that occur when trying to build the [`SetUserVoiceSettings`]
+#[derive(Debug, Error)]
+pub enum Error {
+    /// An error for values that did not satisfy the invariant while building
+    /// the [`Pan`]
+    #[error("Error setting pan; got values {left} {right}")]
+    PanBoundary {
+        /// The `left` value argument that may have caused failure
+        left: f32,
+        /// The `right` value argument that may have caused failure
+        right: f32,
+    },
+    /// An error for values that did not satisfy the invariant while building
+    /// the [`Volume`]
+    #[error("Error setting volume; got value {vol}")]
+    VolumeBoundary {
+        /// The `vol` value argument that caused failure
+        vol: u8,
+    },
+}
+
+/// The `Pan` type
+///
+/// This is used as an argument for [`SetUserVoiceSettings`] where you can set
+/// the `Pan` of the user. More information can be found in Discord's
+/// [docs][discorddocs].
+///
+/// The pan (left and right) set by the user must be between 0 and 200.
+///
+/// [discorddocs]: https://discord.com/developers/docs/topics/rpc#setuservoicesettings-pan-object
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
 pub struct Pan {
     left: OrderedFloat<f32>,
     right: OrderedFloat<f32>,
 }
 
+/// The `Volume` type
+///
+/// This is used as an argument for [`SetUserVoiceSettings`] where you can set
+/// the `Volume` of the user. More information can be found in Discord's
+/// [docs][discorddocs].
+///
+/// The volume set by the user must be between 0 and 200.
+///
+/// [discorddocs]: https://discord.com/developers/docs/topics/rpc#setuservoicesettings
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
 pub struct Volume {
     #[serde(flatten)]
@@ -76,20 +133,4 @@ impl Pan {
             Ok(Self { left: ord_left, right: ord_right })
         }
     }
-}
-
-make_request_payload!(
-    SetUserVoiceSettings,
-    (user_id, String, "user id"),
-    (pan, Option<Pan>, "set the pan of the user"),
-    (volume, Option<Volume>, "set the volume of user (defaults to 100, min 0, max 200)"),
-    (mute, Option<bool>, "set the mute state of the user")
-);
-
-#[derive(Debug, Error)]
-pub enum Error {
-    #[error("Error setting pan; got values {left} {right}")]
-    PanBoundary { left: f32, right: f32 },
-    #[error("Error setting volume; got value {vol}")]
-    VolumeBoundary { vol: u8 },
 }

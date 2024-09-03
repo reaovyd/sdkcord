@@ -1,8 +1,16 @@
 pub use channel::*;
 pub use guild::*;
+use serde::Serialize;
 pub use voice::*;
 // TODO: subscriptions - bit of a special case since it includes the `evt` now.
 // somehow want to tightly couple the evt enum Event enum and
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
+pub struct EmptyArgs {
+    #[serde(flatten)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    inner: Option<()>,
+}
 
 mod macros {
     macro_rules! make_request_payload {
@@ -26,13 +34,6 @@ mod macros {
                 fn default() -> Self {
                     Self::new()
                 }
-            }
-
-            #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
-            pub struct EmptyArgs {
-                #[serde(flatten)]
-                #[serde(skip_serializing_if = "Option::is_none")]
-                inner: Option<()>,
             }
         };
         ($request_name: ident, $(($field_name: ident, $field_type: ty, $field_doc: expr)),*) => {
