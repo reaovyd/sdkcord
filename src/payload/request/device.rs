@@ -87,3 +87,21 @@ pub struct Model {
 /// UUIDs of related devices
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 pub struct Related(pub Vec<Uuid>);
+
+impl From<Vec<Uuid>> for Related {
+    fn from(value: Vec<Uuid>) -> Self {
+        Related(value)
+    }
+}
+
+impl From<&[Uuid]> for Related {
+    fn from(value: &[Uuid]) -> Self {
+        Related(value.into())
+    }
+}
+
+impl<const N: usize> From<[Uuid; N]> for Related {
+    fn from(value: [Uuid; N]) -> Self {
+        Related(value.into())
+    }
+}
