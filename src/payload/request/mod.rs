@@ -6,19 +6,29 @@ pub use voice::*;
 // TODO: subscriptions - bit of a special case since it includes the `evt` now.
 // somehow want to tightly couple the evt enum Event enum and
 
-use serde::Serialize;
-
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
-pub struct EmptyArgs {
-    #[serde(flatten)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    inner: Option<()>,
+#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+pub enum Request {
+    GetGuild(GetGuild),
+    GetGuilds(GetGuilds),
+    GetChannel(GetChannel),
+    GetChannels(GetChannels),
+    SetUserVoiceSettings(SetUserVoiceSettings),
+    SelectVoiceChannel(SelectVoiceChannel),
+    GetSelectedVoiceChannel(GetSelectedVoiceChannel),
+    SelectTextChannel(SelectTextChannel),
+    GetVoiceSettings(GetVoiceSettings),
+    SetVoiceSettings(SetVoiceSettings),
+    SetCertifiedDevices(SetCertifiedDevices),
+    SetActivity(SetActivity),
+    SendActivityJoinInvite(SendActivityJoinInvite),
+    CloseActivityRequest(CloseActivityRequest)
 }
 
+use serde::Serialize;
 mod macros {
     macro_rules! make_request_payload {
         ($request_name: ident, $(#[$request_doc:meta]),*) => {
-            #[derive(Debug, Clone, Serialize)]
+            #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
             $(
                 #[$request_doc]
             )*
@@ -43,7 +53,7 @@ mod macros {
             }
         };
         ($request_name: ident, $(#[$request_doc:meta]),*, $(($field_name: ident, $field_type: ty, $field_doc: expr $(,#[$skip_serial: meta])? )),*) => {
-            #[derive(Debug, Clone, Serialize)]
+            #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
             $(
                 #[$request_doc]
             )*
@@ -82,6 +92,14 @@ mod macros {
     }
     pub(crate) use make_request_payload;
 }
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
+pub struct EmptyArgs {
+    #[serde(flatten)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    inner: Option<()>,
+}
+
 
 mod activity;
 mod channel;
