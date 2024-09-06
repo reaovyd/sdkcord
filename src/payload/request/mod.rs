@@ -7,6 +7,7 @@ pub use voice::*;
 // somehow want to tightly couple the evt enum Event enum and
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+#[serde(tag = "cmd", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Request {
     GetGuild(GetGuild),
     GetGuilds(GetGuilds),
@@ -21,7 +22,7 @@ pub enum Request {
     SetCertifiedDevices(SetCertifiedDevices),
     SetActivity(SetActivity),
     SendActivityJoinInvite(SendActivityJoinInvite),
-    CloseActivityRequest(CloseActivityRequest)
+    CloseActivityRequest(CloseActivityRequest),
 }
 
 use serde::Serialize;
@@ -99,7 +100,6 @@ pub struct EmptyArgs {
     #[serde(skip_serializing_if = "Option::is_none")]
     inner: Option<()>,
 }
-
 
 mod activity;
 mod channel;
