@@ -108,7 +108,7 @@ impl OutputVoiceSettings {
     pub fn new(
         device_id: &str,
         volume: f32,
-        available_devices: &[DeviceObject],
+        available_devices: &[AvailableDevices],
     ) -> Result<Self, SetVoiceSettingsError> {
         Ok(OutputVoiceSettings(VoiceSettings::new(
             device_id,
@@ -132,7 +132,7 @@ impl InputVoiceSettings {
     pub fn new(
         device_id: &str,
         volume: f32,
-        available_devices: &[DeviceObject],
+        available_devices: &[AvailableDevices],
     ) -> Result<Self, SetVoiceSettingsError> {
         Ok(InputVoiceSettings(VoiceSettings::new(
             device_id,
@@ -155,14 +155,14 @@ struct VoiceSettings {
     volume: Option<OrderedFloat<f32>>,
     /// Array of read-only device objects containing `id` and `name` string keys
     #[serde(skip_serializing_if = "Option::is_none")]
-    available_devices: Option<Vec<DeviceObject>>,
+    available_devices: Option<Vec<AvailableDevices>>,
 }
 
 impl VoiceSettings {
     fn new(
         device_id: &str,
         volume: f32,
-        available_devices: &[DeviceObject],
+        available_devices: &[AvailableDevices],
         min_vol: OrderedFloat<f32>,
         max_vol: OrderedFloat<f32>,
     ) -> Result<Self, SetVoiceSettingsError> {
@@ -188,12 +188,12 @@ impl VoiceSettings {
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
-pub struct DeviceObject {
+pub struct AvailableDevices {
     id: String,
     name: String,
 }
 
-impl DeviceObject {
+impl AvailableDevices {
     pub fn new(id: &str, name: &str) -> Self {
         let id = id.to_string();
         let name = name.to_string();
@@ -205,7 +205,7 @@ impl DeviceObject {
 #[derive(Debug, Error)]
 pub enum SetVoiceSettingsError {
     /// An error for values that did not satisfy the invariant while building
-    /// the list of [`DeviceObject`]s
+    /// the list of [`AvailableDevices`]s
     #[error("Error setting available_devices: the list is empty so nothing can be set")]
     AvailableDevicesEmpty,
     /// An error for values that did not satisfy the invariant while building

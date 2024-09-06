@@ -1,9 +1,12 @@
+pub use activity::*;
 pub use channel::*;
+pub use device::*;
 pub use guild::*;
-use serde::Serialize;
 pub use voice::*;
 // TODO: subscriptions - bit of a special case since it includes the `evt` now.
 // somehow want to tightly couple the evt enum Event enum and
+
+use serde::Serialize;
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
 pub struct EmptyArgs {
@@ -39,7 +42,7 @@ mod macros {
                 }
             }
         };
-        ($request_name: ident, $(#[$request_doc:meta]),*, $(($field_name: ident, $field_type: ty, $field_doc: expr $(,#[$skip_serial: meta])* )),*) => {
+        ($request_name: ident, $(#[$request_doc:meta]),*, $(($field_name: ident, $field_type: ty, $field_doc: expr $(,#[$skip_serial: meta])? )),*) => {
             #[derive(Debug, Clone, Serialize)]
             $(
                 #[$request_doc]
@@ -50,7 +53,6 @@ mod macros {
             }
 
             paste! {
-
                 #[derive(Builder, Debug, Clone, Serialize, PartialEq, Eq, Hash)]
                 #[builder(derive(Debug))]
                 // lint isn't catching a /**/ comment where the Errors section is according to
@@ -81,6 +83,8 @@ mod macros {
     pub(crate) use make_request_payload;
 }
 
+mod activity;
 mod channel;
+mod device;
 mod guild;
 mod voice;
