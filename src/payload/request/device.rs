@@ -11,7 +11,7 @@ use uuid::Uuid;
 make_request_payload!(SetCertifiedDevices,
     #[doc = "Used by hardware manufacturers to send information about the
 current state of their certified devices that are connected to Discord."],
-    (devices, DeviceList, "a list of devices for your manufacturer, in order of priority")
+    (devices, DeviceList, "a list of devices for your manufacturer, in order of priority", #[builder(setter(into))])
 );
 
 /// Array of [`Device`] objects
@@ -103,5 +103,11 @@ impl From<&[Uuid]> for Related {
 impl<const N: usize> From<[Uuid; N]> for Related {
     fn from(value: [Uuid; N]) -> Self {
         Related(value.into())
+    }
+}
+
+impl From<Vec<Device>> for DeviceList {
+    fn from(value: Vec<Device>) -> Self {
+        DeviceList(value)
     }
 }

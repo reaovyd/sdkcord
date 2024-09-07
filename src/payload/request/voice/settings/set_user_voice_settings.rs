@@ -43,7 +43,7 @@ pub enum SetUserVoiceSettingsError {
 /// the `Pan` of the user. More information can be found in Discord's
 /// [docs][discorddocs].
 ///
-/// The pan (left and right) set by the user must be between 0 and 200.
+/// The pan (left and right) set by the user must be between 0.0 and 1.0.
 ///
 /// [discorddocs]: https://discord.com/developers/docs/topics/rpc#setuservoicesettings-pan-object
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
@@ -62,10 +62,7 @@ pub struct Pan {
 ///
 /// [discorddocs]: https://discord.com/developers/docs/topics/rpc#setuservoicesettings
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
-pub struct Volume {
-    #[serde(flatten)]
-    inner: u8,
-}
+pub struct Volume(u8);
 
 impl Volume {
     const MAX_VOL: u8 = 200;
@@ -84,14 +81,14 @@ impl Volume {
         if inner > Self::MAX_VOL {
             Err(SetUserVoiceSettingsError::VolumeBoundary { vol: inner })
         } else {
-            Ok(Self { inner })
+            Ok(Self(inner))
         }
     }
 }
 
 impl Default for Volume {
     fn default() -> Self {
-        Self { inner: 100 }
+        Self(100u8)
     }
 }
 
