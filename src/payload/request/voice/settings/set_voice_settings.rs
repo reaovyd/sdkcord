@@ -38,10 +38,12 @@ pub struct ModeVoiceSettings {
     /// Voice activity threshold automatically sets its threshold
     auto_threshold: bool,
     /// Threshold for voice activity (in dB) (min: -100, max: 0)
+    #[builder(setter(into))]
     threshold: OrderedFloat<f32>,
     /// Shortcut key combos for PTT
     shortcut: Shortcut,
     /// The PTT release delay (in ms) (min: 0, max: 2000)
+    #[builder(setter(into))]
     delay: OrderedFloat<f32>,
 }
 
@@ -49,9 +51,12 @@ impl ModeVoiceSettingsBuilder {
     const MIN_THRESHOLD: OrderedFloat<f32> = OrderedFloat(-100.0);
     const MAX_THRESHOLD: OrderedFloat<f32> = OrderedFloat(0.0);
 
+    const MIN_DELAY: OrderedFloat<f32> = OrderedFloat(0.0);
+    const MAX_DELAY: OrderedFloat<f32> = OrderedFloat(2000.0);
+
     fn validate_boundaries(&self) -> Result<(), SetVoiceSettingsError> {
         if let (Some(delay), Some(threshold)) = (self.delay, self.threshold) {
-            if delay < Self::MIN_THRESHOLD || delay > Self::MAX_THRESHOLD {
+            if delay < Self::MIN_DELAY || delay > Self::MAX_DELAY {
                 return Err(SetVoiceSettingsError::DelayBoundary { delay: delay.0 });
             }
 
@@ -63,11 +68,11 @@ impl ModeVoiceSettingsBuilder {
     }
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 /// The mode type for the mode in voice settings
 ///
 /// It must be either `PUSH_TO_TALK` or `VOICE_ACTIVITY`
+#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ModeType {
     /// The `PUSH_TO_TALK` mode type
     PushToTalk,
@@ -224,5 +229,73 @@ pub enum SetVoiceSettingsError {
 impl From<SetVoiceSettingsError> for ModeVoiceSettingsBuilderError {
     fn from(value: SetVoiceSettingsError) -> Self {
         ModeVoiceSettingsBuilderError::ValidationError(value.to_string())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        ModeVoiceSettingsBuilder,
+        ShortcutBuilder,
+    };
+
+    #[test]
+    #[should_panic(expected = "ValidationError")]
+    fn test_mode_settings_validation_threshold() {
+        ModeVoiceSettingsBuilder::create_empty()
+            .mode_type(super::ModeType::PushToTalk)
+            .auto_threshold(false)
+            .threshold(100.0)
+            .shortcut(
+                ShortcutBuilder::create_empty()
+                    .code(23)
+                    .name("a".to_owned())
+                    .key_type(super::KeyType::GamepadButton)
+                    .build()
+                    .unwrap(),
+            )
+            .delay(200.0)
+            .build()
+            .unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "ValidationError")]
+    fn test_mode_settings_validation_delay() {
+        ModeVoiceSettingsBuilder::create_empty()
+            .mode_type(super::ModeType::PushToTalk)
+            .auto_threshold(false)
+            .threshold(0.0)
+            .shortcut(
+                ShortcutBuilder::create_empty()
+                    .code(23)
+                    .name("a".to_owned())
+                    .key_type(super::KeyType::GamepadButton)
+                    .build()
+                    .unwrap(),
+            )
+            .delay(30000.0)
+            .build()
+            .unwrap();
+    }
+
+    #[test]
+    fn test_mode_settings_validation_success() {
+        let mode_voice_settings = ModeVoiceSettingsBuilder::create_empty()
+            .mode_type(super::ModeType::PushToTalk)
+            .auto_threshold(false)
+            .threshold(0.0)
+            .shortcut(
+                ShortcutBuilder::create_empty()
+                    .code(23)
+                    .name("a".to_owned())
+                    .key_type(super::KeyType::GamepadButton)
+                    .build()
+                    .unwrap(),
+            )
+            .delay(150.0)
+            .build()
+            .unwrap();
+        assert_eq!(mode_voice_settings.threshold.0, 0.0)
     }
 }

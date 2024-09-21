@@ -1,4 +1,5 @@
 pub use activity::*;
+pub use auth::*;
 pub use channel::*;
 pub use device::*;
 pub use guild::*;
@@ -9,6 +10,8 @@ pub use voice::*;
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
 #[serde(tag = "cmd", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Request {
+    Authorize(Authorize),
+    Authenticate(Authenticate),
     GetGuild(GetGuild),
     GetGuilds(GetGuilds),
     GetChannel(GetChannel),
@@ -35,6 +38,7 @@ pub struct EmptyArgs {
 use serde::Serialize;
 
 mod activity;
+mod auth;
 mod channel;
 mod device;
 mod guild;
@@ -81,8 +85,13 @@ mod tests {
     };
 
     use super::{
+        Authorize,
+        AuthorizeArgsBuilder,
         GetGuild,
         GetGuildArgsBuilder,
+        OAuth2Scope,
+        OAuth2Scopes,
+        OAuth2ScopesBuilder,
     };
 
     #[test]
@@ -257,5 +266,26 @@ mod tests {
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"SET_CERTIFIED_DEVICES""#));
+    }
+
+    #[test]
+    fn test_authorize_exists() {
+        let cmd = Request::Authorize(Authorize::new(
+            AuthorizeArgsBuilder::default()
+                .scopes(
+                    OAuth2Scopes::builder()
+                        .add_scope(OAuth2Scope::Email)
+                        .add_scope(OAuth2Scope::Voice)
+                        .build(),
+                )
+                .client_id("client_id1".to_string())
+                .rpc_token("rpc_token1".to_string())
+                .username("username1".to_string())
+                .build()
+                .unwrap(),
+        ));
+        let serialized = serde_json::to_string(&cmd).unwrap();
+        println!("{}", serialized);
+        assert!(serialized.contains(r#""cmd":"AUTHORIZE""#));
     }
 }

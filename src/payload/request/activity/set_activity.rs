@@ -27,18 +27,25 @@ pub struct Activity {
     #[serde(rename = "type")]
     activity_type: ActivityType,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     timestamps: Option<Timestamps>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     details: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     state: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     party: Option<Party>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     assets: Option<Assets>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     secrets: Option<Secrets>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     instance: Option<bool>,
 }
 
@@ -75,16 +82,20 @@ pub enum ActivityType {
 #[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Timestamps {
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     start: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     end: Option<u64>,
 }
 
 #[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Party {
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     size: Option<[u32; 2]>,
 }
 
@@ -101,15 +112,19 @@ pub struct Party {
 pub struct Assets {
     /// Large image displayed on a user's Rich Presence
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     large_image: Option<String>,
     /// Text displayed when hovering over the large image of the activity
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     large_text: Option<String>,
     /// Small image displayed on a user's Rich Presence
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     small_image: Option<String>,
     /// Text displayed when hovering over the small image of the activity
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     small_text: Option<String>,
 }
 
@@ -118,12 +133,42 @@ pub struct Assets {
 pub struct Secrets {
     /// Secret for joining a party
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     join: Option<String>,
     /// Secret for spectating a game
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     spectate: Option<String>,
     /// Secret for a specific instanced match
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "match")]
+    #[builder(default)]
     secrets_match: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        ActivityBuilder,
+        SetActivity,
+        SetActivityArgsBuilder,
+    };
+
+    #[test]
+    fn test_basic_build() {
+        let activity = SetActivity::new(
+            SetActivityArgsBuilder::create_empty()
+                .pid(2333)
+                .activity(Some(
+                    ActivityBuilder::create_empty()
+                        .activity_type(super::ActivityType::Playing)
+                        .build()
+                        .unwrap(),
+                ))
+                .build()
+                .unwrap(),
+        );
+        let serialized = serde_json::to_string(&activity).unwrap();
+        assert!(serialized.contains(r#""activity":{"type":0}"#));
+    }
 }

@@ -11,12 +11,18 @@ make_request_payload!(SendActivityJoinInvite,
 
 #[cfg(test)]
 mod tests {
-    use crate::payload::request::{SendActivityJoinInvite, SendActivityJoinInviteArgsBuilder};
+    use crate::payload::request::{
+        SendActivityJoinInvite,
+        SendActivityJoinInviteArgsBuilder,
+    };
 
     #[test]
     fn test_build_request() {
         let request = SendActivityJoinInvite::new(
-            SendActivityJoinInviteArgsBuilder::default().user_id("abcjoe".to_owned()).build().unwrap(),
+            SendActivityJoinInviteArgsBuilder::default()
+                .user_id("abcjoe".to_owned())
+                .build()
+                .unwrap(),
         );
         let request = serde_json::to_string(&request).unwrap();
         assert!(request.contains(r#""user_id":"abcjoe""#))
