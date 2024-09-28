@@ -83,7 +83,7 @@ pub enum OAuth2Scope {
     Guilds,
     #[serde(rename = "guilds.join")]
     GuildsJoin,
-    #[serde(rename = "guilds_members_read")]
+    #[serde(rename = "guilds.members.read")]
     GuildsMembersRead,
     #[serde(rename = "identify")]
     Identify,
@@ -134,6 +134,35 @@ mod tests {
                 .build()
                 .unwrap(),
         );
-        println!("{:?}", serde_json::to_string(&cmd));
+        assert_eq!(cmd.args.username, "username1");
+        assert_eq!(cmd.args.rpc_token, "rpc_token1");
+        assert_eq!(cmd.args.client_id, "client_id1");
+        assert_eq!(cmd.args.scopes, OAuth2Scopes(vec![OAuth2Scope::Email, OAuth2Scope::Voice]));
+    }
+
+    #[test]
+    fn test_authorize_serialized() {
+        let cmd = Authorize::new(
+            AuthorizeArgsBuilder::create_empty()
+                .scopes(
+                    OAuth2Scopes::builder()
+                        .add_scope(OAuth2Scope::Email)
+                        .add_scope(OAuth2Scope::Voice)
+                        .add_scope(OAuth2Scope::GuildsMembersRead)
+                        .build(),
+                )
+                .username("username1".to_string())
+                .rpc_token("rpc_token1".to_string())
+                .client_id("client_id1".to_string())
+                .build()
+                .unwrap(),
+        );
+        let serialized = serde_json::to_string(&cmd).unwrap();
+        assert!(serialized.contains(r#"username1"#));
+        assert!(serialized.contains(r#"rpc_token1"#));
+        assert!(serialized.contains(r#"client_id1"#));
+        assert!(serialized.contains(r#""email""#));
+        assert!(serialized.contains(r#""voice""#));
+        assert!(serialized.contains(r#""guilds.members.read""#));
     }
 }

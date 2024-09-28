@@ -91,7 +91,6 @@ mod tests {
         GetGuildArgsBuilder,
         OAuth2Scope,
         OAuth2Scopes,
-        OAuth2ScopesBuilder,
     };
 
     #[test]
