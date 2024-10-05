@@ -24,7 +24,8 @@ macro_rules! make_request_payload {
             }
         }
     };
-    ($request_name: ident, $(#[$request_doc:meta]),*, $(($field_name: ident, $field_type: ty, $field_doc: expr $(,#[$skip_serial: meta])? )),*) => {
+// ($(#[$skip_serial: meta]))
+    ($request_name: ident, $(#[$request_doc:meta]),*, $(($field_name: ident, $field_type: ty, ($(#[$field_doc: meta]),*) $(, ($(#[$skip_serial: meta]),*))? )),*) => {
         #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
         $(
             #[$request_doc]
@@ -42,10 +43,14 @@ macro_rules! make_request_payload {
             #[allow(clippy::missing_errors_doc)]
             pub struct [<$request_name Args>] {
                 $(
-                    #[doc = $field_doc]
                     $(
-                        #[$skip_serial]
+                        #[$field_doc]
                     )*
+                    $(
+                        $(
+                            #[$skip_serial]
+                        )*
+                    )?
                     $field_name: $field_type
                 ),*
             }
