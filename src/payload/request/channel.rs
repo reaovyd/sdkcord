@@ -45,10 +45,7 @@ mod get_channel_tests {
     #[test]
     fn test_construction_basic() {
         let get_channel = GetChannel::new(
-            GetChannelArgsBuilder::create_empty()
-                .channel_id("channel_id_123")
-                .build()
-                .unwrap(),
+            GetChannelArgsBuilder::create_empty().channel_id("channel_id_123").build().unwrap(),
         );
         assert_str_eq!(get_channel.args.channel_id, "channel_id_123");
     }
@@ -56,10 +53,7 @@ mod get_channel_tests {
     #[test]
     fn test_serialization_contains_id() {
         let get_channel = GetChannel::new(
-            GetChannelArgsBuilder::create_empty()
-                .channel_id("channel_id_123")
-                .build()
-                .unwrap(),
+            GetChannelArgsBuilder::create_empty().channel_id("channel_id_123").build().unwrap(),
         );
         assert_str_eq!(get_channel.args.channel_id, "channel_id_123");
         let serialized = serde_json::to_string(&get_channel).unwrap();

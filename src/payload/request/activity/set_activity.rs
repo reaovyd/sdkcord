@@ -1,7 +1,6 @@
 use crate::payload::request::macros::make_request_payload;
-use paste::paste;
 use derive_builder::Builder;
-use uuid::Uuid;
+use paste::paste;
 use serde::{
     Deserialize,
     Serialize,
@@ -11,6 +10,7 @@ use serde_repr::{
     Serialize_repr,
 };
 use serde_with::skip_serializing_none;
+use uuid::Uuid;
 
 make_request_payload!(SetActivity,
     #[doc = "Used to update a user's Rich Presence."],

@@ -19,7 +19,10 @@ make_request_payload!(GetGuilds,
 mod get_guild_tests {
     use pretty_assertions::assert_eq;
 
-    use super::{GetGuild, GetGuildArgsBuilder};
+    use super::{
+        GetGuild,
+        GetGuildArgsBuilder,
+    };
 
     #[test]
     fn test_construction_basic() {

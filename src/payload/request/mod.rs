@@ -149,9 +149,7 @@ mod tests {
     #[test]
     fn test_select_voice_channel_cmd_exists() {
         let cmd = Request::SelectVoiceChannel(SelectVoiceChannel::new(
-            SelectVoiceChannelArgsBuilder::default()
-                .build()
-                .unwrap(),
+            SelectVoiceChannelArgsBuilder::default().build().unwrap(),
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"SELECT_VOICE_CHANNEL""#));
@@ -183,9 +181,7 @@ mod tests {
     #[test]
     fn test_set_voice_settings_cmd_exists() {
         let cmd = Request::SetVoiceSettings(SetVoiceSettings::new(
-            SetVoiceSettingsArgsBuilder::default()
-                .build()
-                .unwrap(),
+            SetVoiceSettingsArgsBuilder::default().build().unwrap(),
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"SET_VOICE_SETTINGS""#));

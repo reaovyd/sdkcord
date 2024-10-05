@@ -15,7 +15,7 @@ make_request_payload!(
         (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
     ),
     (volume, Option<Volume>,
-        (#[doc = "set the volume of user (defaults to 100, min 0, max 200)"]), 
+        (#[doc = "set the volume of user (defaults to 100, min 0, max 200)"]),
         (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
     ),
     (mute, Option<bool>,
