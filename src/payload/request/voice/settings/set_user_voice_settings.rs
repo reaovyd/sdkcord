@@ -9,10 +9,19 @@ use uuid::Uuid;
 make_request_payload!(
     SetUserVoiceSettings,
     #[doc = "Used to change voice settings of users in voice channels"],
-    (user_id, String, "user id"),
-    (pan, Option<Pan>, "set the pan of the user", #[serde(skip_serializing_if = "Option::is_none")]),
-    (volume, Option<Volume>, "set the volume of user (defaults to 100, min 0, max 200)", #[serde(skip_serializing_if = "Option::is_none")]),
-    (mute, Option<bool>, "set the mute state of the user", #[serde(skip_serializing_if = "Option::is_none")])
+    (user_id, String, (#[doc = "user id"])),
+    (pan, Option<Pan>,
+        (#[doc = "set the pan of the user"]),
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    ),
+    (volume, Option<Volume>,
+        (#[doc = "set the volume of user (defaults to 100, min 0, max 200)"]), 
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    ),
+    (mute, Option<bool>,
+        (#[doc = "set the mute state of the user"]),
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    )
 );
 
 /// `Error`s that occur when trying to build the [`SetUserVoiceSettings`]

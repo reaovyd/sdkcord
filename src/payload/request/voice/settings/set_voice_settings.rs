@@ -3,6 +3,7 @@ use derive_builder::Builder;
 use ordered_float::OrderedFloat;
 use paste::paste;
 use serde::Serialize;
+use serde_with::skip_serializing_none;
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -11,16 +12,46 @@ make_request_payload!(
     SetVoiceSettings,
     #[doc = "Used to set the client's voice settings"],
     #[doc = "When setting voice settings, all fields are optional. Only passed fields are updated."],
-    (input, Option<InputVoiceSettings>, "input settings", #[serde(skip_serializing_if = "Option::is_none")]),
-    (output, Option<OutputVoiceSettings>, "output settings", #[serde(skip_serializing_if = "Option::is_none")]),
-    (mode, Option<ModeVoiceSettings>, "voice mode settings", #[serde(skip_serializing_if = "Option::is_none")]),
-    (automatic_gain_control, Option<bool>, "state of automatic gain control", #[serde(skip_serializing_if = "Option::is_none")]),
-    (echo_cancellation, Option<bool>, "state of echo cancellation", #[serde(skip_serializing_if = "Option::is_none")]),
-    (noise_suppression, Option<bool>, "state of noise suppression", #[serde(skip_serializing_if = "Option::is_none")]),
-    (qos, Option<bool>, "state of voice quality of service", #[serde(skip_serializing_if = "Option::is_none")]),
-    (silence_warning, Option<bool>, "state of silence warning notice", #[serde(skip_serializing_if = "Option::is_none")]),
-    (deaf, Option<bool>, "state of self-deafen", #[serde(skip_serializing_if = "Option::is_none")]),
-    (mute, Option<bool>, "state of self-mute", #[serde(skip_serializing_if = "Option::is_none")])
+    (input, Option<InputVoiceSettings>,
+        (#[doc = "input settings"]),
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    ),
+    (output, Option<OutputVoiceSettings>,
+        (#[doc = "output settings"]),
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    ),
+    (mode, Option<ModeVoiceSettings>,
+        (#[doc = "voice mode settings"]),
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    ),
+    (automatic_gain_control, Option<bool>,
+        (#[doc = "state of automatic gain control"]),
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    ),
+    (echo_cancellation, Option<bool>,
+        (#[doc = "state of echo cancellation"]),
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    ),
+    (noise_suppression, Option<bool>,
+        (#[doc = "state of noise suppression"]),
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    ),
+    (qos, Option<bool>,
+        (#[doc = "state of voice quality of service"]),
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    ),
+    (silence_warning, Option<bool>,
+        (#[doc = "state of silence warning notice"]),
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    ),
+    (deaf, Option<bool>,
+        (#[doc = "state of self-deafen"]),
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    ),
+    (mute, Option<bool>,
+        (#[doc = "state of self-mute"]),
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    )
 );
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
@@ -30,7 +61,7 @@ pub struct InputVoiceSettings(VoiceSettings);
 pub struct OutputVoiceSettings(VoiceSettings);
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Builder)]
-#[builder(build_fn(validate = "Self::validate_boundaries"))]
+#[builder(build_fn(validate = "Self::validate_boundaries"), setter(into))]
 pub struct ModeVoiceSettings {
     /// Voice setting mode type
     #[serde(rename = "type")]
@@ -38,12 +69,10 @@ pub struct ModeVoiceSettings {
     /// Voice activity threshold automatically sets its threshold
     auto_threshold: bool,
     /// Threshold for voice activity (in dB) (min: -100, max: 0)
-    #[builder(setter(into))]
     threshold: OrderedFloat<f32>,
     /// Shortcut key combos for PTT
     shortcut: Shortcut,
     /// The PTT release delay (in ms) (min: 0, max: 2000)
-    #[builder(setter(into))]
     delay: OrderedFloat<f32>,
 }
 
@@ -150,27 +179,29 @@ impl InputVoiceSettings {
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
+#[skip_serializing_none]
 struct VoiceSettings {
     /// Device id
-    #[serde(skip_serializing_if = "Option::is_none")]
     device_id: Option<String>,
     /// Input voice level (min: 0, max: 100)
     /// Output voice level (min: 0, max: 200)
-    #[serde(skip_serializing_if = "Option::is_none")]
     volume: Option<OrderedFloat<f32>>,
     /// Array of read-only device objects containing `id` and `name` string keys
-    #[serde(skip_serializing_if = "Option::is_none")]
     available_devices: Option<Vec<AvailableDevices>>,
 }
 
 impl VoiceSettings {
     fn new(
         device_id: &str,
-        volume: f32,
+        volume: impl Into<f32>,
         available_devices: &[AvailableDevices],
-        min_vol: OrderedFloat<f32>,
-        max_vol: OrderedFloat<f32>,
+        min_vol: impl Into<OrderedFloat<f32>>,
+        max_vol: impl Into<OrderedFloat<f32>>,
     ) -> Result<Self, SetVoiceSettingsError> {
+        let volume = volume.into();
+        let min_vol = min_vol.into();
+        let max_vol = max_vol.into();
+
         let volume_ord = OrderedFloat(volume);
         if volume_ord < min_vol || volume_ord > max_vol {
             return Err(SetVoiceSettingsError::VolumeBoundary { vol: volume });

@@ -7,19 +7,30 @@ use uuid::Uuid;
 make_request_payload!(
     GetChannel,
     #[doc = "Used to retrieve channel information from the client"],
-    (channel_id, String, "id of the channel to get")
+    (channel_id, String, (#[doc = "id of the channel to get"]))
 );
 
 make_request_payload!(
     GetChannels,
     #[doc = "Used to retrieve a list of channels for a guild from the client"],
-    (guild_id, String, "id of the guild to get channels for")
+    (guild_id, String, (#[doc = "id of the guild to get channels for"]))
 );
 
 make_request_payload!(SelectTextChannel,
     #[doc = "Used to join or leave a text channel, group dm, or dm"],
-    (channel_id, Option<String>, "channel id to join (or null/Option::None to leave)"),
-    (timeout, Option<u32>, "asynchronously join channel with time to wait before timing out", #[serde(skip_serializing_if = "Option::is_none")])
+    (channel_id, Option<String>,
+            (#[doc = "channel id to join (or null/Option::None to leave)"]),
+            (
+                #[builder(setter(strip_option), default)]
+            )
+    ),
+    (timeout, Option<u32>,
+            (#[doc = "asynchronously join channel with time to wait before timing out"]),
+            (
+                #[serde(skip_serializing_if = "Option::is_none")],
+                #[builder(setter(strip_option), default)]
+            )
+    )
 );
 
 #[cfg(test)]
@@ -35,7 +46,7 @@ mod get_channel_tests {
     fn test_construction_basic() {
         let get_channel = GetChannel::new(
             GetChannelArgsBuilder::create_empty()
-                .channel_id("channel_id_123".to_owned())
+                .channel_id("channel_id_123")
                 .build()
                 .unwrap(),
         );
@@ -46,7 +57,7 @@ mod get_channel_tests {
     fn test_serialization_contains_id() {
         let get_channel = GetChannel::new(
             GetChannelArgsBuilder::create_empty()
-                .channel_id("channel_id_123".to_owned())
+                .channel_id("channel_id_123")
                 .build()
                 .unwrap(),
         );
@@ -68,7 +79,7 @@ mod get_channels_tests {
     #[test]
     fn test_construction_basic() {
         let get_channels = GetChannels::new(
-            GetChannelsArgsBuilder::create_empty().guild_id("hi123".to_string()).build().unwrap(),
+            GetChannelsArgsBuilder::create_empty().guild_id("hi123").build().unwrap(),
         );
         assert_str_eq!(get_channels.args.guild_id, "hi123".to_owned());
     }
@@ -76,7 +87,7 @@ mod get_channels_tests {
     #[test]
     fn test_serialization_contains_guild_id() {
         let get_channels = GetChannels::new(
-            GetChannelsArgsBuilder::create_empty().guild_id("hi123".to_string()).build().unwrap(),
+            GetChannelsArgsBuilder::create_empty().guild_id("hi123").build().unwrap(),
         );
         assert_str_eq!(get_channels.args.guild_id, "hi123".to_owned());
         let serialized = serde_json::to_string(&get_channels).unwrap();

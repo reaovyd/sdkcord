@@ -8,8 +8,8 @@ use uuid::Uuid;
 make_request_payload!(
     GetGuild,
     #[doc = "Used to retrieve guild information from the client"],
-    (guild_id, String, "id of the guild to get"),
-    (timeout, Option<u32>, "asynchronously get guild with time to wait before timing out", #[serde(skip_serializing_if = "Option::is_none")])
+    (guild_id, String, (#[doc = "id of the guild to get"])),
+    (timeout, Option<u32>, (#[doc = "asynchronously get guild with time to wait before timing out"]), (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)]))
 );
 make_request_payload!(GetGuilds,
     #[doc = "Used to retrieve a list of guilds from the client"]
@@ -19,17 +19,14 @@ make_request_payload!(GetGuilds,
 mod get_guild_tests {
     use pretty_assertions::assert_eq;
 
-    use super::{
-        GetGuild,
-        GetGuildArgsBuilder,
-    };
+    use super::{GetGuild, GetGuildArgsBuilder};
 
     #[test]
     fn test_construction_basic() {
         let guild = GetGuild::new(
             GetGuildArgsBuilder::create_empty()
-                .guild_id("guild_id".to_string())
-                .timeout(Some(32))
+                .guild_id("guild_id")
+                .timeout(32u32)
                 .build()
                 .unwrap(),
         );
@@ -40,11 +37,7 @@ mod get_guild_tests {
     #[test]
     fn test_serialization_timeout_empty() {
         let guild = GetGuild::new(
-            GetGuildArgsBuilder::create_empty()
-                .guild_id("guild_id".to_string())
-                .timeout(None)
-                .build()
-                .unwrap(),
+            GetGuildArgsBuilder::create_empty().guild_id("guild_id").build().unwrap(),
         );
 
         assert_eq!(guild.args.timeout, None);
@@ -58,8 +51,8 @@ mod get_guild_tests {
     fn test_serialization_timeout_filled() {
         let guild = GetGuild::new(
             GetGuildArgsBuilder::create_empty()
-                .guild_id("guild_id".to_string())
-                .timeout(Some(32))
+                .guild_id("guild_id")
+                .timeout(32u32)
                 .build()
                 .unwrap(),
         );

@@ -25,7 +25,7 @@ macro_rules! make_request_payload {
         }
     };
 // ($(#[$skip_serial: meta]))
-    ($request_name: ident, $(#[$request_doc:meta]),*, $(($field_name: ident, $field_type: ty, ($(#[$field_doc: meta]),*) $(, ($(#[$skip_serial: meta]),*))? )),*) => {
+    ($request_name: ident, $(#[$request_doc:meta]),*, $(($field_name: ident, $field_type: ty, ($(#[$field_doc: meta]),*) $(, ($(#[$addt_dctv: meta]),*))? )),*) => {
         #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
         $(
             #[$request_doc]
@@ -37,7 +37,7 @@ macro_rules! make_request_payload {
 
         paste! {
             #[derive(Builder, Debug, Clone, Serialize, PartialEq, Eq, Hash)]
-            #[builder(derive(Debug))]
+            #[builder(derive(Debug), setter(into))]
             // lint isn't catching a /**/ comment where the Errors section is according to
             // cargo expand
             #[allow(clippy::missing_errors_doc)]
@@ -48,7 +48,7 @@ macro_rules! make_request_payload {
                     )*
                     $(
                         $(
-                            #[$skip_serial]
+                            #[$addt_dctv]
                         )*
                     )?
                     $field_name: $field_type

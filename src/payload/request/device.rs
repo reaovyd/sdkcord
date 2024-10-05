@@ -5,13 +5,13 @@ use serde::{
     Deserialize,
     Serialize,
 };
+use serde_with::skip_serializing_none;
 use url::Url;
 use uuid::Uuid;
 
 make_request_payload!(SetCertifiedDevices,
-    #[doc = "Used by hardware manufacturers to send information about the
-current state of their certified devices that are connected to Discord."],
-    (devices, DeviceList, "a list of devices for your manufacturer, in order of priority", #[builder(setter(into))])
+    #[doc = "Used by hardware manufacturers to send information about the current state of their certified devices that are connected to Discord."],
+    (devices, DeviceList, (#[doc = "a list of devices for your manufacturer, in order of priority"]))
 );
 
 /// Array of [`Device`] objects
@@ -20,6 +20,7 @@ pub struct DeviceList(pub Vec<Device>);
 
 /// The [`Device`] type that represents a device object in Discord
 #[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[skip_serializing_none]
 pub struct Device {
     /// The type of device
     #[serde(rename = "type")]
@@ -35,22 +36,22 @@ pub struct Device {
     /// If the device's native echo cancellation is enabled
     ///
     /// This is only available for [`DeviceType::AudioInput`] device types!
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     echo_cancellation: Option<bool>,
     /// If the device's native noise suppression is enabled
     ///
     /// This is only available for [`DeviceType::AudioInput`] device types!
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     noise_suppression: Option<bool>,
     /// If the device's native automatic gain control is enabled
     ///
     /// This is only available for [`DeviceType::AudioInput`] device types!
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     automatic_gain_control: Option<bool>,
     /// If the device is hardware muted
     ///
     /// This is only available for [`DeviceType::AudioInput`] device types!
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default)]
     hardware_mute: Option<bool>,
 }
 

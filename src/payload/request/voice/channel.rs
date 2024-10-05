@@ -9,10 +9,22 @@ use uuid::Uuid;
 
 make_request_payload!(SelectVoiceChannel,
     #[doc = "Used to join or leave a voice channel, group dm, or dm"],
-    (channel_id, Option<String>, "channel id to join (or null/Option::None to leave)"),
-    (timeout, Option<u32>, "asynchronously join channel with time to wait before timing out", #[serde(skip_serializing_if = "Option::is_none")]),
-    (force, Option<bool>, "forces a user to join a voice channel", #[serde(skip_serializing_if = "Option::is_none")]),
-    (navigate, Option<bool>, "after joining the voice channel, navigate to it in the client", #[serde(skip_serializing_if = "Option::is_none")])
+    (channel_id, Option<String>, 
+        (#[doc = "channel id to join (or null/Option::None to leave)"]),
+        (#[builder(setter(strip_option), default)])
+    ),
+    (timeout, Option<u32>,
+        (#[doc = "asynchronously join channel with time to wait before timing out"]),
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    ),
+    (force, Option<bool>, 
+        (#[doc = "forces a user to join a voice channel"]), 
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    ),
+    (navigate, Option<bool>,
+        (#[doc = "after joining the voice channel, navigate to it in the client"]), 
+        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+    )
 );
 
 make_request_payload!(

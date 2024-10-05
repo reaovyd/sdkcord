@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 make_request_payload!(SendActivityJoinInvite,
     #[doc = "Used to accept an Ask to Join request."],
-    (user_id, String, "The id of the requesting user")
+    (user_id, String, (#[doc = "The id of the requesting user"]))
 );
 
 #[cfg(test)]

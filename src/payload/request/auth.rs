@@ -12,15 +12,15 @@ use uuid::Uuid;
 make_request_payload!(Authorize,
     #[doc = "Used to authenticate a new client with your app. By default this pops up a modal in-app that asks the user to authorize access to your app."],
     #[doc = "More information can be found on the Discord docs website"],
-    (scopes, OAuth2Scopes, "scopes to authorize"),
-    (client_id, String, "OAuth2 application id"),
-    (rpc_token, String, "one-time use RPC token"),
-    (username, String, "username to create a guest account with if the user does not have Discord")
+    (scopes, OAuth2Scopes, (#[doc = "scopes to authorize"])),
+    (client_id, String, (#[doc = "OAuth2 application id"])),
+    (rpc_token, String, (#[doc = "one-time use RPC token"])),
+    (username, String, (#[doc = "username to create a guest account with if the user does not have Discord"]))
 );
 
 make_request_payload!(Authenticate,
     #[doc = "Used to authenticate an existing client with your app."],
-    (access_token, String, "OAuth2 access token")
+    (access_token, String, (#[doc = "OAuth2 access token"]))
 );
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -128,16 +128,18 @@ mod tests {
                         .add_scope(OAuth2Scope::Voice)
                         .build(),
                 )
-                .username("username1".to_string())
-                .rpc_token("rpc_token1".to_string())
-                .client_id("client_id1".to_string())
+                .username("username1")
+                .rpc_token("rpc_token1")
+                .client_id("client_id1")
                 .build()
                 .unwrap(),
         );
         assert_eq!(cmd.args.username, "username1");
         assert_eq!(cmd.args.rpc_token, "rpc_token1");
         assert_eq!(cmd.args.client_id, "client_id1");
-        assert_eq!(cmd.args.scopes, OAuth2Scopes(vec![OAuth2Scope::Email, OAuth2Scope::Voice]));
+        for expected_scope in [OAuth2Scope::Email, OAuth2Scope::Voice] {
+            assert!(cmd.args.scopes.0.contains(&expected_scope));
+        }
     }
 
     #[test]

@@ -98,7 +98,7 @@ mod tests {
         let get_guild = Request::GetGuild(GetGuild::new(
             GetGuildArgsBuilder::default()
                 .guild_id("abc".to_owned())
-                .timeout(Some(200))
+                .timeout(200u32)
                 .build()
                 .unwrap(),
         ));
@@ -136,9 +136,9 @@ mod tests {
         let set_user_voice_settings = Request::SetUserVoiceSettings(SetUserVoiceSettings::new(
             SetUserVoiceSettingsArgsBuilder::default()
                 .user_id("123".to_string())
-                .pan(Some(Pan::new(1.0, 1.0).unwrap()))
-                .volume(Some(Volume::new(30).unwrap()))
-                .mute(Some(false))
+                .pan(Pan::new(1.0, 1.0).unwrap())
+                .volume(Volume::new(30).unwrap())
+                .mute(false)
                 .build()
                 .unwrap(),
         ));
@@ -150,10 +150,6 @@ mod tests {
     fn test_select_voice_channel_cmd_exists() {
         let cmd = Request::SelectVoiceChannel(SelectVoiceChannel::new(
             SelectVoiceChannelArgsBuilder::default()
-                .channel_id(None)
-                .timeout(None)
-                .force(None)
-                .navigate(None)
                 .build()
                 .unwrap(),
         ));
@@ -171,7 +167,7 @@ mod tests {
     #[test]
     fn test_select_text_channel_cmd_exists() {
         let cmd = Request::SelectTextChannel(SelectTextChannel::new(
-            SelectTextChannelArgsBuilder::default().channel_id(None).timeout(None).build().unwrap(),
+            SelectTextChannelArgsBuilder::default().build().unwrap(),
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"SELECT_TEXT_CHANNEL""#));
@@ -188,16 +184,6 @@ mod tests {
     fn test_set_voice_settings_cmd_exists() {
         let cmd = Request::SetVoiceSettings(SetVoiceSettings::new(
             SetVoiceSettingsArgsBuilder::default()
-                .input(None)
-                .output(None)
-                .mode(None)
-                .automatic_gain_control(None)
-                .echo_cancellation(None)
-                .mute(None)
-                .noise_suppression(None)
-                .qos(None)
-                .silence_warning(None)
-                .deaf(None)
                 .build()
                 .unwrap(),
         ));
@@ -208,7 +194,7 @@ mod tests {
     #[test]
     fn test_set_activity_cmd_exists() {
         let cmd = Request::SetActivity(SetActivity::new(
-            SetActivityArgsBuilder::default().pid(3333).activity(None).build().unwrap(),
+            SetActivityArgsBuilder::default().pid(3333u32).build().unwrap(),
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"SET_ACTIVITY""#));
