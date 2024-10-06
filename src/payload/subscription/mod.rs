@@ -1,3 +1,4 @@
+pub use activity::*;
 pub use channel::*;
 pub use guild::*;
 pub use message::*;
@@ -26,6 +27,7 @@ struct EmptyArgs {
     inner: Option<()>,
 }
 
+mod activity;
 mod channel;
 mod guild;
 mod macros;
