@@ -1,5 +1,7 @@
 pub use channel::*;
 pub use guild::*;
+pub use message::*;
+pub use notification::*;
 pub use speaking::*;
 pub use voice::*;
 
@@ -27,5 +29,7 @@ pub struct EmptyArgs {
 mod channel;
 mod guild;
 mod macros;
+mod message;
+mod notification;
 mod speaking;
 mod voice;
