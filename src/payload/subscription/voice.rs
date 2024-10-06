@@ -25,3 +25,11 @@ make_subscription_event!(VoiceStateDelete,
     #[doc = "sent when a user parts a subscribed voice channel"],
     (guild_id, String, (#[doc = "id of channel to listen to updates of"]))
 );
+
+make_subscription_event!(VoiceSettingsUpdate,
+    #[doc = "sent when the client's voice settings update"]
+);
+
+make_subscription_event!(VoiceConnectionStatus,
+    #[doc = "sent when the client's voice connection status changes"]
+);
