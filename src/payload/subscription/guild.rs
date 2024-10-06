@@ -8,12 +8,12 @@ use serde::Serialize;
 use uuid::Uuid;
 
 make_subscription_event!(GuildStatus,
-    #[doc = "Sent when a subscribed server's state changes"],
+    #[doc = "sent when a subscribed server's state changes"],
     (guild_id, String, (#[doc = "id of guild to listen to updates of"]))
 );
 
 make_subscription_event!(GuildCreate,
-    #[doc = "Sent when a guild is created/joined on the client"]
+    #[doc = "sent when a guild is created/joined on the client"]
 );
 
 #[cfg(test)]
