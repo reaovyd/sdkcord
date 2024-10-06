@@ -1,7 +1,4 @@
-use super::{
-    macros::make_subscription_event,
-    EmptyArgs,
-};
+use super::macros::make_subscription_event;
 use derive_builder::Builder;
 use paste::paste;
 use serde::Serialize;

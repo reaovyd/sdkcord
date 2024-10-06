@@ -1,7 +1,7 @@
 pub use channel::*;
 pub use guild::*;
-pub use voice::*;
 pub use speaking::*;
+pub use voice::*;
 
 use serde::Serialize;
 
@@ -27,5 +27,5 @@ pub struct EmptyArgs {
 mod channel;
 mod guild;
 mod macros;
-mod voice;
 mod speaking;
+mod voice;
