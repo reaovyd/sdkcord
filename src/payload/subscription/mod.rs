@@ -20,7 +20,7 @@ pub enum UnsubscribeRequest {
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
-pub struct EmptyArgs {
+struct EmptyArgs {
     #[serde(flatten)]
     #[serde(skip_serializing_if = "Option::is_none")]
     inner: Option<()>,
