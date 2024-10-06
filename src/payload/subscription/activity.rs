@@ -1,5 +1,7 @@
-use super::macros::make_subscription_event;
-use super::EmptyArgs;
+use super::{
+    macros::make_subscription_event,
+    EmptyArgs,
+};
 use paste::paste;
 use serde::Serialize;
 use uuid::Uuid;

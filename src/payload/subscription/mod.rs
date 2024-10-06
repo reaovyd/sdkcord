@@ -12,12 +12,46 @@ use serde::Serialize;
 #[serde(tag = "evt", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum SubscribeRequest {
     GuildStatus(GuildStatusSubscriptionEvent),
+    GuildCreate(GuildCreateSubscriptionEvent),
+    ChannelCreate(ChannelCreateSubscriptionEvent),
+    VoiceChannelSelect(VoiceChannelSelectSubscriptionEvent),
+    VoiceStateCreate(VoiceStateCreateSubscriptionEvent),
+    VoiceStateUpdate(VoiceStateUpdateSubscriptionEvent),
+    VoiceStateDelete(VoiceStateDeleteSubscriptionEvent),
+    VoiceSettingsUpdate(VoiceSettingsUpdateSubscriptionEvent),
+    VoiceConnectionStatus(VoiceConnectionStatusSubscriptionEvent),
+    SpeakingStart(SpeakingStartSubscriptionEvent),
+    SpeakingStop(SpeakingStopSubscriptionEvent),
+    MessageCreate(MessageCreateSubscriptionEvent),
+    MessageUpdate(MessageUpdateSubscriptionEvent),
+    MessageDelete(MessageDeletedSubscriptionEvent),
+    NotificationCreate(NotificationCreateSubscriptionEvent),
+    ActivityJoin(ActivityJoinSubscriptionEvent),
+    ActivitySpectate(ActivitySpectateSubscriptionEvent),
+    ActivityJoinRequest(ActivityJoinRequestSubscriptionEvent),
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
 #[serde(tag = "evt", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum UnsubscribeRequest {
     GuildStatus(GuildStatusUnsubscriptionEvent),
+    GuildCreate(GuildCreateUnsubscriptionEvent),
+    ChannelCreate(ChannelCreateUnsubscriptionEvent),
+    VoiceChannelSelect(VoiceChannelSelectUnsubscriptionEvent),
+    VoiceStateCreate(VoiceStateCreateUnsubscriptionEvent),
+    VoiceStateUpdate(VoiceStateUpdateUnsubscriptionEvent),
+    VoiceStateDelete(VoiceStateDeleteUnsubscriptionEvent),
+    VoiceSettingsUpdate(VoiceSettingsUpdateUnsubscriptionEvent),
+    VoiceConnectionStatus(VoiceConnectionStatusUnsubscriptionEvent),
+    SpeakingStart(SpeakingStartUnsubscriptionEvent),
+    SpeakingStop(SpeakingStopUnsubscriptionEvent),
+    MessageCreate(MessageCreateUnsubscriptionEvent),
+    MessageUpdate(MessageUpdateUnsubscriptionEvent),
+    MessageDelete(MessageDeletedUnsubscriptionEvent),
+    NotificationCreate(NotificationCreateUnsubscriptionEvent),
+    ActivityJoin(ActivityJoinUnsubscriptionEvent),
+    ActivitySpectate(ActivitySpectateUnsubscriptionEvent),
+    ActivityJoinRequest(ActivityJoinRequestUnsubscriptionEvent),
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
