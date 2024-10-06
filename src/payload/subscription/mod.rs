@@ -1,0 +1,27 @@
+pub use channel::*;
+pub use guild::*;
+
+use serde::Serialize;
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+#[serde(tag = "evt", rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum SubscribeRequest {
+    GuildStatus(GuildStatusSubscriptionEvent),
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+#[serde(tag = "evt", rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum UnsubscribeRequest {
+    GuildStatus(GuildStatusUnsubscriptionEvent),
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
+pub struct EmptyArgs {
+    #[serde(flatten)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    inner: Option<()>,
+}
+
+mod channel;
+mod guild;
+mod macros;

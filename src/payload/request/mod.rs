@@ -4,8 +4,6 @@ pub use channel::*;
 pub use device::*;
 pub use guild::*;
 pub use voice::*;
-// TODO: subscriptions - bit of a special case since it includes the `evt` now.
-// somehow want to tightly couple the evt enum Event enum and
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
 #[serde(tag = "cmd", rename_all = "SCREAMING_SNAKE_CASE")]

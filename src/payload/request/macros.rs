@@ -24,7 +24,6 @@ macro_rules! make_request_payload {
             }
         }
     };
-// ($(#[$skip_serial: meta]))
     ($request_name: ident, $(#[$request_doc:meta]),*, $(($field_name: ident, $field_type: ty, ($(#[$field_doc: meta]),*) $(, ($(#[$addt_dctv: meta]),*))? )),*) => {
         #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
         $(
