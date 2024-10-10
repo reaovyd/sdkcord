@@ -1,4 +1,5 @@
 use crate::payload::request::macros::make_request_payload;
+use crate::payload::request::Request;
 use derive_builder::Builder;
 use paste::paste;
 use serde::{
@@ -19,16 +20,26 @@ make_request_payload!(SetActivity,
     ,
     /// [discorddocs]: https://discord.com/developers/docs/topics/rpc#setactivity
     ,
-    (pid, u32, (#[doc = "The application's process id"])),
+    (pid, u32,
+        (
+        /// The application's process id
+        ,
+        ///
+        ,
+        /// This will bind to a process id on your computer. When your process is killed, the
+        ,
+        /// activity will end in Discord.
+        )
+    ),
     (activity, Option<Activity>,
         (#[doc = "The rich presence to assign to the user"]),
         (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
     )
 );
 
-#[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[builder(setter(into))]
 #[skip_serializing_none]
+#[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[builder(setter(into, strip_option))]
 pub struct Activity {
     #[serde(rename = "type")]
     activity_type: ActivityType,
@@ -78,8 +89,9 @@ pub enum ActivityType {
     Competing = 5,
 }
 
-#[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[skip_serializing_none]
+#[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[builder(setter(into, strip_option))]
 pub struct Timestamps {
     #[builder(default)]
     start: Option<u64>,
@@ -87,8 +99,9 @@ pub struct Timestamps {
     end: Option<u64>,
 }
 
-#[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[skip_serializing_none]
+#[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[builder(setter(into, strip_option))]
 pub struct Party {
     #[builder(default)]
     id: Option<String>,
@@ -105,8 +118,9 @@ pub struct Party {
 ///
 /// Look at the [Discord docs][discorddocs] for more info on what image names
 /// are supported. [discorddocs]: https://discord.com/developers/docs/topics/gateway-events#activity-object-activity-asset-image
-#[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[skip_serializing_none]
+#[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[builder(setter(into, strip_option))]
 pub struct Assets {
     /// Large image displayed on a user's Rich Presence
     #[builder(default)]
@@ -123,8 +137,9 @@ pub struct Assets {
 }
 
 /// Activity secrets
-#[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[skip_serializing_none]
+#[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[builder(setter(into, strip_option))]
 pub struct Secrets {
     /// Secret for joining a party
     #[builder(default)]

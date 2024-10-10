@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use crate::payload::request::macros::make_request_payload;
+use crate::payload::request::Request;
 use derive_builder::Builder;
 use paste::paste;
 use serde::{
@@ -9,13 +10,32 @@ use serde::{
 };
 use uuid::Uuid;
 
+// TODO: definitely need more docs around here somehow...
 make_request_payload!(Authorize,
     #[doc = "Used to authenticate a new client with your app. By default this pops up a modal in-app that asks the user to authorize access to your app."],
     #[doc = "More information can be found on the Discord docs website"],
-    (scopes, OAuth2Scopes, (#[doc = "scopes to authorize"])),
+    (scope, OAuth2Scopes, (#[doc = "scopes to authorize"])),
     (client_id, String, (#[doc = "OAuth2 application id"])),
-    (rpc_token, String, (#[doc = "one-time use RPC token"])),
-    (username, String, (#[doc = "username to create a guest account with if the user does not have Discord"]))
+    (response_type, Option<ResponseType>,
+        (#[doc = "Authorization Response Type"]),
+        (#[builder(setter(strip_option), default)], #[serde(skip_serializing_if = "Option::is_none")])
+    ),
+    (prompt, Option<Prompt>,
+        (#[doc = "Authorization prompt"]),
+        (#[builder(setter(strip_option), default)], #[serde(skip_serializing_if = "Option::is_none")])
+    ),
+    (code_challenge, Option<String>,
+        (#[doc = "Authorization code challenge"]),
+        (#[builder(setter(strip_option), default)], #[serde(skip_serializing_if = "Option::is_none")])
+    ),
+    (state, Option<String>,
+        (#[doc = "Authorization State"]),
+        (#[builder(setter(strip_option), default)], #[serde(skip_serializing_if = "Option::is_none")])
+    ),
+    (code_challenge_method, Option<CodeChallengeMethod>,
+        (#[doc = "Authorization code challenge method"]),
+        (#[builder(setter(strip_option), default)], #[serde(skip_serializing_if = "Option::is_none")])
+    )
 );
 
 make_request_payload!(Authenticate,
@@ -30,6 +50,24 @@ impl OAuth2Scopes {
     pub fn builder() -> OAuth2ScopesBuilder {
         OAuth2ScopesBuilder::default()
     }
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+#[serde(rename_all = "lowercase")]
+pub enum ResponseType {
+    Code,
+    Token,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+pub enum CodeChallengeMethod {
+    S256,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+#[serde(rename_all = "lowercase")]
+pub enum Prompt {
+    None,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -111,6 +149,12 @@ pub enum OAuth2Scope {
 
 #[cfg(test)]
 mod tests {
+    use crate::payload::request::{
+        CodeChallengeMethod,
+        Prompt,
+        ResponseType,
+    };
+
     use super::{
         Authorize,
         AuthorizeArgsBuilder,
@@ -122,49 +166,59 @@ mod tests {
     fn test_authorize_construct() {
         let cmd = Authorize::new(
             AuthorizeArgsBuilder::create_empty()
-                .scopes(
+                .scope(
                     OAuth2Scopes::builder()
                         .add_scope(OAuth2Scope::Email)
                         .add_scope(OAuth2Scope::Voice)
                         .build(),
                 )
-                .username("username1")
-                .rpc_token("rpc_token1")
                 .client_id("client_id1")
+                .response_type(ResponseType::Code)
+                .code_challenge("abc")
+                .code_challenge_method(CodeChallengeMethod::S256)
+                .state("")
+                .prompt(Prompt::None)
                 .build()
                 .unwrap(),
         );
-        assert_eq!(cmd.args.username, "username1");
-        assert_eq!(cmd.args.rpc_token, "rpc_token1");
         assert_eq!(cmd.args.client_id, "client_id1");
         for expected_scope in [OAuth2Scope::Email, OAuth2Scope::Voice] {
-            assert!(cmd.args.scopes.0.contains(&expected_scope));
+            assert!(cmd.args.scope.0.contains(&expected_scope));
         }
+        assert_eq!(cmd.args.response_type, Some(ResponseType::Code));
+        assert_eq!(cmd.args.code_challenge, Some("abc".to_string()));
+        assert_eq!(cmd.args.code_challenge_method, Some(CodeChallengeMethod::S256));
+        assert_eq!(cmd.args.state, Some("".to_string()));
+        assert_eq!(cmd.args.prompt, Some(Prompt::None));
     }
 
     #[test]
     fn test_authorize_serialized() {
         let cmd = Authorize::new(
             AuthorizeArgsBuilder::create_empty()
-                .scopes(
+                .scope(
                     OAuth2Scopes::builder()
                         .add_scope(OAuth2Scope::Email)
                         .add_scope(OAuth2Scope::Voice)
                         .add_scope(OAuth2Scope::GuildsMembersRead)
                         .build(),
                 )
-                .username("username1".to_string())
-                .rpc_token("rpc_token1".to_string())
-                .client_id("client_id1".to_string())
+                .client_id("client_id1")
+                .response_type(ResponseType::Code)
+                .code_challenge("abc")
+                .code_challenge_method(CodeChallengeMethod::S256)
+                .state("")
+                .prompt(Prompt::None)
                 .build()
                 .unwrap(),
         );
         let serialized = serde_json::to_string(&cmd).unwrap();
-        assert!(serialized.contains(r#"username1"#));
-        assert!(serialized.contains(r#"rpc_token1"#));
+        assert!(serialized.contains(r#"abc"#));
+        assert!(serialized.contains(r#"S256"#));
         assert!(serialized.contains(r#"client_id1"#));
         assert!(serialized.contains(r#""email""#));
         assert!(serialized.contains(r#""voice""#));
+        assert!(serialized.contains(r#"none"#));
         assert!(serialized.contains(r#""guilds.members.read""#));
     }
 }

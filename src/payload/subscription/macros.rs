@@ -20,6 +20,10 @@ macro_rules! make_subscription_event {
                     cmd: "SUBSCRIBE".to_string()
                 }
             }
+            
+            pub const fn build(self) -> SubscribeRequest {
+                SubscribeRequest::$evt_name(self) 
+            } 
         }
 
         impl Default for paste!([<$evt_name SubscriptionEvent>]) {
@@ -48,6 +52,10 @@ macro_rules! make_subscription_event {
                     cmd: "UNSUBSCRIBE".to_string()
                 }
             }
+
+            pub const fn build(self) -> UnsubscribeRequest {
+                UnsubscribeRequest::$evt_name(self) 
+            } 
         }
 
         impl Default for paste!([<$evt_name UnsubscriptionEvent>]) {
@@ -110,6 +118,10 @@ macro_rules! make_subscription_event {
                     cmd: "SUBSCRIBE".to_string()
                 }
             }
+
+            pub const fn build(self) -> SubscribeRequest {
+                SubscribeRequest::$evt_name(self) 
+            } 
         }
 
         impl paste!([<$evt_name UnsubscriptionEvent>]) {
@@ -120,6 +132,10 @@ macro_rules! make_subscription_event {
                     cmd: "UNSUBSCRIBE".to_string()
                 }
             }
+
+            pub const fn build(self) -> UnsubscribeRequest {
+                UnsubscribeRequest::$evt_name(self) 
+            } 
         }
 
     };

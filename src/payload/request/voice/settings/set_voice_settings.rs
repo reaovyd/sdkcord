@@ -1,4 +1,5 @@
 use crate::payload::request::macros::make_request_payload;
+use crate::payload::request::Request;
 use derive_builder::Builder;
 use ordered_float::OrderedFloat;
 use paste::paste;
@@ -110,6 +111,7 @@ pub enum ModeType {
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Builder)]
+#[builder(setter(into))]
 pub struct Shortcut {
     /// The key type. See [`KeyType`]
     #[serde(rename = "type")]
@@ -178,8 +180,8 @@ impl InputVoiceSettings {
     }
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
 #[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
 struct VoiceSettings {
     /// Device id
     device_id: Option<String>,
@@ -265,10 +267,7 @@ impl From<SetVoiceSettingsError> for ModeVoiceSettingsBuilderError {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        ModeVoiceSettingsBuilder,
-        ShortcutBuilder,
-    };
+    use super::{ModeVoiceSettingsBuilder, ShortcutBuilder};
 
     #[test]
     #[should_panic(expected = "ValidationError")]
@@ -279,8 +278,8 @@ mod tests {
             .threshold(100.0)
             .shortcut(
                 ShortcutBuilder::create_empty()
-                    .code(23)
-                    .name("a".to_owned())
+                    .code(23u32)
+                    .name("a")
                     .key_type(super::KeyType::GamepadButton)
                     .build()
                     .unwrap(),
@@ -299,8 +298,8 @@ mod tests {
             .threshold(0.0)
             .shortcut(
                 ShortcutBuilder::create_empty()
-                    .code(23)
-                    .name("a".to_owned())
+                    .code(23u32)
+                    .name("a")
                     .key_type(super::KeyType::GamepadButton)
                     .build()
                     .unwrap(),
@@ -318,8 +317,8 @@ mod tests {
             .threshold(0.0)
             .shortcut(
                 ShortcutBuilder::create_empty()
-                    .code(23)
-                    .name("a".to_owned())
+                    .code(23u32)
+                    .name("a")
                     .key_type(super::KeyType::GamepadButton)
                     .build()
                     .unwrap(),

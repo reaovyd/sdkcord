@@ -1,4 +1,5 @@
 use super::macros::make_request_payload;
+use crate::payload::request::Request;
 use derive_builder::Builder;
 use paste::paste;
 use serde::{
@@ -19,8 +20,8 @@ make_request_payload!(SetCertifiedDevices,
 pub struct DeviceList(pub Vec<Device>);
 
 /// The [`Device`] type that represents a device object in Discord
-#[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[skip_serializing_none]
+#[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Device {
     /// The type of device
     #[serde(rename = "type")]

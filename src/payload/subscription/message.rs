@@ -3,6 +3,8 @@ use derive_builder::Builder;
 use paste::paste;
 use serde::Serialize;
 use uuid::Uuid;
+use crate::payload::subscription::SubscribeRequest;
+use crate::payload::subscription::UnsubscribeRequest;
 
 make_subscription_event!(MessageCreate,
     #[doc = "sent when a message is created in a subscribed text channel"],
@@ -14,7 +16,7 @@ make_subscription_event!(MessageUpdate,
     (channel_id, String, (#[doc = "id of channel to listen to updates of"]))
 );
 
-make_subscription_event!(MessageDeleted,
+make_subscription_event!(MessageDelete,
     #[doc = "sent when a message is deleted in a subscribed text channel"],
     (channel_id, String, (#[doc = "id of channel to listen to updates of"]))
 );

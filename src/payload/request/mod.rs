@@ -251,20 +251,17 @@ mod tests {
     fn test_authorize_exists() {
         let cmd = Request::Authorize(Authorize::new(
             AuthorizeArgsBuilder::default()
-                .scopes(
+                .scope(
                     OAuth2Scopes::builder()
                         .add_scope(OAuth2Scope::Email)
                         .add_scope(OAuth2Scope::Voice)
                         .build(),
                 )
                 .client_id("client_id1".to_string())
-                .rpc_token("rpc_token1".to_string())
-                .username("username1".to_string())
                 .build()
                 .unwrap(),
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
-        println!("{}", serialized);
         assert!(serialized.contains(r#""cmd":"AUTHORIZE""#));
     }
 }

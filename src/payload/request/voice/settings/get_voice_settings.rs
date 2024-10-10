@@ -3,6 +3,7 @@ use crate::payload::request::{
     EmptyArgs,
 };
 use serde::Serialize;
+use crate::payload::request::Request;
 use uuid::Uuid;
 
 make_request_payload!(

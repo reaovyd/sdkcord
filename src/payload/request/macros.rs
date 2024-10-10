@@ -16,6 +16,10 @@ macro_rules! make_request_payload {
                     args: EmptyArgs::default()
                 }
             }
+
+            pub const fn build(self) -> Request {
+                Request::$request_name(self)
+            }
         }
 
         impl Default for $request_name {
@@ -61,6 +65,9 @@ macro_rules! make_request_payload {
                     nonce: Uuid::new_v4(),
                     args
                 }
+            }
+            pub const fn build(self) -> Request {
+                Request::$request_name(self)
             }
         }
 

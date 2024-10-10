@@ -1,4 +1,5 @@
 use crate::payload::request::macros::make_request_payload;
+use crate::payload::request::Request;
 use derive_builder::Builder;
 use paste::paste;
 use serde::Serialize;
@@ -11,6 +12,7 @@ make_request_payload!(CloseActivityRequest,
 
 #[cfg(test)]
 mod tests {
+
     use super::{
         CloseActivityRequest,
         CloseActivityRequestArgsBuilder,

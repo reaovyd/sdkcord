@@ -6,6 +6,8 @@ use derive_builder::Builder;
 use paste::paste;
 use serde::Serialize;
 use uuid::Uuid;
+use crate::payload::subscription::SubscribeRequest;
+use crate::payload::subscription::UnsubscribeRequest;
 
 make_subscription_event!(VoiceChannelSelect,
     #[doc = "sent when the client joins a voice channel"]

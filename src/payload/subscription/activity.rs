@@ -3,6 +3,8 @@ use super::{
     EmptyArgs,
 };
 use paste::paste;
+use crate::payload::subscription::SubscribeRequest;
+use crate::payload::subscription::UnsubscribeRequest;
 use serde::Serialize;
 use uuid::Uuid;
 

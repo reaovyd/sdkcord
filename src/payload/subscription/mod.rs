@@ -24,7 +24,7 @@ pub enum SubscribeRequest {
     SpeakingStop(SpeakingStopSubscriptionEvent),
     MessageCreate(MessageCreateSubscriptionEvent),
     MessageUpdate(MessageUpdateSubscriptionEvent),
-    MessageDelete(MessageDeletedSubscriptionEvent),
+    MessageDelete(MessageDeleteSubscriptionEvent),
     NotificationCreate(NotificationCreateSubscriptionEvent),
     ActivityJoin(ActivityJoinSubscriptionEvent),
     ActivitySpectate(ActivitySpectateSubscriptionEvent),
@@ -47,7 +47,7 @@ pub enum UnsubscribeRequest {
     SpeakingStop(SpeakingStopUnsubscriptionEvent),
     MessageCreate(MessageCreateUnsubscriptionEvent),
     MessageUpdate(MessageUpdateUnsubscriptionEvent),
-    MessageDelete(MessageDeletedUnsubscriptionEvent),
+    MessageDelete(MessageDeleteUnsubscriptionEvent),
     NotificationCreate(NotificationCreateUnsubscriptionEvent),
     ActivityJoin(ActivityJoinUnsubscriptionEvent),
     ActivitySpectate(ActivitySpectateUnsubscriptionEvent),
@@ -72,20 +72,31 @@ mod voice;
 
 #[cfg(test)]
 mod tests {
-    use crate::payload::subscription::{GuildStatusUnsubscriptionEvent, UnsubscribeRequest};
+    use crate::payload::subscription::{
+        GuildStatusUnsubscriptionEvent,
+        UnsubscribeRequest,
+    };
 
-    use super::{GuildStatusEventArgsBuilder, GuildStatusSubscriptionEvent, SubscribeRequest};
+    use super::{
+        GuildStatusEventArgsBuilder,
+        GuildStatusSubscriptionEvent,
+        SubscribeRequest,
+    };
 
     #[test]
     fn test_evt_exists_subscribe() {
-        let evt = SubscribeRequest::GuildStatus(GuildStatusSubscriptionEvent::new(GuildStatusEventArgsBuilder::default().guild_id("asdasd").build().unwrap()));
+        let evt = SubscribeRequest::GuildStatus(GuildStatusSubscriptionEvent::new(
+            GuildStatusEventArgsBuilder::default().guild_id("asdasd").build().unwrap(),
+        ));
         let json = serde_json::to_string(&evt).unwrap();
         assert!(json.contains(r#"{"evt":"GUILD_STATUS","#))
     }
 
     #[test]
     fn test_evt_exists_unsubscribe() {
-        let evt = UnsubscribeRequest::GuildStatus(GuildStatusUnsubscriptionEvent::new(GuildStatusEventArgsBuilder::default().guild_id("asdasd").build().unwrap()));
+        let evt = UnsubscribeRequest::GuildStatus(GuildStatusUnsubscriptionEvent::new(
+            GuildStatusEventArgsBuilder::default().guild_id("asdasd").build().unwrap(),
+        ));
         let json = serde_json::to_string(&evt).unwrap();
         assert!(json.contains(r#"{"evt":"GUILD_STATUS","#))
     }
