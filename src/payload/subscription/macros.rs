@@ -1,5 +1,5 @@
 macro_rules! make_subscription_event {
-    ($evt_name: ident, $(#[$request_doc:meta]),*) => {
+    ($evt_name: ident, ($(#[$request_doc:meta])*)) => {
         paste! {
             #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
             $(
@@ -64,7 +64,7 @@ macro_rules! make_subscription_event {
             }
         }
     };
-    ($evt_name: ident, $(#[$event_doc:meta]),*, $(($field_name: ident, $field_type: ty, ($(#[$field_doc: meta]),*) $(, ($(#[$addt_dctv: meta]),*))? )),*) => {
+    ($evt_name: ident, ($(#[$event_doc:meta])*), $(($field_name: ident, $field_type: ty, ($(#[$field_doc: meta])*) $(, ($(#[$addt_dctv: meta]),*))? )),*) => {
         paste! {
             #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
             $(

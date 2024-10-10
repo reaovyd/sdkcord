@@ -9,5 +9,5 @@ use serde::Serialize;
 use uuid::Uuid;
 
 make_subscription_event!(ChannelCreate,
-    #[doc = "sent when a channel is created/joined on the client"]
+    (#[doc = "sent when a channel is created/joined on the client"])
 );
