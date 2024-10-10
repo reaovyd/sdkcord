@@ -8,12 +8,16 @@ use uuid::Uuid;
 
 make_request_payload!(
     GetGuild,
-    #[doc = "Used to retrieve guild information from the client"],
+    (
+        /// Used to retrieve guild information from the client
+    ),
     (guild_id, String, (#[doc = "id of the guild to get"])),
     (timeout, Option<u32>, (#[doc = "asynchronously get guild with time to wait before timing out"]), (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)]))
 );
 make_request_payload!(GetGuilds,
-    #[doc = "Used to retrieve a list of guilds from the client"]
+    (
+        /// Used to retrieve a list of guilds from the client
+    )
 );
 
 #[cfg(test)]

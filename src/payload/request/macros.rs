@@ -1,5 +1,5 @@
 macro_rules! make_request_payload {
-    ($request_name: ident, $(#[$request_doc:meta]),*) => {
+    ($request_name: ident, ($(#[$request_doc:meta])*)) => {
         #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
         $(
             #[$request_doc]
@@ -28,7 +28,7 @@ macro_rules! make_request_payload {
             }
         }
     };
-    ($request_name: ident, $(#[$request_doc:meta]),*, $(($field_name: ident, $field_type: ty, ($(#[$field_doc: meta]),*) $(, ($(#[$addt_dctv: meta]),*))? )),*) => {
+    ($request_name: ident, ($(#[$request_doc:meta])*), $(($field_name: ident, $field_type: ty, ($(#[$field_doc: meta])*) $(, ($(#[$addt_dctv: meta]),*))? )),*) => {
         #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
         $(
             #[$request_doc]

@@ -21,7 +21,7 @@ macro_rules! make_subscription_event {
                 }
             }
             
-            pub const fn build(self) -> SubscribeRequest {
+            pub const fn make_request(self) -> SubscribeRequest {
                 SubscribeRequest::$evt_name(self) 
             } 
         }
@@ -53,7 +53,7 @@ macro_rules! make_subscription_event {
                 }
             }
 
-            pub const fn build(self) -> UnsubscribeRequest {
+            pub const fn make_request(self) -> UnsubscribeRequest {
                 UnsubscribeRequest::$evt_name(self) 
             } 
         }
@@ -119,7 +119,7 @@ macro_rules! make_subscription_event {
                 }
             }
 
-            pub const fn build(self) -> SubscribeRequest {
+            pub const fn make_request(self) -> SubscribeRequest {
                 SubscribeRequest::$evt_name(self) 
             } 
         }
@@ -133,7 +133,7 @@ macro_rules! make_subscription_event {
                 }
             }
 
-            pub const fn build(self) -> UnsubscribeRequest {
+            pub const fn make_request(self) -> UnsubscribeRequest {
                 UnsubscribeRequest::$evt_name(self) 
             } 
         }

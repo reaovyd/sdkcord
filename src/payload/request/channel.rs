@@ -7,18 +7,24 @@ use uuid::Uuid;
 
 make_request_payload!(
     GetChannel,
-    #[doc = "Used to retrieve channel information from the client"],
+    (
+        /// Used to retrieve channel information from the client
+    ),
     (channel_id, String, (#[doc = "id of the channel to get"]))
 );
 
 make_request_payload!(
     GetChannels,
-    #[doc = "Used to retrieve a list of channels for a guild from the client"],
+    (
+        /// Used to retrieve a list of channels for a guild from the client
+    ),
     (guild_id, String, (#[doc = "id of the guild to get channels for"]))
 );
 
 make_request_payload!(SelectTextChannel,
-    #[doc = "Used to join or leave a text channel, group dm, or dm"],
+    (
+        /// Used to join or leave a text channel, group dm, or dm
+    ),
     (channel_id, Option<String>,
             (#[doc = "channel id to join (or null/Option::None to leave)"]),
             (

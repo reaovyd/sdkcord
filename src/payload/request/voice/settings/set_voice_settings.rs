@@ -11,8 +11,10 @@ use uuid::Uuid;
 // TODO: mode objects
 make_request_payload!(
     SetVoiceSettings,
-    #[doc = "Used to set the client's voice settings"],
-    #[doc = "When setting voice settings, all fields are optional. Only passed fields are updated."],
+    (
+        /// Used to set the client's voice settings
+        /// When setting voice settings, all fields are optional. Only passed fields are updated
+    ),
     (input, Option<InputVoiceSettings>,
         (#[doc = "input settings"]),
         (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])

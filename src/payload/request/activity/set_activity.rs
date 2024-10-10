@@ -14,20 +14,17 @@ use serde_with::skip_serializing_none;
 use uuid::Uuid;
 
 make_request_payload!(SetActivity,
-    #[doc = "Used to update a user's Rich Presence."],
-    #[doc = "When using SET_ACTIVITY, the activity object is limited to a type of Playing (0), Listening (2), Watching (3), or Competing (5)."],
-    /// Read more from the docs [here][discorddocs]
-    ,
-    /// [discorddocs]: https://discord.com/developers/docs/topics/rpc#setactivity
-    ,
+    (
+        /// Used to update a user's Rich Presence
+        /// When using SET_ACTIVITY, the activity object is limited to a type of Playing (0), Listening (2), Watching (3), or Competing (5)
+        /// Read more from the docs [here][discorddocs]
+        /// [discorddocs]: https://discord.com/developers/docs/topics/rpc#setactivity
+    ),
     (pid, u32,
         (
         /// The application's process id
-        ,
         ///
-        ,
         /// This will bind to a process id on your computer. When your process is killed, the
-        ,
         /// activity will end in Discord.
         )
     ),

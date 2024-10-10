@@ -11,7 +11,9 @@ use url::Url;
 use uuid::Uuid;
 
 make_request_payload!(SetCertifiedDevices,
-    #[doc = "Used by hardware manufacturers to send information about the current state of their certified devices that are connected to Discord."],
+    (
+        /// Used by hardware manufacturers to send information about the current state of their certified devices that are connected to Discord
+    ),
     (devices, DeviceList, (#[doc = "a list of devices for your manufacturer, in order of priority"]))
 );
 

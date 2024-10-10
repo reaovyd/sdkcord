@@ -85,9 +85,9 @@ mod tests {
 
     #[test]
     fn test_evt_exists_subscribe() {
-        let evt = SubscribeRequest::GuildStatus(GuildStatusSubscriptionEvent::new(
+        let evt = GuildStatusSubscriptionEvent::new(
             GuildStatusEventArgsBuilder::default().guild_id("asdasd").build().unwrap(),
-        ));
+        ).make_request();
         let json = serde_json::to_string(&evt).unwrap();
         assert!(json.contains(r#"{"evt":"GUILD_STATUS","#))
     }

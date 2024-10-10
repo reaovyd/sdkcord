@@ -9,7 +9,9 @@ use uuid::Uuid;
 
 make_request_payload!(
     SetUserVoiceSettings,
-    #[doc = "Used to change voice settings of users in voice channels"],
+    (
+        /// Used to change voice settings of users in voice channels
+    ),
     (user_id, String, (#[doc = "user id"])),
     (pan, Option<Pan>,
         (#[doc = "set the pan of the user"]),

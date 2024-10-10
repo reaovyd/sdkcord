@@ -12,8 +12,10 @@ use uuid::Uuid;
 
 // TODO: definitely need more docs around here somehow...
 make_request_payload!(Authorize,
-    #[doc = "Used to authenticate a new client with your app. By default this pops up a modal in-app that asks the user to authorize access to your app."],
-    #[doc = "More information can be found on the Discord docs website"],
+    (
+        /// Used to authenticate a new client with your app. By default this pops up a modal in-app that asks the user to authorize access to your app
+        /// More information can be found on the Discord docs website
+    ),
     (scope, OAuth2Scopes, (#[doc = "scopes to authorize"])),
     (client_id, String, (#[doc = "OAuth2 application id"])),
     (response_type, Option<ResponseType>,
@@ -39,7 +41,9 @@ make_request_payload!(Authorize,
 );
 
 make_request_payload!(Authenticate,
-    #[doc = "Used to authenticate an existing client with your app."],
+    (
+        /// Used to authenticate an existing client with your app
+    ),
     (access_token, String, (#[doc = "OAuth2 access token"]))
 );
 
