@@ -1,5 +1,7 @@
-use crate::payload::request::macros::make_request_payload;
-use crate::payload::request::Request;
+use crate::payload::request::{
+    macros::make_request_payload,
+    Request,
+};
 use derive_builder::Builder;
 use ordered_float::OrderedFloat;
 use paste::paste;
@@ -269,7 +271,10 @@ impl From<SetVoiceSettingsError> for ModeVoiceSettingsBuilderError {
 
 #[cfg(test)]
 mod tests {
-    use super::{ModeVoiceSettingsBuilder, ShortcutBuilder};
+    use super::{
+        ModeVoiceSettingsBuilder,
+        ShortcutBuilder,
+    };
 
     #[test]
     #[should_panic(expected = "ValidationError")]

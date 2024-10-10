@@ -72,31 +72,29 @@ mod voice;
 
 #[cfg(test)]
 mod tests {
-    use crate::payload::subscription::{
-        GuildStatusUnsubscriptionEvent,
-        UnsubscribeRequest,
-    };
+    use crate::payload::subscription::GuildStatusUnsubscriptionEvent;
 
     use super::{
         GuildStatusEventArgsBuilder,
         GuildStatusSubscriptionEvent,
-        SubscribeRequest,
     };
 
     #[test]
     fn test_evt_exists_subscribe() {
         let evt = GuildStatusSubscriptionEvent::new(
             GuildStatusEventArgsBuilder::default().guild_id("asdasd").build().unwrap(),
-        ).make_request();
+        )
+        .make_request();
         let json = serde_json::to_string(&evt).unwrap();
         assert!(json.contains(r#"{"evt":"GUILD_STATUS","#))
     }
 
     #[test]
     fn test_evt_exists_unsubscribe() {
-        let evt = UnsubscribeRequest::GuildStatus(GuildStatusUnsubscriptionEvent::new(
+        let evt = GuildStatusUnsubscriptionEvent::new(
             GuildStatusEventArgsBuilder::default().guild_id("asdasd").build().unwrap(),
-        ));
+        )
+        .make_request();
         let json = serde_json::to_string(&evt).unwrap();
         assert!(json.contains(r#"{"evt":"GUILD_STATUS","#))
     }

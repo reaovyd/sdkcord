@@ -1,9 +1,9 @@
 use crate::payload::request::{
     macros::make_request_payload,
     EmptyArgs,
+    Request,
 };
 use serde::Serialize;
-use crate::payload::request::Request;
 use uuid::Uuid;
 
 make_request_payload!(

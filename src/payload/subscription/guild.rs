@@ -2,12 +2,14 @@ use super::{
     macros::make_subscription_event,
     EmptyArgs,
 };
+use crate::payload::subscription::{
+    SubscribeRequest,
+    UnsubscribeRequest,
+};
 use derive_builder::Builder;
 use paste::paste;
 use serde::Serialize;
 use uuid::Uuid;
-use crate::payload::subscription::SubscribeRequest;
-use crate::payload::subscription::UnsubscribeRequest;
 
 make_subscription_event!(GuildStatus,
     (#[doc = "sent when a subscribed server's state changes"]),

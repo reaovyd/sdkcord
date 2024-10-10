@@ -1,7 +1,9 @@
 use std::collections::HashSet;
 
-use crate::payload::request::macros::make_request_payload;
-use crate::payload::request::Request;
+use crate::payload::request::{
+    macros::make_request_payload,
+    Request,
+};
 use derive_builder::Builder;
 use paste::paste;
 use serde::{

@@ -2,9 +2,11 @@ use super::{
     macros::make_subscription_event,
     EmptyArgs,
 };
+use crate::payload::subscription::{
+    SubscribeRequest,
+    UnsubscribeRequest,
+};
 use paste::paste;
-use crate::payload::subscription::SubscribeRequest;
-use crate::payload::subscription::UnsubscribeRequest;
 use serde::Serialize;
 use uuid::Uuid;
 
