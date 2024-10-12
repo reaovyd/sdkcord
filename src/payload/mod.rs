@@ -23,56 +23,33 @@ pub enum Request {
     SetVoiceSettings(SetVoiceSettings),
     SetCertifiedDevices(SetCertifiedDevices),
     SetActivity(SetActivity),
-    Subscribe(SubscribeRequest),
-    Unsubscribe(UnsubscribeRequest),
+    Subscribe(EventRequest),
+    Unsubscribe(EventRequest),
     SendActivityJoinInvite(SendActivityJoinInvite),
     CloseActivityRequest(CloseActivityRequest),
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
 #[serde(tag = "evt", rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum SubscribeRequest {
-    GuildStatus(GuildStatusSubscriptionEvent),
-    GuildCreate(GuildCreateSubscriptionEvent),
-    ChannelCreate(ChannelCreateSubscriptionEvent),
-    VoiceChannelSelect(VoiceChannelSelectSubscriptionEvent),
-    VoiceStateCreate(VoiceStateCreateSubscriptionEvent),
-    VoiceStateUpdate(VoiceStateUpdateSubscriptionEvent),
-    VoiceStateDelete(VoiceStateDeleteSubscriptionEvent),
-    VoiceSettingsUpdate(VoiceSettingsUpdateSubscriptionEvent),
-    VoiceConnectionStatus(VoiceConnectionStatusSubscriptionEvent),
-    SpeakingStart(SpeakingStartSubscriptionEvent),
-    SpeakingStop(SpeakingStopSubscriptionEvent),
-    MessageCreate(MessageCreateSubscriptionEvent),
-    MessageUpdate(MessageUpdateSubscriptionEvent),
-    MessageDelete(MessageDeleteSubscriptionEvent),
-    NotificationCreate(NotificationCreateSubscriptionEvent),
-    ActivityJoin(ActivityJoinSubscriptionEvent),
-    ActivitySpectate(ActivitySpectateSubscriptionEvent),
-    ActivityJoinRequest(ActivityJoinRequestSubscriptionEvent),
-}
-
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
-#[serde(tag = "evt", rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum UnsubscribeRequest {
-    GuildStatus(GuildStatusUnsubscriptionEvent),
-    GuildCreate(GuildCreateUnsubscriptionEvent),
-    ChannelCreate(ChannelCreateUnsubscriptionEvent),
-    VoiceChannelSelect(VoiceChannelSelectUnsubscriptionEvent),
-    VoiceStateCreate(VoiceStateCreateUnsubscriptionEvent),
-    VoiceStateUpdate(VoiceStateUpdateUnsubscriptionEvent),
-    VoiceStateDelete(VoiceStateDeleteUnsubscriptionEvent),
-    VoiceSettingsUpdate(VoiceSettingsUpdateUnsubscriptionEvent),
-    VoiceConnectionStatus(VoiceConnectionStatusUnsubscriptionEvent),
-    SpeakingStart(SpeakingStartUnsubscriptionEvent),
-    SpeakingStop(SpeakingStopUnsubscriptionEvent),
-    MessageCreate(MessageCreateUnsubscriptionEvent),
-    MessageUpdate(MessageUpdateUnsubscriptionEvent),
-    MessageDelete(MessageDeleteUnsubscriptionEvent),
-    NotificationCreate(NotificationCreateUnsubscriptionEvent),
-    ActivityJoin(ActivityJoinUnsubscriptionEvent),
-    ActivitySpectate(ActivitySpectateUnsubscriptionEvent),
-    ActivityJoinRequest(ActivityJoinRequestUnsubscriptionEvent),
+pub enum EventRequest {
+    GuildStatus(GuildStatusEventRequest),
+    GuildCreate(GuildCreateEventRequest),
+    ChannelCreate(ChannelCreateEventRequest),
+    VoiceChannelSelect(VoiceChannelSelectEventRequest),
+    VoiceStateCreate(VoiceStateCreateEventRequest),
+    VoiceStateUpdate(VoiceStateUpdateEventRequest),
+    VoiceStateDelete(VoiceStateDeleteEventRequest),
+    VoiceSettingsUpdate(VoiceSettingsUpdateEventRequest),
+    VoiceConnectionStatus(VoiceConnectionStatusEventRequest),
+    SpeakingStart(SpeakingStartEventRequest),
+    SpeakingStop(SpeakingStopEventRequest),
+    MessageCreate(MessageCreateEventRequest),
+    MessageUpdate(MessageUpdateEventRequest),
+    MessageDelete(MessageDeleteEventRequest),
+    NotificationCreate(NotificationCreateEventRequest),
+    ActivityJoin(ActivityJoinEventRequest),
+    ActivitySpectate(ActivitySpectateEventRequest),
+    ActivityJoinRequest(ActivityJoinRequestEventRequest),
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
@@ -99,40 +76,7 @@ mod voice;
 #[cfg(test)]
 mod tests {
     use crate::payload::{
-        CloseActivityRequest,
-        CloseActivityRequestArgsBuilder,
-        DeviceBuilder,
-        DeviceType,
-        GetChannel,
-        GetChannelArgsBuilder,
-        GetChannels,
-        GetChannelsArgsBuilder,
-        GetGuilds,
-        GetSelectedVoiceChannel,
-        GetVoiceSettings,
-        GuildStatusUnsubscriptionEvent,
-        GuildStatusUnsubscriptionEventArgsBuilder,
-        ModelBuilder,
-        Pan,
-        Related,
-        Request,
-        SelectTextChannel,
-        SelectTextChannelArgsBuilder,
-        SelectVoiceChannel,
-        SelectVoiceChannelArgsBuilder,
-        SendActivityJoinInvite,
-        SendActivityJoinInviteArgsBuilder,
-        SetActivity,
-        SetActivityArgsBuilder,
-        SetCertifiedDevices,
-        SetCertifiedDevicesArgsBuilder,
-        SetUserVoiceSettings,
-        SetUserVoiceSettingsArgsBuilder,
-        SetVoiceSettings,
-        SetVoiceSettingsArgsBuilder,
-        UnsubscribeRequest,
-        VendorBuilder,
-        Volume,
+        CloseActivityRequest, CloseActivityRequestArgsBuilder, DeviceBuilder, DeviceType, EventRequest, GetChannel, GetChannelArgsBuilder, GetChannels, GetChannelsArgsBuilder, GetGuilds, GetSelectedVoiceChannel, GetVoiceSettings, GuildStatusEventRequest, GuildStatusEventRequestArgsBuilder, ModelBuilder, Pan, Related, Request, SelectTextChannel, SelectTextChannelArgsBuilder, SelectVoiceChannel, SelectVoiceChannelArgsBuilder, SendActivityJoinInvite, SendActivityJoinInviteArgsBuilder, SetActivity, SetActivityArgsBuilder, SetCertifiedDevices, SetCertifiedDevicesArgsBuilder, SetUserVoiceSettings, SetUserVoiceSettingsArgsBuilder, SetVoiceSettings, SetVoiceSettingsArgsBuilder, VendorBuilder, Volume
     };
     use url::Url;
     use uuid::Uuid;
@@ -142,18 +86,15 @@ mod tests {
         AuthorizeArgsBuilder,
         GetGuild,
         GetGuildArgsBuilder,
-        GuildStatusSubscriptionEvent,
-        GuildStatusSubscriptionEventArgsBuilder,
         OAuth2Scope,
         OAuth2Scopes,
-        SubscribeRequest,
     };
 
     #[test]
     fn test_subscribe_guild_status() {
         let req =
-            Request::Subscribe(SubscribeRequest::GuildStatus(GuildStatusSubscriptionEvent::new(
-                GuildStatusSubscriptionEventArgsBuilder::default().guild_id("123").build().unwrap(),
+            Request::Subscribe(EventRequest::GuildStatus(GuildStatusEventRequest::new(
+                GuildStatusEventRequestArgsBuilder::default().guild_id("123").build().unwrap(),
             )));
         let json = serde_json::to_string(&req).unwrap();
         assert!(json.contains(r#""cmd":"SUBSCRIBE""#));
@@ -162,9 +103,9 @@ mod tests {
 
     #[test]
     fn test_unsubscribe_guild_status() {
-        let req = Request::Unsubscribe(UnsubscribeRequest::GuildStatus(
-            GuildStatusUnsubscriptionEvent::new(
-                GuildStatusUnsubscriptionEventArgsBuilder::default()
+        let req = Request::Unsubscribe(EventRequest::GuildStatus(
+            GuildStatusEventRequest::new(
+                GuildStatusEventRequestArgsBuilder::default()
                     .guild_id("123")
                     .build()
                     .unwrap(),

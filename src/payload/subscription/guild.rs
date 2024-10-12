@@ -13,14 +13,14 @@ make_subscription_event!(GuildCreate,
 mod guild_tests {
     use pretty_assertions::assert_eq;
 
-    use crate::payload::GuildStatusSubscriptionEventArgsBuilder;
+    use crate::payload::GuildStatusEventRequestArgsBuilder;
 
-    use super::GuildStatusSubscriptionEvent;
+    use super::GuildStatusEventRequest;
 
     #[test]
     fn guild_status_construction_subscription() {
-        let guild_status = GuildStatusSubscriptionEvent::new(
-            GuildStatusSubscriptionEventArgsBuilder::create_empty()
+        let guild_status = GuildStatusEventRequest::new(
+            GuildStatusEventRequestArgsBuilder::create_empty()
                 .guild_id("id1")
                 .build()
                 .unwrap(),
@@ -30,8 +30,8 @@ mod guild_tests {
 
     #[test]
     fn guild_status_construction_subscription_serialized() {
-        let guild_status = GuildStatusSubscriptionEvent::new(
-            GuildStatusSubscriptionEventArgsBuilder::create_empty()
+        let guild_status = GuildStatusEventRequest::new(
+            GuildStatusEventRequestArgsBuilder::create_empty()
                 .guild_id("id1")
                 .build()
                 .unwrap(),

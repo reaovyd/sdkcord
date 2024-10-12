@@ -17,16 +17,14 @@ mod voice;
 #[cfg(test)]
 mod tests {
     use crate::payload::{
-        GuildStatusSubscriptionEvent,
-        GuildStatusSubscriptionEventArgsBuilder,
-        GuildStatusUnsubscriptionEvent,
-        GuildStatusUnsubscriptionEventArgsBuilder,
+        GuildStatusEventRequest,
+        GuildStatusEventRequestArgsBuilder,
     };
 
     #[test]
     fn test_evt_exists_subscribe() {
-        let evt = GuildStatusSubscriptionEvent::new(
-            GuildStatusSubscriptionEventArgsBuilder::default().guild_id("asdasd").build().unwrap(),
+        let evt = GuildStatusEventRequest::new(
+            GuildStatusEventRequestArgsBuilder::default().guild_id("asdasd").build().unwrap(),
         )
         .build();
         let json = serde_json::to_string(&evt).unwrap();
@@ -35,8 +33,8 @@ mod tests {
 
     #[test]
     fn test_evt_exists_unsubscribe() {
-        let evt = GuildStatusUnsubscriptionEvent::new(
-            GuildStatusUnsubscriptionEventArgsBuilder::default()
+        let evt = GuildStatusEventRequest::new(
+            GuildStatusEventRequestArgsBuilder::default()
                 .guild_id("asdasd")
                 .build()
                 .unwrap(),

@@ -93,35 +93,18 @@ macro_rules! make_subscription_event {
     ($evt_name: ident, ($(#[$evt_doc:meta])*)) => {
         paste::paste! {
             $crate::payload::macros::make_request_payload!(
-                [<$evt_name SubscriptionEvent>],
+                [<$evt_name EventRequest>],
                 ($(#[$evt_doc])*),
-                { $crate::payload::SubscribeRequest; $evt_name }
-            );
-        }
-
-        paste::paste! {
-            $crate::payload::macros::make_request_payload!(
-                [<$evt_name UnsubscriptionEvent>],
-                ($(#[$evt_doc])*),
-                { $crate::payload::UnsubscribeRequest; $evt_name }
+                { $crate::payload::EventRequest; $evt_name }
             );
         }
     };
     ($evt_name: ident, ($(#[$evt_doc:meta])*), $(($field_name: ident, $field_type: ty, ($(#[$field_doc: meta])*) $(, ($(#[$addt_dctv: meta]),*))? )),*) => {
         paste::paste! {
             $crate::payload::macros::make_request_payload!(
-                [<$evt_name SubscriptionEvent>],
+                [<$evt_name EventRequest>],
                 ($(#[$evt_doc])*),
-                { $crate::payload::SubscribeRequest; $evt_name },
-                $(($field_name, $field_type, ($(#[$field_doc])*) $(, ($(#[$addt_dctv]),*))? )),*
-            );
-        }
-
-        paste::paste! {
-            $crate::payload::macros::make_request_payload!(
-                [<$evt_name UnsubscriptionEvent>],
-                ($(#[$evt_doc])*),
-                { $crate::payload::UnsubscribeRequest; $evt_name },
+                { $crate::payload::EventRequest; $evt_name },
                 $(($field_name, $field_type, ($(#[$field_doc])*) $(, ($(#[$addt_dctv]),*))? )),*
             );
         }
