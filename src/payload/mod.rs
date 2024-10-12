@@ -82,6 +82,9 @@ struct EmptyArgs {
     inner: Option<()>,
 }
 
+#[cfg(test)]
+mod teststest {}
+
 use serde::Serialize;
 
 mod activity;
@@ -95,9 +98,6 @@ mod voice;
 
 #[cfg(test)]
 mod tests {
-    use url::Url;
-    use uuid::Uuid;
-
     use crate::payload::{
         CloseActivityRequest,
         CloseActivityRequestArgsBuilder,
@@ -110,6 +110,8 @@ mod tests {
         GetGuilds,
         GetSelectedVoiceChannel,
         GetVoiceSettings,
+        GuildStatusUnsubscriptionEvent,
+        GuildStatusUnsubscriptionEventArgsBuilder,
         ModelBuilder,
         Pan,
         Related,
@@ -128,18 +130,50 @@ mod tests {
         SetUserVoiceSettingsArgsBuilder,
         SetVoiceSettings,
         SetVoiceSettingsArgsBuilder,
+        UnsubscribeRequest,
         VendorBuilder,
         Volume,
     };
+    use url::Url;
+    use uuid::Uuid;
 
     use super::{
         Authorize,
         AuthorizeArgsBuilder,
         GetGuild,
         GetGuildArgsBuilder,
+        GuildStatusSubscriptionEvent,
+        GuildStatusSubscriptionEventArgsBuilder,
         OAuth2Scope,
         OAuth2Scopes,
+        SubscribeRequest,
     };
+
+    #[test]
+    fn test_subscribe_guild_status() {
+        let req =
+            Request::Subscribe(SubscribeRequest::GuildStatus(GuildStatusSubscriptionEvent::new(
+                GuildStatusSubscriptionEventArgsBuilder::default().guild_id("123").build().unwrap(),
+            )));
+        let json = serde_json::to_string(&req).unwrap();
+        assert!(json.contains(r#""cmd":"SUBSCRIBE""#));
+        assert!(json.contains(r#""evt":"GUILD_STATUS""#));
+    }
+
+    #[test]
+    fn test_unsubscribe_guild_status() {
+        let req = Request::Unsubscribe(UnsubscribeRequest::GuildStatus(
+            GuildStatusUnsubscriptionEvent::new(
+                GuildStatusUnsubscriptionEventArgsBuilder::default()
+                    .guild_id("123")
+                    .build()
+                    .unwrap(),
+            ),
+        ));
+        let json = serde_json::to_string(&req).unwrap();
+        assert!(json.contains(r#""cmd":"UNSUBSCRIBE""#));
+        assert!(json.contains(r#""evt":"GUILD_STATUS""#));
+    }
 
     #[test]
     fn test_get_guild_cmd_exists() {
