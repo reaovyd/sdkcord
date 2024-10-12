@@ -1,9 +1,5 @@
-use crate::payload::request::{
-    macros::make_request_payload,
-    Request,
-};
+use crate::payload::macros::make_command_reqres_payload;
 use derive_builder::Builder;
-use paste::paste;
 use serde::{
     Deserialize,
     Serialize,
@@ -13,9 +9,8 @@ use serde_repr::{
     Serialize_repr,
 };
 use serde_with::skip_serializing_none;
-use uuid::Uuid;
 
-make_request_payload!(SetActivity,
+make_command_reqres_payload!(SetActivity,
     (
         /// Used to update a user's Rich Presence
         /// When using SET_ACTIVITY, the activity object is limited to a type of Playing (0), Listening (2), Watching (3), or Competing (5)

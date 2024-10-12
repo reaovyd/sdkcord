@@ -1,7 +1,5 @@
-use super::macros::make_request_payload;
-use crate::payload::request::Request;
+use super::macros::make_command_reqres_payload;
 use derive_builder::Builder;
-use paste::paste;
 use serde::{
     Deserialize,
     Serialize,
@@ -10,7 +8,7 @@ use serde_with::skip_serializing_none;
 use url::Url;
 use uuid::Uuid;
 
-make_request_payload!(SetCertifiedDevices,
+make_command_reqres_payload!(SetCertifiedDevices,
     (
         /// Used by hardware manufacturers to send information about the current state of their certified devices that are connected to Discord
     ),

@@ -1,12 +1,4 @@
-use super::macros::make_subscription_event;
-use crate::payload::subscription::{
-    SubscribeRequest,
-    UnsubscribeRequest,
-};
-use derive_builder::Builder;
-use paste::paste;
-use serde::Serialize;
-use uuid::Uuid;
+use crate::payload::macros::make_subscription_event;
 
 make_subscription_event!(MessageCreate,
     (#[doc = "sent when a message is created in a subscribed text channel"]),

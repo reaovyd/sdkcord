@@ -1,11 +1,6 @@
-use super::macros::make_request_payload;
-use crate::payload::request::Request;
-use derive_builder::Builder;
-use paste::paste;
-use serde::Serialize;
-use uuid::Uuid;
+use super::macros::make_command_reqres_payload;
 
-make_request_payload!(
+make_command_reqres_payload!(
     GetChannel,
     (
         /// Used to retrieve channel information from the client
@@ -13,7 +8,7 @@ make_request_payload!(
     (channel_id, String, (#[doc = "id of the channel to get"]))
 );
 
-make_request_payload!(
+make_command_reqres_payload!(
     GetChannels,
     (
         /// Used to retrieve a list of channels for a guild from the client
@@ -21,7 +16,7 @@ make_request_payload!(
     (guild_id, String, (#[doc = "id of the guild to get channels for"]))
 );
 
-make_request_payload!(SelectTextChannel,
+make_command_reqres_payload!(SelectTextChannel,
     (
         /// Used to join or leave a text channel, group dm, or dm
     ),

@@ -1,13 +1,6 @@
-use crate::payload::request::{
-    macros::make_request_payload,
-    Request,
-};
-use derive_builder::Builder;
-use paste::paste;
-use serde::Serialize;
-use uuid::Uuid;
+use crate::payload::macros::make_command_reqres_payload;
 
-make_request_payload!(CloseActivityRequest,
+make_command_reqres_payload!(CloseActivityRequest,
     (
         /// Used to reject an Ask to Join request.
     ),

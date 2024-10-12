@@ -1,14 +1,6 @@
-use super::EmptyArgs;
-use crate::payload::request::{
-    macros::make_request_payload,
-    Request,
-};
-use derive_builder::Builder;
-use paste::paste;
-use serde::Serialize;
-use uuid::Uuid;
+use super::macros::make_command_reqres_payload;
 
-make_request_payload!(
+make_command_reqres_payload!(
     GetGuild,
     (
         /// Used to retrieve guild information from the client
@@ -16,7 +8,7 @@ make_request_payload!(
     (guild_id, String, (#[doc = "id of the guild to get"])),
     (timeout, Option<u32>, (#[doc = "asynchronously get guild with time to wait before timing out"]), (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)]))
 );
-make_request_payload!(GetGuilds,
+make_command_reqres_payload!(GetGuilds,
     (
         /// Used to retrieve a list of guilds from the client
     )
@@ -91,6 +83,7 @@ mod get_guilds_tests {
     fn test_serialization_empty_args() {
         let guilds = GetGuilds::new();
         let serialized = serde_json::to_string(&guilds).unwrap();
+        println!("{}", serialized);
         assert!(serialized.contains("\"args\":{}"))
     }
 }

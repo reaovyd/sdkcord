@@ -1,17 +1,9 @@
-use super::{
-    macros::make_subscription_event,
-    EmptyArgs,
-};
-use crate::payload::subscription::{
-    SubscribeRequest,
-    UnsubscribeRequest,
-};
-use paste::paste;
-use serde::Serialize;
-use uuid::Uuid;
+use crate::payload::macros::make_subscription_event;
 
 make_subscription_event!(ActivityJoin,
-    (#[doc = "sent when the user clicks a Rich Presence join invite in chat to join a game"])
+    (
+        /// sent when the user clicks a Rich Presence join invite in chat to join a game
+    )
 );
 
 make_subscription_event!(ActivitySpectate,

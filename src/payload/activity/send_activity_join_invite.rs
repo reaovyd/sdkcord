@@ -1,13 +1,6 @@
-use crate::payload::request::{
-    macros::make_request_payload,
-    Request,
-};
-use derive_builder::Builder;
-use paste::paste;
-use serde::Serialize;
-use uuid::Uuid;
+use crate::payload::macros::make_command_reqres_payload;
 
-make_request_payload!(SendActivityJoinInvite,
+make_command_reqres_payload!(SendActivityJoinInvite,
     (
         /// Used to accept an Ask to Join request
     ),
@@ -16,7 +9,7 @@ make_request_payload!(SendActivityJoinInvite,
 
 #[cfg(test)]
 mod tests {
-    use crate::payload::request::{
+    use crate::payload::{
         SendActivityJoinInvite,
         SendActivityJoinInviteArgsBuilder,
     };

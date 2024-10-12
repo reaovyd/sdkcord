@@ -1,15 +1,9 @@
-use crate::payload::request::{
-    macros::make_request_payload,
-    Request,
-};
-use derive_builder::Builder;
+use crate::payload::macros::make_command_reqres_payload;
 use ordered_float::OrderedFloat;
-use paste::paste;
 use serde::Serialize;
 use thiserror::Error;
-use uuid::Uuid;
 
-make_request_payload!(
+make_command_reqres_payload!(
     SetUserVoiceSettings,
     (
         /// Used to change voice settings of users in voice channels

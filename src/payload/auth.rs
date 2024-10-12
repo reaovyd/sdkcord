@@ -1,19 +1,14 @@
 use std::collections::HashSet;
 
-use crate::payload::request::{
-    macros::make_request_payload,
-    Request,
-};
-use derive_builder::Builder;
-use paste::paste;
 use serde::{
     Deserialize,
     Serialize,
 };
-use uuid::Uuid;
+
+use super::macros::make_command_reqres_payload;
 
 // TODO: definitely need more docs around here somehow...
-make_request_payload!(Authorize,
+make_command_reqres_payload!(Authorize,
     (
         /// Used to authenticate a new client with your app. By default this pops up a modal in-app that asks the user to authorize access to your app
         /// More information can be found on the Discord docs website
@@ -42,7 +37,7 @@ make_request_payload!(Authorize,
     )
 );
 
-make_request_payload!(Authenticate,
+make_command_reqres_payload!(Authenticate,
     (
         /// Used to authenticate an existing client with your app
     ),
@@ -155,7 +150,7 @@ pub enum OAuth2Scope {
 
 #[cfg(test)]
 mod tests {
-    use crate::payload::request::{
+    use crate::payload::{
         CodeChallengeMethod,
         Prompt,
         ResponseType,

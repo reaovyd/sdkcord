@@ -1,15 +1,4 @@
-use super::{
-    macros::make_subscription_event,
-    EmptyArgs,
-};
-use crate::payload::subscription::{
-    SubscribeRequest,
-    UnsubscribeRequest,
-};
-use derive_builder::Builder;
-use paste::paste;
-use serde::Serialize;
-use uuid::Uuid;
+use crate::payload::macros::make_subscription_event;
 
 make_subscription_event!(GuildStatus,
     (#[doc = "sent when a subscribed server's state changes"]),
@@ -24,15 +13,17 @@ make_subscription_event!(GuildCreate,
 mod guild_tests {
     use pretty_assertions::assert_eq;
 
-    use super::{
-        GuildStatusEventArgsBuilder,
-        GuildStatusSubscriptionEvent,
-    };
+    use crate::payload::GuildStatusSubscriptionEventArgsBuilder;
+
+    use super::GuildStatusSubscriptionEvent;
 
     #[test]
     fn guild_status_construction_subscription() {
         let guild_status = GuildStatusSubscriptionEvent::new(
-            GuildStatusEventArgsBuilder::create_empty().guild_id("id1").build().unwrap(),
+            GuildStatusSubscriptionEventArgsBuilder::create_empty()
+                .guild_id("id1")
+                .build()
+                .unwrap(),
         );
         assert_eq!(guild_status.args.guild_id, "id1".to_owned());
     }
@@ -40,7 +31,10 @@ mod guild_tests {
     #[test]
     fn guild_status_construction_subscription_serialized() {
         let guild_status = GuildStatusSubscriptionEvent::new(
-            GuildStatusEventArgsBuilder::create_empty().guild_id("id1").build().unwrap(),
+            GuildStatusSubscriptionEventArgsBuilder::create_empty()
+                .guild_id("id1")
+                .build()
+                .unwrap(),
         );
         let ser = serde_json::to_string(&guild_status).unwrap();
         assert!(ser.contains(r#"{"guild_id":"id1"}"#))

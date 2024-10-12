@@ -1,14 +1,6 @@
-use crate::payload::request::{
-    macros::make_request_payload,
-    EmptyArgs,
-    Request,
-};
-use derive_builder::Builder;
-use paste::paste;
-use serde::Serialize;
-use uuid::Uuid;
+use crate::payload::macros::make_command_reqres_payload;
 
-make_request_payload!(SelectVoiceChannel,
+make_command_reqres_payload!(SelectVoiceChannel,
     (
         /// Used to join or leave a voice channel, group dm, or dm
     ),
@@ -30,7 +22,7 @@ make_request_payload!(SelectVoiceChannel,
     )
 );
 
-make_request_payload!(
+make_command_reqres_payload!(
     GetSelectedVoiceChannel,
     (
         /// Used to get the current voice channel the client is in
