@@ -76,7 +76,40 @@ mod voice;
 #[cfg(test)]
 mod tests {
     use crate::payload::{
-        CloseActivityRequest, CloseActivityRequestArgsBuilder, DeviceBuilder, DeviceType, EventRequest, GetChannel, GetChannelArgsBuilder, GetChannels, GetChannelsArgsBuilder, GetGuilds, GetSelectedVoiceChannel, GetVoiceSettings, GuildStatusEventRequest, GuildStatusEventRequestArgsBuilder, ModelBuilder, Pan, Related, Request, SelectTextChannel, SelectTextChannelArgsBuilder, SelectVoiceChannel, SelectVoiceChannelArgsBuilder, SendActivityJoinInvite, SendActivityJoinInviteArgsBuilder, SetActivity, SetActivityArgsBuilder, SetCertifiedDevices, SetCertifiedDevicesArgsBuilder, SetUserVoiceSettings, SetUserVoiceSettingsArgsBuilder, SetVoiceSettings, SetVoiceSettingsArgsBuilder, VendorBuilder, Volume
+        CloseActivityRequest,
+        CloseActivityRequestArgsBuilder,
+        DeviceBuilder,
+        DeviceType,
+        EventRequest,
+        GetChannel,
+        GetChannelArgsBuilder,
+        GetChannels,
+        GetChannelsArgsBuilder,
+        GetGuilds,
+        GetSelectedVoiceChannel,
+        GetVoiceSettings,
+        GuildStatusEventRequest,
+        GuildStatusEventRequestArgsBuilder,
+        ModelBuilder,
+        Pan,
+        Related,
+        Request,
+        SelectTextChannel,
+        SelectTextChannelArgsBuilder,
+        SelectVoiceChannel,
+        SelectVoiceChannelArgsBuilder,
+        SendActivityJoinInvite,
+        SendActivityJoinInviteArgsBuilder,
+        SetActivity,
+        SetActivityArgsBuilder,
+        SetCertifiedDevices,
+        SetCertifiedDevicesArgsBuilder,
+        SetUserVoiceSettings,
+        SetUserVoiceSettingsArgsBuilder,
+        SetVoiceSettings,
+        SetVoiceSettingsArgsBuilder,
+        VendorBuilder,
+        Volume,
     };
     use url::Url;
     use uuid::Uuid;
@@ -92,10 +125,9 @@ mod tests {
 
     #[test]
     fn test_subscribe_guild_status() {
-        let req =
-            Request::Subscribe(EventRequest::GuildStatus(GuildStatusEventRequest::new(
-                GuildStatusEventRequestArgsBuilder::default().guild_id("123").build().unwrap(),
-            )));
+        let req = Request::Subscribe(EventRequest::GuildStatus(GuildStatusEventRequest::new(
+            GuildStatusEventRequestArgsBuilder::default().guild_id("123").build().unwrap(),
+        )));
         let json = serde_json::to_string(&req).unwrap();
         assert!(json.contains(r#""cmd":"SUBSCRIBE""#));
         assert!(json.contains(r#""evt":"GUILD_STATUS""#));
@@ -103,14 +135,9 @@ mod tests {
 
     #[test]
     fn test_unsubscribe_guild_status() {
-        let req = Request::Unsubscribe(EventRequest::GuildStatus(
-            GuildStatusEventRequest::new(
-                GuildStatusEventRequestArgsBuilder::default()
-                    .guild_id("123")
-                    .build()
-                    .unwrap(),
-            ),
-        ));
+        let req = Request::Unsubscribe(EventRequest::GuildStatus(GuildStatusEventRequest::new(
+            GuildStatusEventRequestArgsBuilder::default().guild_id("123").build().unwrap(),
+        )));
         let json = serde_json::to_string(&req).unwrap();
         assert!(json.contains(r#""cmd":"UNSUBSCRIBE""#));
         assert!(json.contains(r#""evt":"GUILD_STATUS""#));

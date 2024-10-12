@@ -20,10 +20,7 @@ mod guild_tests {
     #[test]
     fn guild_status_construction_subscription() {
         let guild_status = GuildStatusEventRequest::new(
-            GuildStatusEventRequestArgsBuilder::create_empty()
-                .guild_id("id1")
-                .build()
-                .unwrap(),
+            GuildStatusEventRequestArgsBuilder::create_empty().guild_id("id1").build().unwrap(),
         );
         assert_eq!(guild_status.args.guild_id, "id1".to_owned());
     }
@@ -31,10 +28,7 @@ mod guild_tests {
     #[test]
     fn guild_status_construction_subscription_serialized() {
         let guild_status = GuildStatusEventRequest::new(
-            GuildStatusEventRequestArgsBuilder::create_empty()
-                .guild_id("id1")
-                .build()
-                .unwrap(),
+            GuildStatusEventRequestArgsBuilder::create_empty().guild_id("id1").build().unwrap(),
         );
         let ser = serde_json::to_string(&guild_status).unwrap();
         assert!(ser.contains(r#"{"guild_id":"id1"}"#))

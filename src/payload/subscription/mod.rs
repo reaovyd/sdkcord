@@ -34,10 +34,7 @@ mod tests {
     #[test]
     fn test_evt_exists_unsubscribe() {
         let evt = GuildStatusEventRequest::new(
-            GuildStatusEventRequestArgsBuilder::default()
-                .guild_id("asdasd")
-                .build()
-                .unwrap(),
+            GuildStatusEventRequestArgsBuilder::default().guild_id("asdasd").build().unwrap(),
         )
         .build();
         let json = serde_json::to_string(&evt).unwrap();
