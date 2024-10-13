@@ -6,7 +6,7 @@ pub use guild::*;
 pub use subscription::*;
 pub use voice::*;
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(tag = "cmd", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Request {
     Authorize(Authorize),
@@ -29,7 +29,7 @@ pub enum Request {
     CloseActivityRequest(CloseActivityRequest),
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(tag = "evt", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum EventRequest {
     GuildStatus(GuildStatusEventRequest),
@@ -52,17 +52,14 @@ pub enum EventRequest {
     ActivityJoinRequest(ActivityJoinRequestEventRequest),
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 struct EmptyArgs {
     #[serde(flatten)]
     #[serde(skip_serializing_if = "Option::is_none")]
     inner: Option<()>,
 }
 
-#[cfg(test)]
-mod teststest {}
-
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 mod activity;
 mod auth;

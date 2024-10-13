@@ -1,7 +1,7 @@
 use crate::payload::macros::make_command_reqres_payload;
 use derive_builder::Builder;
 use ordered_float::OrderedFloat;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use thiserror::Error;
 
@@ -84,13 +84,13 @@ make_command_reqres_payload!(
     )
 );
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 pub struct InputVoiceSettings(VoiceSettings);
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 pub struct OutputVoiceSettings(VoiceSettings);
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Builder)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Builder)]
 #[builder(build_fn(validate = "Self::validate_boundaries"), setter(into))]
 pub struct ModeVoiceSettings {
     /// Voice setting mode type
@@ -130,7 +130,7 @@ impl ModeVoiceSettingsBuilder {
 /// The mode type for the mode in voice settings
 ///
 /// It must be either `PUSH_TO_TALK` or `VOICE_ACTIVITY`
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ModeType {
     /// The `PUSH_TO_TALK` mode type
@@ -139,7 +139,7 @@ pub enum ModeType {
     VoiceActivity,
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Builder)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Builder)]
 #[builder(setter(into))]
 pub struct Shortcut {
     /// The key type. See [`KeyType`]
@@ -151,7 +151,7 @@ pub struct Shortcut {
     name: String,
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[repr(u8)]
 pub enum KeyType {
@@ -210,7 +210,7 @@ impl InputVoiceSettings {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 struct VoiceSettings {
     /// Device id
     device_id: Option<String>,
@@ -254,7 +254,7 @@ impl VoiceSettings {
     }
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct AvailableDevices {
     id: String,
     name: String,

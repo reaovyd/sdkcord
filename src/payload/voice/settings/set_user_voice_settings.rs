@@ -1,6 +1,6 @@
 use crate::payload::macros::make_command_reqres_payload;
 use ordered_float::OrderedFloat;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 make_command_reqres_payload!(
@@ -63,7 +63,7 @@ pub enum SetUserVoiceSettingsError {
 /// The pan (left and right) set by the user must be between 0.0 and 1.0.
 ///
 /// [discorddocs]: https://discord.com/developers/docs/topics/rpc#setuservoicesettings-pan-object
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Pan {
     left: OrderedFloat<f32>,
     right: OrderedFloat<f32>,
@@ -78,7 +78,7 @@ pub struct Pan {
 /// The volume set by the user must be between 0 and 200.
 ///
 /// [discorddocs]: https://discord.com/developers/docs/topics/rpc#setuservoicesettings
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Volume(u8);
 
 impl Volume {

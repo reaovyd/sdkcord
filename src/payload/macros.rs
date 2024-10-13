@@ -4,7 +4,7 @@ macro_rules! make_request_payload {
         ($(#[$request_doc:meta])*),
         { $request_type: ty; $request_enum_val: ident }
     ) => {
-        #[derive(Debug, Clone, serde::Serialize, PartialEq, Eq, Hash)]
+        #[derive(Debug, Clone, serde::Serialize, serde::Deserialize,  PartialEq, Eq, Hash)]
         $(
             #[$request_doc]
         )*
@@ -38,7 +38,7 @@ macro_rules! make_request_payload {
         { $request_type: ty; $request_enum_val: ident },
         $(($field_name: ident, $field_type: ty, ($(#[$field_doc: meta])*) $(, ($(#[$addt_dctv: meta])*))? )),*
     ) => {
-        #[derive(Debug, Clone, serde::Serialize, PartialEq, Eq, Hash)]
+        #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
         $(
             #[$request_doc]
         )*
@@ -48,7 +48,7 @@ macro_rules! make_request_payload {
         }
 
         paste::paste! {
-            #[derive(derive_builder::Builder, Debug, Clone, serde::Serialize, PartialEq, Eq, Hash)]
+            #[derive(derive_builder::Builder, Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
             #[builder(derive(Debug), setter(into))]
             // lint isn't catching a /**/ comment where the Errors section is according to
             // cargo expand
