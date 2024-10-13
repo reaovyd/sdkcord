@@ -11,15 +11,24 @@ make_command_reqres_payload!(
     (user_id, String, (#[doc = "user id"])),
     (pan, Option<Pan>,
         (#[doc = "set the pan of the user"]),
-        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+        (
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[builder(setter(strip_option), default)]
+        )
     ),
     (volume, Option<Volume>,
         (#[doc = "set the volume of user (defaults to 100, min 0, max 200)"]),
-        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+        (
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[builder(setter(strip_option), default)]
+        )
     ),
     (mute, Option<bool>,
         (#[doc = "set the mute state of the user"]),
-        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+        (
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[builder(setter(strip_option), default)]
+        )
     )
 );
 

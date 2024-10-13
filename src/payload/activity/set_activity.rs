@@ -27,7 +27,10 @@ make_command_reqres_payload!(SetActivity,
     ),
     (activity, Option<Activity>,
         (#[doc = "The rich presence to assign to the user"]),
-        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+        (
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[builder(setter(strip_option), default)]
+        )
     )
 );
 

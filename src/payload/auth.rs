@@ -17,23 +17,38 @@ make_command_reqres_payload!(Authorize,
     (client_id, String, (#[doc = "OAuth2 application id"])),
     (response_type, Option<ResponseType>,
         (#[doc = "Authorization Response Type"]),
-        (#[builder(setter(strip_option), default)], #[serde(skip_serializing_if = "Option::is_none")])
+        (
+            #[builder(setter(strip_option), default)]
+            #[serde(skip_serializing_if = "Option::is_none")]
+        )
     ),
     (prompt, Option<Prompt>,
         (#[doc = "Authorization prompt"]),
-        (#[builder(setter(strip_option), default)], #[serde(skip_serializing_if = "Option::is_none")])
+        (
+            #[builder(setter(strip_option), default)]
+            #[serde(skip_serializing_if = "Option::is_none")]
+        )
     ),
     (code_challenge, Option<String>,
         (#[doc = "Authorization code challenge"]),
-        (#[builder(setter(strip_option), default)], #[serde(skip_serializing_if = "Option::is_none")])
+        (
+            #[builder(setter(strip_option), default)]
+            #[serde(skip_serializing_if = "Option::is_none")]
+        )
     ),
     (state, Option<String>,
         (#[doc = "Authorization State"]),
-        (#[builder(setter(strip_option), default)], #[serde(skip_serializing_if = "Option::is_none")])
+        (
+            #[builder(setter(strip_option), default)]
+            #[serde(skip_serializing_if = "Option::is_none")]
+        )
     ),
     (code_challenge_method, Option<CodeChallengeMethod>,
         (#[doc = "Authorization code challenge method"]),
-        (#[builder(setter(strip_option), default)], #[serde(skip_serializing_if = "Option::is_none")])
+        (
+            #[builder(setter(strip_option), default)]
+            #[serde(skip_serializing_if = "Option::is_none")]
+        )
     )
 );
 

@@ -1,5 +1,9 @@
 macro_rules! make_request_payload {
-    ($request_name: ident, ($(#[$request_doc:meta])*), { $request_type: ty; $request_enum_val: ident }) => {
+    (
+        $request_name: ident,
+        ($(#[$request_doc:meta])*),
+        { $request_type: ty; $request_enum_val: ident }
+    ) => {
         #[derive(Debug, Clone, serde::Serialize, PartialEq, Eq, Hash)]
         $(
             #[$request_doc]
@@ -28,7 +32,12 @@ macro_rules! make_request_payload {
             }
         }
     };
-    ($request_name: ident, ($(#[$request_doc:meta])*), { $request_type: ty; $request_enum_val: ident }, $(($field_name: ident, $field_type: ty, ($(#[$field_doc: meta])*) $(, ($(#[$addt_dctv: meta]),*))? )),*) => {
+    (
+        $request_name: ident,
+        ($(#[$request_doc:meta])*),
+        { $request_type: ty; $request_enum_val: ident },
+        $(($field_name: ident, $field_type: ty, ($(#[$field_doc: meta])*) $(, ($(#[$addt_dctv: meta])*))? )),*
+    ) => {
         #[derive(Debug, Clone, serde::Serialize, PartialEq, Eq, Hash)]
         $(
             #[$request_doc]
@@ -75,16 +84,24 @@ macro_rules! make_request_payload {
 }
 
 macro_rules! make_command_reqres_payload {
-    ($request_name: ident, ($(#[$request_doc:meta])*)) => {
+    (
+        $request_name: ident,
+        ($(#[$request_doc:meta])*)
+    ) => {
         $crate::payload::macros::make_request_payload!($request_name, ($(#[$request_doc])*), { $crate::payload::Request; $request_name });
     };
 
-    ($request_name: ident, ($(#[$request_doc:meta])*), $(($field_name: ident, $field_type: ty, ($(#[$field_doc: meta])*) $(, ($(#[$addt_dctv: meta]),*))? )),*) => {
+    (
+        $request_name: ident,
+        ($(#[$request_doc:meta])*),
+        $(($field_name: ident, $field_type: ty,
+        ($(#[$field_doc: meta])*) $(, ($(#[$addt_dctv: meta])*))? )),*
+    ) => {
         $crate::payload::macros::make_request_payload!(
             $request_name,
             ($(#[$request_doc])*),
             { $crate::payload::Request; $request_name },
-            $(($field_name, $field_type, ($(#[$field_doc])*) $(, ($(#[$addt_dctv]),*))? )),*
+            $(($field_name, $field_type, ($(#[$field_doc])*) $(, ($(#[$addt_dctv])*))? )),*
         );
     };
 }
@@ -99,7 +116,11 @@ macro_rules! make_subscription_event {
             );
         }
     };
-    ($evt_name: ident, ($(#[$evt_doc:meta])*), $(($field_name: ident, $field_type: ty, ($(#[$field_doc: meta])*) $(, ($(#[$addt_dctv: meta]),*))? )),*) => {
+    (
+        $evt_name: ident,
+        ($(#[$evt_doc:meta])*),
+        $(($field_name: ident, $field_type: ty, ($(#[$field_doc: meta])*) $(, ($(#[$addt_dctv: meta])*))? )),*
+    ) => {
         paste::paste! {
             $crate::payload::macros::make_request_payload!(
                 [<$evt_name EventRequest>],

@@ -6,7 +6,12 @@ make_command_reqres_payload!(
         /// Used to retrieve guild information from the client
     ),
     (guild_id, String, (#[doc = "id of the guild to get"])),
-    (timeout, Option<u32>, (#[doc = "asynchronously get guild with time to wait before timing out"]), (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)]))
+    (timeout, Option<u32>, (#[doc = "asynchronously get guild with time to wait before timing out"]),
+        (
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[builder(setter(strip_option), default)]
+        )
+    )
 );
 make_command_reqres_payload!(GetGuilds,
     (

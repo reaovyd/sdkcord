@@ -29,7 +29,7 @@ make_command_reqres_payload!(SelectTextChannel,
     (timeout, Option<u32>,
             (#[doc = "asynchronously join channel with time to wait before timing out"]),
             (
-                #[serde(skip_serializing_if = "Option::is_none")],
+                #[serde(skip_serializing_if = "Option::is_none")]
                 #[builder(setter(strip_option), default)]
             )
     )

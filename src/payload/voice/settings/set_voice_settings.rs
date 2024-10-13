@@ -14,43 +14,73 @@ make_command_reqres_payload!(
     ),
     (input, Option<InputVoiceSettings>,
         (#[doc = "input settings"]),
-        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+        (
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[builder(setter(strip_option), default)]
+        )
     ),
     (output, Option<OutputVoiceSettings>,
         (#[doc = "output settings"]),
-        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+        (
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[builder(setter(strip_option), default)]
+        )
     ),
     (mode, Option<ModeVoiceSettings>,
         (#[doc = "voice mode settings"]),
-        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+        (
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[builder(setter(strip_option), default)]
+        )
     ),
     (automatic_gain_control, Option<bool>,
         (#[doc = "state of automatic gain control"]),
-        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+        (
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[builder(setter(strip_option), default)]
+        )
     ),
     (echo_cancellation, Option<bool>,
         (#[doc = "state of echo cancellation"]),
-        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+        (
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[builder(setter(strip_option), default)]
+        )
     ),
     (noise_suppression, Option<bool>,
         (#[doc = "state of noise suppression"]),
-        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+        (
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[builder(setter(strip_option), default)]
+        )
     ),
     (qos, Option<bool>,
         (#[doc = "state of voice quality of service"]),
-        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+        (
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[builder(setter(strip_option), default)]
+        )
     ),
     (silence_warning, Option<bool>,
         (#[doc = "state of silence warning notice"]),
-        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+        (
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[builder(setter(strip_option), default)]
+        )
     ),
     (deaf, Option<bool>,
         (#[doc = "state of self-deafen"]),
-        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+        (
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[builder(setter(strip_option), default)]
+        )
     ),
     (mute, Option<bool>,
         (#[doc = "state of self-mute"]),
-        (#[serde(skip_serializing_if = "Option::is_none")], #[builder(setter(strip_option), default)])
+        (
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[builder(setter(strip_option), default)]
+        )
     )
 );
 
