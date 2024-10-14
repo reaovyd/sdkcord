@@ -53,7 +53,7 @@ macro_rules! make_request_payload {
             // lint isn't catching a /**/ comment where the Errors section is according to
             // cargo expand
             #[allow(clippy::missing_errors_doc)]
-            // NOTE: idk even tho i put the builder derive something isn't getting derived
+            // TODO: idk even tho i put the builder derive something isn't getting derived
             // ¯\_(ツ)_/¯
             //
             // Just adding this temp sol so i don't get warnings for this... 
