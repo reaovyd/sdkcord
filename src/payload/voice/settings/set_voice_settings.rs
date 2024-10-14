@@ -1,7 +1,15 @@
+use std::fmt::Debug;
+
 use crate::payload::macros::make_command_reqres_payload;
-use derive_builder::Builder;
+use bon::{
+    bon,
+    Builder,
+};
 use ordered_float::OrderedFloat;
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 use serde_with::skip_serializing_none;
 use thiserror::Error;
 
@@ -16,70 +24,70 @@ make_command_reqres_payload!(
         (#[doc = "input settings"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     ),
     (output, Option<OutputVoiceSettings>,
         (#[doc = "output settings"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     ),
     (mode, Option<ModeVoiceSettings>,
         (#[doc = "voice mode settings"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     ),
     (automatic_gain_control, Option<bool>,
         (#[doc = "state of automatic gain control"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     ),
     (echo_cancellation, Option<bool>,
         (#[doc = "state of echo cancellation"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     ),
     (noise_suppression, Option<bool>,
         (#[doc = "state of noise suppression"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     ),
     (qos, Option<bool>,
         (#[doc = "state of voice quality of service"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     ),
     (silence_warning, Option<bool>,
         (#[doc = "state of silence warning notice"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     ),
     (deaf, Option<bool>,
         (#[doc = "state of self-deafen"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     ),
     (mute, Option<bool>,
         (#[doc = "state of self-mute"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     )
 );
@@ -90,8 +98,7 @@ pub struct InputVoiceSettings(VoiceSettings);
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 pub struct OutputVoiceSettings(VoiceSettings);
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Builder)]
-#[builder(build_fn(validate = "Self::validate_boundaries"), setter(into))]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct ModeVoiceSettings {
     /// Voice setting mode type
     #[serde(rename = "type")]
@@ -106,24 +113,30 @@ pub struct ModeVoiceSettings {
     delay: OrderedFloat<f32>,
 }
 
-impl ModeVoiceSettingsBuilder {
+#[bon]
+impl ModeVoiceSettings {
     const MIN_THRESHOLD: OrderedFloat<f32> = OrderedFloat(-100.0);
     const MAX_THRESHOLD: OrderedFloat<f32> = OrderedFloat(0.0);
 
     const MIN_DELAY: OrderedFloat<f32> = OrderedFloat(0.0);
     const MAX_DELAY: OrderedFloat<f32> = OrderedFloat(2000.0);
 
-    fn validate_boundaries(&self) -> Result<(), SetVoiceSettingsError> {
-        if let (Some(delay), Some(threshold)) = (self.delay, self.threshold) {
-            if delay < Self::MIN_DELAY || delay > Self::MAX_DELAY {
-                return Err(SetVoiceSettingsError::DelayBoundary { delay: delay.0 });
-            }
-
-            if threshold < Self::MIN_THRESHOLD || threshold > Self::MAX_THRESHOLD {
-                return Err(SetVoiceSettingsError::ThresholdBoundary { threshold: threshold.0 });
-            }
+    #[builder(derive(Debug))]
+    pub fn new(
+        #[builder(into)] mode_type: ModeType,
+        #[builder(into)] auto_threshold: bool,
+        #[builder(into)] threshold: OrderedFloat<f32>,
+        #[builder(into)] shortcut: Shortcut,
+        #[builder(into)] delay: OrderedFloat<f32>,
+    ) -> Result<Self, SetVoiceSettingsError> {
+        if delay < Self::MIN_DELAY || delay > Self::MAX_DELAY {
+            return Err(SetVoiceSettingsError::DelayBoundary { delay: delay.0 });
         }
-        Ok(())
+
+        if threshold < Self::MIN_THRESHOLD || threshold > Self::MAX_THRESHOLD {
+            return Err(SetVoiceSettingsError::ThresholdBoundary { threshold: threshold.0 });
+        }
+        Ok(ModeVoiceSettings { mode_type, auto_threshold, threshold, shortcut, delay })
     }
 }
 
@@ -140,14 +153,17 @@ pub enum ModeType {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Builder)]
-#[builder(setter(into))]
+#[builder(derive(Debug))]
 pub struct Shortcut {
     /// The key type. See [`KeyType`]
     #[serde(rename = "type")]
+    #[builder(into)]
     key_type: KeyType,
     /// The key code
+    #[builder(into)]
     code: u32,
     /// The key name
+    #[builder(into)]
     name: String,
 }
 
@@ -161,6 +177,7 @@ pub enum KeyType {
     GamepadButton = 3,
 }
 
+#[bon]
 impl OutputVoiceSettings {
     const MIN_VOL: OrderedFloat<f32> = OrderedFloat(0.0);
     const MAX_VOL: OrderedFloat<f32> = OrderedFloat(200.0);
@@ -170,21 +187,25 @@ impl OutputVoiceSettings {
     /// A [`SetVoiceSettingsError`] is returned if the volume you inputted does
     /// not fall between the `MIN_VOL` and `MAX_VOL` which would result in a
     /// [`SetVoiceSettingsError::VolumeBoundary`] error
+    #[builder(derive(Debug))]
     pub fn new(
         device_id: &str,
         volume: f32,
-        available_devices: &[AvailableDevices],
+        available_devices: &[AvailableDevice],
     ) -> Result<Self, SetVoiceSettingsError> {
-        Ok(OutputVoiceSettings(VoiceSettings::new(
-            device_id,
-            volume,
-            available_devices,
-            Self::MIN_VOL,
-            Self::MAX_VOL,
-        )?))
+        Ok(OutputVoiceSettings(
+            VoiceSettings::builder()
+                .device_id(device_id)
+                .volume(volume)
+                .available_devices(available_devices)
+                .min_vol(Self::MIN_VOL)
+                .max_vol(Self::MAX_VOL)
+                .build()?,
+        ))
     }
 }
 
+#[bon]
 impl InputVoiceSettings {
     const MIN_VOL: OrderedFloat<f32> = OrderedFloat(0.0);
     const MAX_VOL: OrderedFloat<f32> = OrderedFloat(100.0);
@@ -194,18 +215,21 @@ impl InputVoiceSettings {
     /// A [`SetVoiceSettingsError`] is returned if the volume you inputted does
     /// not fall between the `MIN_VOL` and `MAX_VOL` which would result in a
     /// [`SetVoiceSettingsError::VolumeBoundary`] error
+    #[builder(derive(Debug))]
     pub fn new(
         device_id: &str,
         volume: f32,
-        available_devices: &[AvailableDevices],
+        available_devices: &[AvailableDevice],
     ) -> Result<Self, SetVoiceSettingsError> {
-        Ok(InputVoiceSettings(VoiceSettings::new(
-            device_id,
-            volume,
-            available_devices,
-            Self::MIN_VOL,
-            Self::MAX_VOL,
-        )?))
+        Ok(InputVoiceSettings(
+            VoiceSettings::builder()
+                .device_id(device_id)
+                .volume(volume)
+                .available_devices(available_devices)
+                .min_vol(Self::MIN_VOL)
+                .max_vol(Self::MAX_VOL)
+                .build()?,
+        ))
     }
 }
 
@@ -218,16 +242,18 @@ struct VoiceSettings {
     /// Output voice level (min: 0, max: 200)
     volume: Option<OrderedFloat<f32>>,
     /// Array of read-only device objects containing `id` and `name` string keys
-    available_devices: Option<Vec<AvailableDevices>>,
+    available_devices: Option<Vec<AvailableDevice>>,
 }
 
+#[bon]
 impl VoiceSettings {
+    #[builder(derive(Debug))]
     fn new(
         device_id: &str,
-        volume: impl Into<f32>,
-        available_devices: &[AvailableDevices],
-        min_vol: impl Into<OrderedFloat<f32>>,
-        max_vol: impl Into<OrderedFloat<f32>>,
+        volume: impl Into<f32> + Debug,
+        available_devices: &[AvailableDevice],
+        min_vol: impl Into<OrderedFloat<f32>> + Debug,
+        max_vol: impl Into<OrderedFloat<f32>> + Debug,
     ) -> Result<Self, SetVoiceSettingsError> {
         let volume = volume.into();
         let min_vol = min_vol.into();
@@ -254,18 +280,13 @@ impl VoiceSettings {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub struct AvailableDevices {
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Builder)]
+#[builder(derive(Debug))]
+pub struct AvailableDevice {
+    #[builder(into)]
     id: String,
+    #[builder(into)]
     name: String,
-}
-
-impl AvailableDevices {
-    pub fn new(id: &str, name: &str) -> Self {
-        let id = id.to_string();
-        let name = name.to_string();
-        Self { id, name }
-    }
 }
 
 /// `Error`s that occur when trying to build the [`SetVoiceSettings`] request
@@ -288,33 +309,26 @@ pub enum SetVoiceSettingsError {
     DelayBoundary { delay: f32 },
 }
 
-impl From<SetVoiceSettingsError> for ModeVoiceSettingsBuilderError {
-    fn from(value: SetVoiceSettingsError) -> Self {
-        ModeVoiceSettingsBuilderError::ValidationError(value.to_string())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::{
-        ModeVoiceSettingsBuilder,
-        ShortcutBuilder,
+        ModeVoiceSettings,
+        Shortcut,
     };
 
     #[test]
-    #[should_panic(expected = "ValidationError")]
+    #[should_panic]
     fn test_mode_settings_validation_threshold() {
-        ModeVoiceSettingsBuilder::create_empty()
+        ModeVoiceSettings::builder()
             .mode_type(super::ModeType::PushToTalk)
             .auto_threshold(false)
             .threshold(100.0)
             .shortcut(
-                ShortcutBuilder::create_empty()
+                Shortcut::builder()
                     .code(23u32)
                     .name("a")
                     .key_type(super::KeyType::GamepadButton)
-                    .build()
-                    .unwrap(),
+                    .build(),
             )
             .delay(200.0)
             .build()
@@ -322,19 +336,18 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "ValidationError")]
+    #[should_panic]
     fn test_mode_settings_validation_delay() {
-        ModeVoiceSettingsBuilder::create_empty()
+        ModeVoiceSettings::builder()
             .mode_type(super::ModeType::PushToTalk)
             .auto_threshold(false)
             .threshold(0.0)
             .shortcut(
-                ShortcutBuilder::create_empty()
+                Shortcut::builder()
                     .code(23u32)
                     .name("a")
                     .key_type(super::KeyType::GamepadButton)
-                    .build()
-                    .unwrap(),
+                    .build(),
             )
             .delay(30000.0)
             .build()
@@ -343,17 +356,16 @@ mod tests {
 
     #[test]
     fn test_mode_settings_validation_success() {
-        let mode_voice_settings = ModeVoiceSettingsBuilder::create_empty()
+        let mode_voice_settings = ModeVoiceSettings::builder()
             .mode_type(super::ModeType::PushToTalk)
             .auto_threshold(false)
             .threshold(0.0)
             .shortcut(
-                ShortcutBuilder::create_empty()
+                Shortcut::builder()
                     .code(23u32)
                     .name("a")
                     .key_type(super::KeyType::GamepadButton)
-                    .build()
-                    .unwrap(),
+                    .build(),
             )
             .delay(150.0)
             .build()

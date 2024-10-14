@@ -5,11 +5,11 @@ make_command_reqres_payload!(
     (
         /// Used to retrieve guild information from the client
     ),
-    (guild_id, String, (#[doc = "id of the guild to get"])),
+    (guild_id, String, (#[doc = "id of the guild to get"]), (#[builder(into)])),
     (timeout, Option<u32>, (#[doc = "asynchronously get guild with time to wait before timing out"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     )
 );
@@ -23,29 +23,21 @@ make_command_reqres_payload!(GetGuilds,
 mod get_guild_tests {
     use pretty_assertions::assert_eq;
 
-    use super::{
-        GetGuild,
-        GetGuildArgsBuilder,
-    };
+    use crate::payload::GetGuildArgs;
+
+    use super::GetGuild;
 
     #[test]
     fn test_construction_basic() {
-        let guild = GetGuild::new(
-            GetGuildArgsBuilder::create_empty()
-                .guild_id("guild_id")
-                .timeout(32u32)
-                .build()
-                .unwrap(),
-        );
+        let guild =
+            GetGuild::new(GetGuildArgs::builder().guild_id("guild_id").timeout(32u32).build());
         assert_eq!(guild.args.guild_id, "guild_id".to_string());
         assert_eq!(guild.args.timeout, Some(32));
     }
 
     #[test]
     fn test_serialization_timeout_empty() {
-        let guild = GetGuild::new(
-            GetGuildArgsBuilder::create_empty().guild_id("guild_id").build().unwrap(),
-        );
+        let guild = GetGuild::new(GetGuildArgs::builder().guild_id("guild_id").build());
 
         assert_eq!(guild.args.timeout, None);
 
@@ -56,13 +48,8 @@ mod get_guild_tests {
 
     #[test]
     fn test_serialization_timeout_filled() {
-        let guild = GetGuild::new(
-            GetGuildArgsBuilder::create_empty()
-                .guild_id("guild_id")
-                .timeout(32u32)
-                .build()
-                .unwrap(),
-        );
+        let guild =
+            GetGuild::new(GetGuildArgs::builder().guild_id("guild_id").timeout(32u32).build());
 
         assert_eq!(guild.args.timeout, Some(32));
 

@@ -1,5 +1,5 @@
 use crate::payload::macros::make_command_reqres_payload;
-use derive_builder::Builder;
+use bon::Builder;
 use serde::{
     Deserialize,
     Serialize,
@@ -29,30 +29,31 @@ make_command_reqres_payload!(SetActivity,
         (#[doc = "The rich presence to assign to the user"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     )
 );
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[builder(setter(into, strip_option))]
+#[builder(derive(Debug))]
 pub struct Activity {
     #[serde(rename = "type")]
+    #[builder(into)]
     activity_type: ActivityType,
-    #[builder(default)]
+    #[builder(into)]
     timestamps: Option<Timestamps>,
-    #[builder(default)]
+    #[builder(into)]
     details: Option<String>,
-    #[builder(default)]
+    #[builder(into)]
     state: Option<String>,
-    #[builder(default)]
+    #[builder(into)]
     party: Option<Party>,
-    #[builder(default)]
+    #[builder(into)]
     assets: Option<Assets>,
-    #[builder(default)]
+    #[builder(into)]
     secrets: Option<Secrets>,
-    #[builder(default)]
+    #[builder(into)]
     instance: Option<bool>,
 }
 
@@ -88,21 +89,19 @@ pub enum ActivityType {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[builder(setter(into, strip_option))]
+#[builder(derive(Debug))]
 pub struct Timestamps {
-    #[builder(default)]
     start: Option<u64>,
-    #[builder(default)]
     end: Option<u64>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[builder(setter(into, strip_option))]
+#[builder(derive(Debug))]
 pub struct Party {
-    #[builder(default)]
+    #[builder(into)]
     id: Option<String>,
-    #[builder(default)]
+    #[builder(into)]
     size: Option<[u32; 2]>,
 }
 
@@ -117,62 +116,77 @@ pub struct Party {
 /// are supported. [discorddocs]: https://discord.com/developers/docs/topics/gateway-events#activity-object-activity-asset-image
 #[skip_serializing_none]
 #[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[builder(setter(into, strip_option))]
+#[builder(derive(Debug))]
 pub struct Assets {
     /// Large image displayed on a user's Rich Presence
-    #[builder(default)]
+    #[builder(into)]
     large_image: Option<String>,
     /// Text displayed when hovering over the large image of the activity
-    #[builder(default)]
+    #[builder(into)]
     large_text: Option<String>,
     /// Small image displayed on a user's Rich Presence
-    #[builder(default)]
+    #[builder(into)]
     small_image: Option<String>,
     /// Text displayed when hovering over the small image of the activity
-    #[builder(default)]
+    #[builder(into)]
     small_text: Option<String>,
 }
 
 /// Activity secrets
 #[skip_serializing_none]
 #[derive(Debug, Clone, Builder, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[builder(setter(into, strip_option))]
+#[builder(derive(Debug))]
 pub struct Secrets {
     /// Secret for joining a party
-    #[builder(default)]
+    #[builder(into)]
     join: Option<String>,
     /// Secret for spectating a game
-    #[builder(default)]
+    #[builder(into)]
     spectate: Option<String>,
     /// Secret for a specific instanced match
     #[serde(rename = "match")]
-    #[builder(default)]
+    #[builder(into)]
     secrets_match: Option<String>,
 }
 
 #[cfg(test)]
 mod tests {
+    use pretty_assertions::assert_eq;
+
+    use crate::payload::{
+        Activity,
+        SetActivityArgs,
+        Timestamps,
+    };
+
     use super::{
-        ActivityBuilder,
+        Party,
         SetActivity,
-        SetActivityArgsBuilder,
     };
 
     #[test]
     fn test_basic_build() {
         let activity = SetActivity::new(
-            SetActivityArgsBuilder::create_empty()
+            SetActivityArgs::builder()
                 .pid(2333u32)
-                .activity(
-                    ActivityBuilder::create_empty()
-                        .activity_type(super::ActivityType::Playing)
-                        .build()
-                        .unwrap(),
-                )
-                .build()
-                .unwrap(),
+                .activity(Activity::builder().activity_type(super::ActivityType::Playing).build())
+                .build(),
         );
         let serialized = serde_json::to_string(&activity).unwrap();
         assert!(serialized.contains(r#""activity":{"type":0"#));
+    }
+
+    #[test]
+    fn test_party_build() {
+        let party = Party::builder().size([3, 2]).build();
+        assert_eq!(party.size, Some([3, 2]))
+    }
+
+    #[test]
+    fn test_timestamps_build() {
+        // NOTE: just wanted to check Into u64 condition
+        let timestamps = Timestamps::builder().start(3).end(5).build();
+        assert_eq!(timestamps.start, Some(3));
+        assert_eq!(timestamps.end, Some(5));
     }
 }

@@ -59,7 +59,10 @@ struct EmptyArgs {
     inner: Option<()>,
 }
 
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 
 mod activity;
 mod auth;
@@ -73,49 +76,16 @@ mod voice;
 #[cfg(test)]
 mod tests {
     use crate::payload::{
-        CloseActivityRequest,
-        CloseActivityRequestArgsBuilder,
-        DeviceBuilder,
-        DeviceType,
-        EventRequest,
-        GetChannel,
-        GetChannelArgsBuilder,
-        GetChannels,
-        GetChannelsArgsBuilder,
-        GetGuilds,
-        GetSelectedVoiceChannel,
-        GetVoiceSettings,
-        GuildStatusEventRequest,
-        GuildStatusEventRequestArgsBuilder,
-        ModelBuilder,
-        Pan,
-        Related,
-        Request,
-        SelectTextChannel,
-        SelectTextChannelArgsBuilder,
-        SelectVoiceChannel,
-        SelectVoiceChannelArgsBuilder,
-        SendActivityJoinInvite,
-        SendActivityJoinInviteArgsBuilder,
-        SetActivity,
-        SetActivityArgsBuilder,
-        SetCertifiedDevices,
-        SetCertifiedDevicesArgsBuilder,
-        SetUserVoiceSettings,
-        SetUserVoiceSettingsArgsBuilder,
-        SetVoiceSettings,
-        SetVoiceSettingsArgsBuilder,
-        VendorBuilder,
-        Volume,
+        CloseActivityRequest, CloseActivityRequestArgs, Device, DeviceType, EventRequest, GetChannel, GetChannelArgs, GetChannels, GetChannelsArgs, GetGuilds, GetSelectedVoiceChannel, GetVoiceSettings, GuildStatusEventRequest, GuildStatusEventRequestArgs, Model, Pan, Related, Request, SelectTextChannel, SelectTextChannelArgs, SelectVoiceChannel, SelectVoiceChannelArgs, SendActivityJoinInvite, SendActivityJoinInviteArgs, SetActivity, SetActivityArgs, SetCertifiedDevices, SetCertifiedDevicesArgs, SetUserVoiceSettings, SetUserVoiceSettingsArgs, SetVoiceSettings, SetVoiceSettingsArgs, Vendor, Volume
     };
     use url::Url;
     use uuid::Uuid;
 
     use super::{
         Authorize,
-        AuthorizeArgsBuilder,
+        AuthorizeArgs,
         GetGuild,
-        GetGuildArgsBuilder,
+        GetGuildArgs,
         OAuth2Scope,
         OAuth2Scopes,
     };
@@ -123,7 +93,7 @@ mod tests {
     #[test]
     fn test_subscribe_guild_status() {
         let req = Request::Subscribe(EventRequest::GuildStatus(GuildStatusEventRequest::new(
-            GuildStatusEventRequestArgsBuilder::default().guild_id("123").build().unwrap(),
+            GuildStatusEventRequestArgs::builder().guild_id("123").build(),
         )));
         let json = serde_json::to_string(&req).unwrap();
         assert!(json.contains(r#""cmd":"SUBSCRIBE""#));
@@ -133,7 +103,7 @@ mod tests {
     #[test]
     fn test_unsubscribe_guild_status() {
         let req = Request::Unsubscribe(EventRequest::GuildStatus(GuildStatusEventRequest::new(
-            GuildStatusEventRequestArgsBuilder::default().guild_id("123").build().unwrap(),
+            GuildStatusEventRequestArgs::builder().guild_id("123").build(),
         )));
         let json = serde_json::to_string(&req).unwrap();
         assert!(json.contains(r#""cmd":"UNSUBSCRIBE""#));
@@ -143,11 +113,10 @@ mod tests {
     #[test]
     fn test_get_guild_cmd_exists() {
         let get_guild = Request::GetGuild(GetGuild::new(
-            GetGuildArgsBuilder::default()
+            GetGuildArgs::builder()
                 .guild_id("abc".to_owned())
                 .timeout(200u32)
                 .build()
-                .unwrap(),
         ));
         let serialized = serde_json::to_string(&get_guild).unwrap();
         assert!(serialized.contains(r#""cmd":"GET_GUILD""#));
@@ -163,7 +132,7 @@ mod tests {
     #[test]
     fn test_get_channel_cmd_exists() {
         let get_channel = Request::GetChannel(GetChannel::new(
-            GetChannelArgsBuilder::default().channel_id("123".to_string()).build().unwrap(),
+            GetChannelArgs::builder().channel_id("123".to_string()).build(),
         ));
         let serialized = serde_json::to_string(&get_channel).unwrap();
         assert!(serialized.contains(r#""cmd":"GET_CHANNEL""#));
@@ -172,7 +141,7 @@ mod tests {
     #[test]
     fn test_get_channels_cmd_exists() {
         let get_channels = Request::GetChannels(GetChannels::new(
-            GetChannelsArgsBuilder::default().guild_id("123".to_string()).build().unwrap(),
+            GetChannelsArgs::builder().guild_id("123".to_string()).build(),
         ));
         let serialized = serde_json::to_string(&get_channels).unwrap();
         assert!(serialized.contains(r#""cmd":"GET_CHANNELS""#));
@@ -181,13 +150,12 @@ mod tests {
     #[test]
     fn test_set_user_voice_settings_cmd_exists() {
         let set_user_voice_settings = Request::SetUserVoiceSettings(SetUserVoiceSettings::new(
-            SetUserVoiceSettingsArgsBuilder::default()
+            SetUserVoiceSettingsArgs::builder()
                 .user_id("123".to_string())
-                .pan(Pan::new(1.0, 1.0).unwrap())
-                .volume(Volume::new(30).unwrap())
+                .pan(Pan::builder().left(1.0).right(1.0).build().unwrap())
+                .volume(Volume::builder().inner(1).build().unwrap())
                 .mute(false)
                 .build()
-                .unwrap(),
         ));
         let serialized = serde_json::to_string(&set_user_voice_settings).unwrap();
         assert!(serialized.contains(r#""cmd":"SET_USER_VOICE_SETTINGS""#));
@@ -196,7 +164,7 @@ mod tests {
     #[test]
     fn test_select_voice_channel_cmd_exists() {
         let cmd = Request::SelectVoiceChannel(SelectVoiceChannel::new(
-            SelectVoiceChannelArgsBuilder::default().build().unwrap(),
+            SelectVoiceChannelArgs::builder().build(),
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"SELECT_VOICE_CHANNEL""#));
@@ -212,7 +180,7 @@ mod tests {
     #[test]
     fn test_select_text_channel_cmd_exists() {
         let cmd = Request::SelectTextChannel(SelectTextChannel::new(
-            SelectTextChannelArgsBuilder::default().build().unwrap(),
+            SelectTextChannelArgs::builder().build(),
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"SELECT_TEXT_CHANNEL""#));
@@ -228,7 +196,7 @@ mod tests {
     #[test]
     fn test_set_voice_settings_cmd_exists() {
         let cmd = Request::SetVoiceSettings(SetVoiceSettings::new(
-            SetVoiceSettingsArgsBuilder::default().build().unwrap(),
+            SetVoiceSettingsArgs::builder().build(),
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"SET_VOICE_SETTINGS""#));
@@ -237,7 +205,7 @@ mod tests {
     #[test]
     fn test_set_activity_cmd_exists() {
         let cmd = Request::SetActivity(SetActivity::new(
-            SetActivityArgsBuilder::default().pid(3333u32).build().unwrap(),
+            SetActivityArgs::builder().pid(3333u32).build(),
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"SET_ACTIVITY""#));
@@ -246,7 +214,7 @@ mod tests {
     #[test]
     fn test_send_activity_join_invite_cmd_exists() {
         let cmd = Request::SendActivityJoinInvite(SendActivityJoinInvite::new(
-            SendActivityJoinInviteArgsBuilder::default().user_id("joe".to_owned()).build().unwrap(),
+            SendActivityJoinInviteArgs::builder().user_id("joe".to_owned()).build(),
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"SEND_ACTIVITY_JOIN_INVITE""#));
@@ -255,7 +223,7 @@ mod tests {
     #[test]
     fn test_close_activity_request_cmd_exists() {
         let cmd = Request::CloseActivityRequest(CloseActivityRequest::new(
-            CloseActivityRequestArgsBuilder::default().user_id("tasd".to_owned()).build().unwrap(),
+            CloseActivityRequestArgs::builder().user_id("tasd".to_owned()).build(),
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"CLOSE_ACTIVITY_REQUEST""#));
@@ -264,33 +232,30 @@ mod tests {
     #[test]
     fn test_set_certified_devices_cmd_exists() {
         let cmd = Request::SetCertifiedDevices(SetCertifiedDevices::new(
-            SetCertifiedDevicesArgsBuilder::default()
-                .devices(vec![DeviceBuilder::default()
+            SetCertifiedDevicesArgs::builder()
+                .devices(vec![Device::builder()
                     .device_type(DeviceType::AudioInput)
                     .id(Uuid::new_v4())
                     .vendor(
-                        VendorBuilder::default()
+                        Vendor::builder()
                             .name("joe".to_owned())
                             .url(Url::parse("http://github.com").unwrap())
                             .build()
-                            .unwrap(),
                     )
                     .model(
-                        ModelBuilder::default()
+                        Model::builder()
                             .name("joe".to_owned())
                             .url(Url::parse("http://github.com").unwrap())
                             .build()
-                            .unwrap(),
                     )
                     .related(Related(vec![Uuid::new_v4()]))
-                    .echo_cancellation(Some(true))
-                    .noise_suppression(Some(false))
-                    .automatic_gain_control(Some(true))
-                    .hardware_mute(Some(false))
+                    .echo_cancellation(true)
+                    .noise_suppression(false)
+                    .automatic_gain_control(true)
+                    .hardware_mute(false)
                     .build()
-                    .unwrap()])
+                    ])
                 .build()
-                .unwrap(),
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"SET_CERTIFIED_DEVICES""#));
@@ -299,7 +264,7 @@ mod tests {
     #[test]
     fn test_authorize_exists() {
         let cmd = Request::Authorize(Authorize::new(
-            AuthorizeArgsBuilder::default()
+            AuthorizeArgs::builder()
                 .scope(
                     OAuth2Scopes::builder()
                         .add_scope(OAuth2Scope::Email)
@@ -308,7 +273,6 @@ mod tests {
                 )
                 .client_id("client_id1".to_string())
                 .build()
-                .unwrap(),
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"AUTHORIZE""#));

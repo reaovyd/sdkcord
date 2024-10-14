@@ -13,40 +13,40 @@ make_command_reqres_payload!(Authorize,
         /// Used to authenticate a new client with your app. By default this pops up a modal in-app that asks the user to authorize access to your app
         /// More information can be found on the Discord docs website
     ),
-    (scope, OAuth2Scopes, (#[doc = "scopes to authorize"])),
-    (client_id, String, (#[doc = "OAuth2 application id"])),
+    (scope, OAuth2Scopes, (#[doc = "scopes to authorize"]), (#[builder(into)])),
+    (client_id, String, (#[doc = "OAuth2 application id"]), (#[builder(into)])),
     (response_type, Option<ResponseType>,
         (#[doc = "Authorization Response Type"]),
         (
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
             #[serde(skip_serializing_if = "Option::is_none")]
         )
     ),
     (prompt, Option<Prompt>,
         (#[doc = "Authorization prompt"]),
         (
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
             #[serde(skip_serializing_if = "Option::is_none")]
         )
     ),
     (code_challenge, Option<String>,
         (#[doc = "Authorization code challenge"]),
         (
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
             #[serde(skip_serializing_if = "Option::is_none")]
         )
     ),
     (state, Option<String>,
         (#[doc = "Authorization State"]),
         (
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
             #[serde(skip_serializing_if = "Option::is_none")]
         )
     ),
     (code_challenge_method, Option<CodeChallengeMethod>,
         (#[doc = "Authorization code challenge method"]),
         (
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
             #[serde(skip_serializing_if = "Option::is_none")]
         )
     )
@@ -86,6 +86,8 @@ pub enum Prompt {
     None,
 }
 
+// TODO: maybe add something to also easily read strings that are the same as
+// the OAuth2Scope types
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct OAuth2ScopesBuilder {
     scopes: HashSet<OAuth2Scope>,
@@ -166,6 +168,7 @@ pub enum OAuth2Scope {
 #[cfg(test)]
 mod tests {
     use crate::payload::{
+        AuthorizeArgs,
         CodeChallengeMethod,
         Prompt,
         ResponseType,
@@ -173,7 +176,6 @@ mod tests {
 
     use super::{
         Authorize,
-        AuthorizeArgsBuilder,
         OAuth2Scope,
         OAuth2Scopes,
     };
@@ -181,7 +183,7 @@ mod tests {
     #[test]
     fn test_authorize_construct() {
         let cmd = Authorize::new(
-            AuthorizeArgsBuilder::create_empty()
+            AuthorizeArgs::builder()
                 .scope(
                     OAuth2Scopes::builder()
                         .add_scope(OAuth2Scope::Email)
@@ -194,8 +196,7 @@ mod tests {
                 .code_challenge_method(CodeChallengeMethod::S256)
                 .state("")
                 .prompt(Prompt::None)
-                .build()
-                .unwrap(),
+                .build(),
         );
         assert_eq!(cmd.args.client_id, "client_id1");
         for expected_scope in [OAuth2Scope::Email, OAuth2Scope::Voice] {
@@ -211,7 +212,7 @@ mod tests {
     #[test]
     fn test_authorize_serialized() {
         let cmd = Authorize::new(
-            AuthorizeArgsBuilder::create_empty()
+            AuthorizeArgs::builder()
                 .scope(
                     OAuth2Scopes::builder()
                         .add_scope(OAuth2Scope::Email)
@@ -225,8 +226,7 @@ mod tests {
                 .code_challenge_method(CodeChallengeMethod::S256)
                 .state("")
                 .prompt(Prompt::None)
-                .build()
-                .unwrap(),
+                .build(),
         );
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#"abc"#));

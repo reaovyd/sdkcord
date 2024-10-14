@@ -6,27 +6,27 @@ make_command_reqres_payload!(SelectVoiceChannel,
     ),
     (channel_id, Option<String>,
         (#[doc = "channel id to join (or null/Option::None to leave)"]),
-        (#[builder(setter(strip_option), default)])
+        (#[builder(into)])
     ),
     (timeout, Option<u32>,
         (#[doc = "asynchronously join channel with time to wait before timing out"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     ),
     (force, Option<bool>,
         (#[doc = "forces a user to join a voice channel"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     ),
     (navigate, Option<bool>,
         (#[doc = "after joining the voice channel, navigate to it in the client"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     )
 );

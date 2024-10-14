@@ -1,6 +1,10 @@
 use crate::payload::macros::make_command_reqres_payload;
+use bon::bon;
 use ordered_float::OrderedFloat;
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 use thiserror::Error;
 
 make_command_reqres_payload!(
@@ -8,26 +12,26 @@ make_command_reqres_payload!(
     (
         /// Used to change voice settings of users in voice channels
     ),
-    (user_id, String, (#[doc = "user id"])),
+    (user_id, String, (#[doc = "user id"]), (#[builder(into)])),
     (pan, Option<Pan>,
         (#[doc = "set the pan of the user"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     ),
     (volume, Option<Volume>,
         (#[doc = "set the volume of user (defaults to 100, min 0, max 200)"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     ),
     (mute, Option<bool>,
         (#[doc = "set the mute state of the user"]),
         (
             #[serde(skip_serializing_if = "Option::is_none")]
-            #[builder(setter(strip_option), default)]
+            #[builder(into)]
         )
     )
 );
@@ -81,6 +85,7 @@ pub struct Pan {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Volume(u8);
 
+#[bon]
 impl Volume {
     const MAX_VOL: u8 = 200;
 
@@ -94,6 +99,7 @@ impl Volume {
     /// we only need to check if it's above 200.
     ///
     /// [discorddocs]: https://discord.com/developers/docs/topics/rpc#setuservoicesettings
+    #[builder(derive(Debug))]
     pub const fn new(inner: u8) -> Result<Self, SetUserVoiceSettingsError> {
         if inner > Self::MAX_VOL {
             Err(SetUserVoiceSettingsError::VolumeBoundary { vol: inner })
@@ -101,14 +107,19 @@ impl Volume {
             Ok(Self(inner))
         }
     }
+
+    pub const fn vol(&self) -> &u8 {
+        &self.0
+    }
 }
 
 impl Default for Volume {
     fn default() -> Self {
-        Self(100u8)
+        Self(100)
     }
 }
 
+#[bon]
 impl Pan {
     const MIN_PAN: OrderedFloat<f32> = OrderedFloat(0.0);
     const MAX_PAN: OrderedFloat<f32> = OrderedFloat(1.0);
@@ -124,6 +135,7 @@ impl Pan {
     /// have passed in as well. See [`enum@Error`] for more.
     ///
     /// [discorddocs]: https://discord.com/developers/docs/topics/rpc#setuservoicesettings-pan-object
+    #[builder(derive(Debug))]
     pub fn new(left: f32, right: f32) -> Result<Self, SetUserVoiceSettingsError> {
         let ord_left = OrderedFloat(left);
         let ord_right = OrderedFloat(right);
@@ -137,5 +149,13 @@ impl Pan {
         } else {
             Ok(Self { left: ord_left, right: ord_right })
         }
+    }
+
+    pub const fn left(&self) -> f32 {
+        self.left.0
+    }
+
+    pub const fn right(&self) -> f32 {
+        self.right.0
     }
 }

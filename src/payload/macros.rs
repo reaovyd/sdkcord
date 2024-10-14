@@ -48,11 +48,16 @@ macro_rules! make_request_payload {
         }
 
         paste::paste! {
-            #[derive(derive_builder::Builder, Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
-            #[builder(derive(Debug), setter(into))]
+            #[derive(bon::Builder, Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
+            #[builder(derive(Debug, Clone))]
             // lint isn't catching a /**/ comment where the Errors section is according to
             // cargo expand
             #[allow(clippy::missing_errors_doc)]
+            // NOTE: idk even tho i put the builder derive something isn't getting derived
+            // ¯\_(ツ)_/¯
+            //
+            // Just adding this temp sol so i don't get warnings for this... 
+            #[allow(missing_debug_implementations)]
             pub struct [<$request_name Args>] {
                 $(
                     $(
