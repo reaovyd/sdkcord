@@ -56,7 +56,7 @@ macro_rules! make_request_payload {
             // TODO: idk even tho i put the builder derive something isn't getting derived
             // ¯\_(ツ)_/¯
             //
-            // Just adding this temp sol so i don't get warnings for this... 
+            // Just adding this temp sol so i don't get warnings for this...
             #[allow(missing_debug_implementations)]
             pub struct [<$request_name Args>] {
                 $(

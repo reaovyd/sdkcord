@@ -15,7 +15,6 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
 strum = { version = "0.26.3" }
 strum_macros = { version = "0.26.4" }
 paste = { version = "1.0.15" }
-# derive_builder = { version = "0.20.1" }
 bon = { version = "2.3.0" }
 uuid = { version = "1.10.0", features = ["serde", "v4"] }
 anyhow = { version = "1.0.86" }

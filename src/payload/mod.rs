@@ -76,7 +76,40 @@ mod voice;
 #[cfg(test)]
 mod tests {
     use crate::payload::{
-        CloseActivityRequest, CloseActivityRequestArgs, Device, DeviceType, EventRequest, GetChannel, GetChannelArgs, GetChannels, GetChannelsArgs, GetGuilds, GetSelectedVoiceChannel, GetVoiceSettings, GuildStatusEventRequest, GuildStatusEventRequestArgs, Model, Pan, Related, Request, SelectTextChannel, SelectTextChannelArgs, SelectVoiceChannel, SelectVoiceChannelArgs, SendActivityJoinInvite, SendActivityJoinInviteArgs, SetActivity, SetActivityArgs, SetCertifiedDevices, SetCertifiedDevicesArgs, SetUserVoiceSettings, SetUserVoiceSettingsArgs, SetVoiceSettings, SetVoiceSettingsArgs, Vendor, Volume
+        CloseActivityRequest,
+        CloseActivityRequestArgs,
+        Device,
+        DeviceType,
+        EventRequest,
+        GetChannel,
+        GetChannelArgs,
+        GetChannels,
+        GetChannelsArgs,
+        GetGuilds,
+        GetSelectedVoiceChannel,
+        GetVoiceSettings,
+        GuildStatusEventRequest,
+        GuildStatusEventRequestArgs,
+        Model,
+        Pan,
+        Related,
+        Request,
+        SelectTextChannel,
+        SelectTextChannelArgs,
+        SelectVoiceChannel,
+        SelectVoiceChannelArgs,
+        SendActivityJoinInvite,
+        SendActivityJoinInviteArgs,
+        SetActivity,
+        SetActivityArgs,
+        SetCertifiedDevices,
+        SetCertifiedDevicesArgs,
+        SetUserVoiceSettings,
+        SetUserVoiceSettingsArgs,
+        SetVoiceSettings,
+        SetVoiceSettingsArgs,
+        Vendor,
+        Volume,
     };
     use url::Url;
     use uuid::Uuid;
@@ -113,10 +146,7 @@ mod tests {
     #[test]
     fn test_get_guild_cmd_exists() {
         let get_guild = Request::GetGuild(GetGuild::new(
-            GetGuildArgs::builder()
-                .guild_id("abc".to_owned())
-                .timeout(200u32)
-                .build()
+            GetGuildArgs::builder().guild_id("abc".to_owned()).timeout(200u32).build(),
         ));
         let serialized = serde_json::to_string(&get_guild).unwrap();
         assert!(serialized.contains(r#""cmd":"GET_GUILD""#));
@@ -155,7 +185,7 @@ mod tests {
                 .pan(Pan::builder().left(1.0).right(1.0).build().unwrap())
                 .volume(Volume::builder().inner(1).build().unwrap())
                 .mute(false)
-                .build()
+                .build(),
         ));
         let serialized = serde_json::to_string(&set_user_voice_settings).unwrap();
         assert!(serialized.contains(r#""cmd":"SET_USER_VOICE_SETTINGS""#));
@@ -204,9 +234,8 @@ mod tests {
 
     #[test]
     fn test_set_activity_cmd_exists() {
-        let cmd = Request::SetActivity(SetActivity::new(
-            SetActivityArgs::builder().pid(3333u32).build(),
-        ));
+        let cmd =
+            Request::SetActivity(SetActivity::new(SetActivityArgs::builder().pid(3333u32).build()));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"SET_ACTIVITY""#));
     }
@@ -240,22 +269,21 @@ mod tests {
                         Vendor::builder()
                             .name("joe".to_owned())
                             .url(Url::parse("http://github.com").unwrap())
-                            .build()
+                            .build(),
                     )
                     .model(
                         Model::builder()
                             .name("joe".to_owned())
                             .url(Url::parse("http://github.com").unwrap())
-                            .build()
+                            .build(),
                     )
                     .related(Related(vec![Uuid::new_v4()]))
                     .echo_cancellation(true)
                     .noise_suppression(false)
                     .automatic_gain_control(true)
                     .hardware_mute(false)
-                    .build()
-                    ])
-                .build()
+                    .build()])
+                .build(),
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"SET_CERTIFIED_DEVICES""#));
@@ -272,7 +300,7 @@ mod tests {
                         .build(),
                 )
                 .client_id("client_id1".to_string())
-                .build()
+                .build(),
         ));
         let serialized = serde_json::to_string(&cmd).unwrap();
         assert!(serialized.contains(r#""cmd":"AUTHORIZE""#));
