@@ -6,17 +6,15 @@ use super::{Command, Event};
 #[serde(untagged)]
 pub enum Args {
     Authorize(AuthorizeArgs),
-    Authenticate,
-    GetGuild,
-    GetGuilds,
-    GetChannel,
-    GetChannels,
-    Subscribe,
-    Unsubscribe,
-    SetUserVoiceSettings,
-    SelectVoiceChannel,
-    GetSelectedVoiceChannel,
-    SelectTextChannel,
+    Authenticate(AuthenticateArgs),
+    GetGuild(GetGuildArgs),
+    GetGuilds(GetGuildsArgs),
+    GetChannel(GetChannelArgs),
+    GetChannels(GetChannelsArgs),
+    SetUserVoiceSettings(SetUserVoiceSettingsArgs),
+    SelectVoiceChannel(SelectVoiceChannelArgs),
+    GetSelectedVoiceChannel(GetSelectedVoiceChannelArgs),
+    SelectTextChannel(SelectTextChannelArgs),
     GetVoiceSettings,
     SetVoiceSettings,
     SetCertifiedDevices,
@@ -57,6 +55,30 @@ pub trait RequestArgsType: ArgsType {
 
 mod sealed {
     pub trait Sealed {}
+}
+
+mod macros {
+    macro_rules! impl_request_args_type {
+        ($args_name: ident) => {
+            paste::paste! {
+                impl super::ArgsType for [<$args_name Args>] {
+                    fn args_val(self) -> crate::payload::args::Args {
+                        crate::payload::args::Args::$args_name(self)
+                    }
+                }
+
+                impl super::RequestArgsType for [<$args_name Args>] {
+                    fn name(&self) -> crate::payload::Command {
+                        crate::payload::Command::$args_name
+                    }
+                }
+
+                impl super::sealed::Sealed for [<$args_name Args>] {}
+            }
+        };
+    }
+
+    pub(crate) use impl_request_args_type;
 }
 
 pub use activity::*;

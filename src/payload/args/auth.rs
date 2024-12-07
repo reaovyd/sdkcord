@@ -3,9 +3,15 @@ use std::{collections::HashSet, hash::RandomState, iter::FromIterator};
 use bon::{builder, Builder};
 use serde::{Deserialize, Serialize};
 
-use crate::payload::{types::oauth2::OAuth2Scope, Command};
+use crate::payload::types::oauth2::OAuth2Scope;
 
-use super::{sealed::Sealed, Args, ArgsType, RequestArgsType};
+use super::macros::impl_request_args_type;
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
+pub struct AuthenticateArgs {
+    #[builder(into)]
+    access_token: String,
+}
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct AuthorizeArgs {
@@ -21,19 +27,8 @@ pub struct AuthorizeArgs {
     username: String,
 }
 
-impl ArgsType for AuthorizeArgs {
-    fn args_val(self) -> Args {
-        Args::Authorize(self)
-    }
-}
-
-impl RequestArgsType for AuthorizeArgs {
-    fn name(&self) -> Command {
-        Command::Authorize
-    }
-}
-
-impl Sealed for AuthorizeArgs {}
+impl_request_args_type!(Authenticate);
+impl_request_args_type!(Authorize);
 
 #[cfg(test)]
 mod tests {
