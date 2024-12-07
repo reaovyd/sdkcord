@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 serde = { version = "1.0.208", features = ["derive"] }
 serde_json = { version = "1.0.125" }
-thiserror = { version = "1.0.63" }
+thiserror = { version = "2.0.4" }
 bytes = { version = "1.7.1", features = ["serde"] }
 tokio-util = { version = "0.7.11", features = ["codec"] }
 futures = { version = "0.3.30" }
@@ -15,7 +15,7 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
 strum = { version = "0.26.3" }
 strum_macros = { version = "0.26.4" }
 paste = { version = "1.0.15" }
-bon = { version = "2.3.0" }
+bon = { version = "3.2.0" }
 uuid = { version = "1.10.0", features = ["serde", "v4"] }
 anyhow = { version = "1.0.86" }
 reqwest = { version = "0.12.7", features = ["json"] }
