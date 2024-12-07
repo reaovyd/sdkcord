@@ -55,7 +55,9 @@ pub struct VoiceSettingsMode {
     delay: OrderedFloat<f32>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, EnumString)]
+#[derive(
+    Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, EnumString, strum_macros::Display,
+)]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ModeType {
@@ -84,16 +86,6 @@ pub struct AvailableDevice {
     pub id: String,
     #[builder(into)]
     pub name: String,
-}
-
-impl<IdT, NameT> From<(IdT, NameT)> for AvailableDevice
-where
-    IdT: Into<String>,
-    NameT: Into<String>,
-{
-    fn from(value: (IdT, NameT)) -> Self {
-        AvailableDevice { id: value.0.into(), name: value.1.into() }
-    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
@@ -174,6 +166,16 @@ impl TryFrom<u8> for KeyType {
             3 => Ok(KeyType::GamepadButton),
             _ => Err(KeyTypeError::ConvertError(value)),
         }
+    }
+}
+
+impl<IdT, NameT> From<(IdT, NameT)> for AvailableDevice
+where
+    IdT: Into<String>,
+    NameT: Into<String>,
+{
+    fn from(value: (IdT, NameT)) -> Self {
+        AvailableDevice { id: value.0.into(), name: value.1.into() }
     }
 }
 

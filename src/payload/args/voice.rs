@@ -4,7 +4,7 @@ use serde_with::skip_serializing_none;
 
 use crate::payload::types::{pan::Pan, voice::VoiceSettings};
 
-use super::macros::impl_request_args_type;
+use super::macros::{impl_empty_args_type, impl_request_args_type};
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
@@ -14,6 +14,7 @@ pub struct SetUserVoiceSettingsArgs {
     #[builder(into)]
     pan: Option<Pan>,
     volume: Option<u32>,
+    #[builder(into)]
     mute: Option<bool>,
 }
 
@@ -25,19 +26,16 @@ pub struct SelectVoiceChannelArgs {
     #[builder(into)]
     timeout: Option<Pan>,
     volume: Option<u32>,
+    #[builder(into)]
     mute: Option<bool>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
-pub struct GetVoiceSettingsArgs;
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct SetVoiceSettingsArgs(pub VoiceSettings);
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
-pub struct GetSelectedVoiceChannelArgs;
+impl_empty_args_type!(GetVoiceSettings);
+impl_empty_args_type!(GetSelectedVoiceChannel);
 
 impl_request_args_type!(SetUserVoiceSettings);
 impl_request_args_type!(GetVoiceSettings);

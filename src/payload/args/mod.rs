@@ -17,7 +17,7 @@ pub enum Args {
     SelectTextChannel(SelectTextChannelArgs),
     GetVoiceSettings(GetVoiceSettingsArgs),
     SetVoiceSettings(SetVoiceSettingsArgs),
-    SetCertifiedDevices,
+    SetCertifiedDevices(SetCertifiedDevicesArgs),
     SetActivity,
     SendActivityJoinInvite,
     CloseActivityRequest,
@@ -39,6 +39,13 @@ pub enum Args {
     ActivityJoin,
     ActivitySpectate,
     ActivityJoinRequest,
+}
+
+#[derive(Debug, Default, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct EmptyBracket {
+    #[serde(flatten)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    _inner: Option<()>,
 }
 
 pub trait ArgsType: sealed::Sealed {
@@ -78,13 +85,23 @@ mod macros {
         };
     }
 
+    macro_rules! impl_empty_args_type {
+        ($args_name: ident) => {
+            paste::paste! {
+                #[derive(Debug, Default, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+                pub struct [<$args_name Args>](crate::payload::args::EmptyBracket);
+            }
+        };
+    }
+
+    pub(crate) use impl_empty_args_type;
     pub(crate) use impl_request_args_type;
 }
 
 // pub use activity::*;
 pub use auth::*;
 pub use channel::*;
-// pub use device::*;
+pub use device::*;
 pub use guild::*;
 // pub use message::*;
 // pub use notification::*;

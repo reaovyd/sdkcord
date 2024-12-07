@@ -1,10 +1,10 @@
 use args::Args;
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
+use strum_macros::EnumString;
 use uuid::Uuid;
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct Payload {
     pub cmd: Command,
@@ -14,8 +14,20 @@ pub struct Payload {
     pub args: Option<Args>,
 }
 
-#[derive(Debug, Copy, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    Deserialize,
+    Serialize,
+    PartialEq,
+    Eq,
+    Hash,
+    EnumString,
+    strum_macros::Display,
+)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 pub enum Command {
     Dispatch,
     Authorize,
@@ -38,8 +50,20 @@ pub enum Command {
     CloseActivityRequest,
 }
 
-#[derive(Debug, Copy, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    Deserialize,
+    Serialize,
+    PartialEq,
+    Eq,
+    Hash,
+    EnumString,
+    strum_macros::Display,
+)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 pub enum Event {
     Ready,
     Error,
@@ -69,6 +93,13 @@ pub mod types;
 
 #[cfg(test)]
 mod tests {
+    use super::{args::GetVoiceSettingsArgs, request::PayloadRequest};
+
     #[test]
-    fn test_construct_typestate() {}
+    fn construct_args() {
+        let payload =
+            PayloadRequest::builder().request().args(GetVoiceSettingsArgs::default()).build();
+        let s = serde_json::to_string(&payload).unwrap();
+        println!("{}", s)
+    }
 }
