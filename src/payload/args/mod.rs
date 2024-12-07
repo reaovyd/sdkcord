@@ -15,8 +15,8 @@ pub enum Args {
     SelectVoiceChannel(SelectVoiceChannelArgs),
     GetSelectedVoiceChannel(GetSelectedVoiceChannelArgs),
     SelectTextChannel(SelectTextChannelArgs),
-    GetVoiceSettings,
-    SetVoiceSettings,
+    GetVoiceSettings(GetVoiceSettingsArgs),
+    SetVoiceSettings(SetVoiceSettingsArgs),
     SetCertifiedDevices,
     SetActivity,
     SendActivityJoinInvite,
@@ -81,14 +81,14 @@ mod macros {
     pub(crate) use impl_request_args_type;
 }
 
-pub use activity::*;
+// pub use activity::*;
 pub use auth::*;
 pub use channel::*;
-pub use device::*;
+// pub use device::*;
 pub use guild::*;
-pub use message::*;
-pub use notification::*;
-pub use speaking::*;
+// pub use message::*;
+// pub use notification::*;
+// pub use speaking::*;
 pub use voice::*;
 
 mod activity;

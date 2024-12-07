@@ -14,6 +14,16 @@ pub struct Pan {
     right: OrderedFloat<f32>,
 }
 
+impl Pan {
+    pub const fn left(&self) -> f32 {
+        self.left.0
+    }
+
+    pub const fn right(&self) -> f32 {
+        self.right.0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Pan;
