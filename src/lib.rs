@@ -19,19 +19,6 @@
 //! The major platforms (Linux, Windows, MacOS) will try to be supported.
 //!
 //! [rpcdocs]: https://discord.com/developers/docs/topics/rpc
-#![warn(
-    missing_debug_implementations,
-    // missing_docs,
-    // clippy::missing_docs_in_private_items,
-    clippy::missing_errors_doc,
-    clippy::missing_panics_doc,
-    clippy::missing_const_for_fn
-)]
-#![deny(unsafe_code, unreachable_pub)]
 
-mod actor;
-mod codec;
-mod convert;
 
-pub mod opcode;
-pub mod payload;
+
