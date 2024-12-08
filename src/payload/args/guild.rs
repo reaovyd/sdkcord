@@ -2,7 +2,7 @@ use bon::{builder, Builder};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use super::macros::{impl_empty_args_type, impl_request_args_type};
+use super::macros::{impl_empty_args_type, impl_event_args_type, impl_request_args_type};
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
@@ -12,10 +12,21 @@ pub struct GetGuildArgs {
     timeout: Option<u32>,
 }
 
+#[skip_serializing_none]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
+pub struct GuildStatusArgs {
+    #[builder(into)]
+    guild_id: String,
+}
+
 impl_empty_args_type!(GetGuilds);
+impl_empty_args_type!(GuildCreate);
 
 impl_request_args_type!(GetGuild);
 impl_request_args_type!(GetGuilds);
+
+impl_event_args_type!(GuildStatus);
+impl_event_args_type!(GuildCreate);
 
 #[cfg(test)]
 mod tests {

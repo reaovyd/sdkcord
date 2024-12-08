@@ -16,7 +16,23 @@ pub struct SetActivityArgs {
     activity: Option<Box<ActivityRequest>>,
 }
 
+#[skip_serializing_none]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
+pub struct SendActivityJoinInviteArgs {
+    #[builder(into)]
+    user_id: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
+pub struct CloseActivityRequestArgs {
+    #[builder(into)]
+    user_id: Option<String>,
+}
+
 impl_request_args_type!(SetActivity);
+impl_request_args_type!(SendActivityJoinInvite);
+impl_request_args_type!(CloseActivityRequest);
 
 #[cfg(test)]
 mod tests {

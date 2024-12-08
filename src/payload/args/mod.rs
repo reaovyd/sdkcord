@@ -19,10 +19,10 @@ pub enum Args {
     SetVoiceSettings(SetVoiceSettingsArgs),
     SetCertifiedDevices(SetCertifiedDevicesArgs),
     SetActivity(SetActivityArgs),
-    SendActivityJoinInvite,
-    CloseActivityRequest,
-    GuildStatus,
-    GuildCreate,
+    SendActivityJoinInvite(SendActivityJoinInviteArgs),
+    CloseActivityRequest(CloseActivityRequestArgs),
+    GuildStatus(GuildStatusArgs),
+    GuildCreate(GuildCreateArgs),
     ChannelCreate,
     VoiceChannelSelect,
     VoiceStateCreate,
@@ -65,22 +65,42 @@ mod sealed {
 }
 
 mod macros {
-    macro_rules! impl_request_args_type {
+    macro_rules! impl_event_args_type {
         ($args_name: ident) => {
             paste::paste! {
-                impl super::ArgsType for [<$args_name Args>] {
+                impl $crate::payload::args::ArgsType for [<$args_name Args>] {
                     fn args_val(self) -> crate::payload::args::Args {
                         crate::payload::args::Args::$args_name(self)
                     }
                 }
 
-                impl super::RequestArgsType for [<$args_name Args>] {
+                impl $crate::payload::args::EventArgsType for [<$args_name Args>] {
+                    fn name(&self) -> crate::payload::Event {
+                        crate::payload::Event::$args_name
+                    }
+                }
+
+                impl $crate::payload::args::sealed::Sealed for [<$args_name Args>] {}
+            }
+        };
+    }
+
+    macro_rules! impl_request_args_type {
+        ($args_name: ident) => {
+            paste::paste! {
+                impl $crate::payload::args::ArgsType for [<$args_name Args>] {
+                    fn args_val(self) -> crate::payload::args::Args {
+                        crate::payload::args::Args::$args_name(self)
+                    }
+                }
+
+                impl $crate::payload::args::RequestArgsType for [<$args_name Args>] {
                     fn name(&self) -> crate::payload::Command {
                         crate::payload::Command::$args_name
                     }
                 }
 
-                impl super::sealed::Sealed for [<$args_name Args>] {}
+                impl $crate::payload::args::sealed::Sealed for [<$args_name Args>] {}
             }
         };
     }
@@ -89,12 +109,13 @@ mod macros {
         ($args_name: ident) => {
             paste::paste! {
                 #[derive(Debug, Default, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
-                pub struct [<$args_name Args>](crate::payload::args::EmptyBracket);
+                pub struct [<$args_name Args>]($crate::payload::args::EmptyBracket);
             }
         };
     }
 
     pub(crate) use impl_empty_args_type;
+    pub(crate) use impl_event_args_type;
     pub(crate) use impl_request_args_type;
 }
 
