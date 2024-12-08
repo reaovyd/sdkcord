@@ -23,15 +23,15 @@ pub enum Args {
     CloseActivityRequest(CloseActivityRequestArgs),
     GuildStatus(GuildStatusArgs),
     GuildCreate(GuildCreateArgs),
-    ChannelCreate,
-    VoiceChannelSelect,
-    VoiceStateCreate,
-    VoiceStateUpdate,
-    VoiceStateDelete,
-    VoiceSettingsUpdate,
-    VoiceConnectionStatus,
-    SpeakingStart,
-    SpeakingStop,
+    ChannelCreate(ChannelCreateArgs),
+    VoiceChannelSelect(VoiceChannelSelectArgs),
+    VoiceStateCreate(VoiceStateCreateArgs),
+    VoiceStateUpdate(VoiceStateUpdateArgs),
+    VoiceStateDelete(VoiceStateDeleteArgs),
+    VoiceSettingsUpdate(VoiceSettingsUpdateArgs),
+    VoiceConnectionStatus(VoiceConnectionStatusArgs),
+    SpeakingStart(SpeakingStartArgs),
+    SpeakingStop(SpeakingStopArgs),
     MessageCreate,
     MessageUpdate,
     MessageDelete,
@@ -126,7 +126,7 @@ pub use device::*;
 pub use guild::*;
 // pub use message::*;
 // pub use notification::*;
-// pub use speaking::*;
+pub use speaking::*;
 pub use voice::*;
 
 mod activity;
