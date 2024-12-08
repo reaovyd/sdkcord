@@ -18,7 +18,7 @@ pub enum Args {
     GetVoiceSettings(GetVoiceSettingsArgs),
     SetVoiceSettings(SetVoiceSettingsArgs),
     SetCertifiedDevices(SetCertifiedDevicesArgs),
-    SetActivity,
+    SetActivity(SetActivityArgs),
     SendActivityJoinInvite,
     CloseActivityRequest,
     GuildStatus,
@@ -98,7 +98,7 @@ mod macros {
     pub(crate) use impl_request_args_type;
 }
 
-// pub use activity::*;
+pub use activity::*;
 pub use auth::*;
 pub use channel::*;
 pub use device::*;
