@@ -1,20 +1,11 @@
 use std::marker::PhantomData;
 
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::{
-    args::{
-        ArgsType,
-        EventArgsType,
-        RequestArgsType,
-    },
-    Command,
-    Event,
-    Payload,
+    args::{ArgsType, EventArgsType, RequestArgsType},
+    Command, Event, Payload,
 };
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
@@ -116,3 +107,113 @@ impl sealed::Sealed for WithUnsubscribe {}
 
 impl SubscribeRType for WithUnsubscribe {}
 impl SubscribeRType for WithSubscribe {}
+
+#[cfg(test)]
+mod tests {
+    use crate::payload::{
+        args::{
+            AuthenticateArgs, AuthorizeArgs, GetChannelArgs, GetGuildArgs, GetGuildsArgs,
+            GuildStatusArgs, SetActivityArgs,
+        },
+        types::{
+            activity::{Activity, ActivityType, Party},
+            channel::ChannelId,
+            oauth2::OAuth2Scope,
+        },
+    };
+
+    use super::PayloadRequest;
+
+    #[test]
+    fn construct_args_payload_authorize() {
+        let request = PayloadRequest::builder()
+            .request()
+            .args(
+                AuthorizeArgs::builder()
+                    .scopes([
+                        OAuth2Scope::Rpc,
+                        OAuth2Scope::DmChannelsRead,
+                        OAuth2Scope::ApplicationsCommandsPermissionsUpdate,
+                    ])
+                    .client_id("abcdef")
+                    .rpc_token("12345")
+                    .username("123")
+                    .build(),
+            )
+            .build();
+        let request = serde_json::to_string(&request).unwrap();
+        assert!(request.contains(r#""client_id":"abcdef""#));
+        assert!(request.contains(r#""rpc_token":"12345""#));
+    }
+
+    #[test]
+    fn construct_args_payload_authenticate() {
+        let request = PayloadRequest::builder()
+            .request()
+            .args(AuthenticateArgs::builder().access_token("access_token1").build())
+            .build();
+        let request = serde_json::to_string(&request).unwrap();
+        assert!(request.contains(r#""access_token":"access_token1""#));
+    }
+
+    #[test]
+    fn construct_args_payload_get_guild() {
+        let request = PayloadRequest::builder()
+            .request()
+            .args(GetGuildArgs::builder().guild_id("guild_id12").build())
+            .build();
+        let request = serde_json::to_string(&request).unwrap();
+        assert!(request.contains(r#""guild_id":"guild_id12""#));
+        assert!(!request.contains("timeout"));
+    }
+
+    #[test]
+    fn construct_args_payload_get_guilds() {
+        let request = PayloadRequest::builder().request().args(GetGuildsArgs::default()).build();
+        let request = serde_json::to_string(&request).unwrap();
+        assert!(request.contains(r#"args":{}"#));
+    }
+
+    #[test]
+    fn construct_args_payload_get_channel() {
+        let request = PayloadRequest::builder()
+            .request()
+            .args(GetChannelArgs(ChannelId::builder().channel_id("123").build()))
+            .build();
+        let request = serde_json::to_string(&request).unwrap();
+        assert!(request.contains(r#"channel_id":"123""#));
+    }
+
+    #[test]
+    fn construct_args_payload_event_guild_status() {
+        let request = PayloadRequest::builder()
+            .subscribe()
+            .args(GuildStatusArgs::builder().guild_id("123").build())
+            .build();
+        let request = serde_json::to_string(&request).unwrap();
+        assert!(request.contains(r#"guild_id":"123""#));
+        assert!(request.contains(r#"evt":"GUILD_STATUS""#));
+    }
+
+    #[test]
+    fn construct_args_payload_set_activity() {
+        let request = PayloadRequest::builder()
+            .request()
+            .args(
+                SetActivityArgs::builder()
+                    .pid(12)
+                    .activity(
+                        Activity::request_builder()
+                            .activity_type(ActivityType::Competing)
+                            .state("abcdef")
+                            .party(Party::builder().size([1, 4]).build())
+                            .call(),
+                    )
+                    .build(),
+            )
+            .build();
+        let request = serde_json::to_string(&request).unwrap();
+        assert!(request.contains("\"state\":\"abcdef\""));
+        assert!(request.contains("\"type\":5"))
+    }
+}

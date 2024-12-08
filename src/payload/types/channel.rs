@@ -6,7 +6,7 @@ use serde_with::skip_serializing_none;
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct ChannelId {
     #[builder(into)]
-    channel_id: Option<String>,
+    channel_id: String,
 }
 
 mod macros {

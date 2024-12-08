@@ -74,12 +74,14 @@ pub enum ActivityType {
     Competing = 5,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Copy, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct Timestamps {
     pub start: Option<u64>,
     pub end: Option<u64>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct Emoji {
     #[builder(into)]
@@ -90,6 +92,7 @@ pub struct Emoji {
     pub animated: Option<bool>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct Party {
     #[builder(into)]
