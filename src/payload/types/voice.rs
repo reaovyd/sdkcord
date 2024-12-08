@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use serde_with::skip_serializing_none;
 use strum_macros::EnumString;
-use thiserror::Error;
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
@@ -109,12 +108,6 @@ pub enum KeyType {
     GamepadButton = 3,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Error)]
-pub enum KeyTypeError {
-    #[error("failed to convert {0} into keytype")]
-    ConvertError(u8),
-}
-
 impl VoiceSettingsMode {
     pub const fn delay(&self) -> f32 {
         self.delay.0
@@ -155,20 +148,6 @@ impl From<VoiceSettingsIO> for VoiceSettingsOutput {
     }
 }
 
-impl TryFrom<u8> for KeyType {
-    type Error = KeyTypeError;
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        match value {
-            0 => Ok(KeyType::KeyboardKey),
-            1 => Ok(KeyType::MouseButton),
-            2 => Ok(KeyType::KeyboardModifierKey),
-            3 => Ok(KeyType::GamepadButton),
-            _ => Err(KeyTypeError::ConvertError(value)),
-        }
-    }
-}
-
 impl<IdT, NameT> From<(IdT, NameT)> for AvailableDevice
 where
     IdT: Into<String>,
@@ -194,28 +173,6 @@ mod tests {
             ShortcutKeyCombo::builder().key_type(KeyType::KeyboardKey).code(12).name("123").build();
         assert_eq!(skc.key_type, KeyType::KeyboardKey);
         assert_eq!(skc.code, 12);
-        assert_eq!(skc.name.as_str(), "123");
-    }
-
-    #[test]
-    #[should_panic]
-    fn construct_shortcut_keycombo_try_key_type_fail() {
-        let _skc = ShortcutKeyCombo::builder()
-            .key_type(KeyType::try_from(12).unwrap())
-            .code(12)
-            .name("123")
-            .build();
-    }
-
-    #[test]
-    fn construct_shortcut_keycombo_try_key_type_pass() {
-        let skc = ShortcutKeyCombo::builder()
-            .key_type(KeyType::try_from(3).unwrap())
-            .code(2)
-            .name("123")
-            .build();
-        assert_eq!(skc.key_type, KeyType::GamepadButton);
-        assert_eq!(skc.code, 2);
         assert_eq!(skc.name.as_str(), "123");
     }
 
