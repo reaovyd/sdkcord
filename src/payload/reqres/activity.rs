@@ -10,9 +10,7 @@ use super::macros::{impl_empty_args_type, impl_event_args_type, impl_request_arg
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct SetActivityArgs {
     pid: u16,
-    #[builder(with = |activity: impl Into<ActivityRequest>| {
-        Box::new(activity.into())
-    })]
+    #[builder(into)]
     activity: Option<Box<ActivityRequest>>,
 }
 
