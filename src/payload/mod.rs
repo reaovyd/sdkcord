@@ -1,4 +1,4 @@
-use args::Args;
+use reqres::Args;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use strum_macros::EnumString;
@@ -87,13 +87,13 @@ pub enum Event {
     ActivityJoinRequest,
 }
 
-pub mod args;
-pub mod request;
+pub mod reqres;
+pub mod request_builder;
 pub mod types;
 
 #[cfg(test)]
 mod tests {
-    use super::{args::GetVoiceSettingsArgs, request::PayloadRequest};
+    use super::{reqres::GetVoiceSettingsArgs, request_builder::PayloadRequest};
 
     #[test]
     fn construct_args() {

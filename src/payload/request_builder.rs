@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::{
-    args::{ArgsType, EventArgsType, RequestArgsType},
+    reqres::{ArgsType, EventArgsType, RequestArgsType},
     Command, Event, Payload,
 };
 
@@ -111,7 +111,7 @@ impl SubscribeRType for WithSubscribe {}
 #[cfg(test)]
 mod tests {
     use crate::payload::{
-        args::{
+        reqres::{
             AuthenticateArgs, AuthorizeArgs, GetChannelArgs, GetGuildArgs, GetGuildsArgs,
             GuildStatusArgs, SetActivityArgs,
         },

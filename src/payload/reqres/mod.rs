@@ -68,19 +68,19 @@ mod macros {
     macro_rules! impl_event_args_type {
         ($args_name: ident) => {
             paste::paste! {
-                impl $crate::payload::args::ArgsType for [<$args_name Args>] {
-                    fn args_val(self) -> crate::payload::args::Args {
-                        crate::payload::args::Args::$args_name(self)
+                impl $crate::payload::reqres::ArgsType for [<$args_name Args>] {
+                    fn args_val(self) -> crate::payload::reqres::Args {
+                        crate::payload::reqres::Args::$args_name(self)
                     }
                 }
 
-                impl $crate::payload::args::EventArgsType for [<$args_name Args>] {
+                impl $crate::payload::reqres::EventArgsType for [<$args_name Args>] {
                     fn name(&self) -> crate::payload::Event {
                         crate::payload::Event::$args_name
                     }
                 }
 
-                impl $crate::payload::args::sealed::Sealed for [<$args_name Args>] {}
+                impl $crate::payload::reqres::sealed::Sealed for [<$args_name Args>] {}
             }
         };
     }
@@ -88,19 +88,19 @@ mod macros {
     macro_rules! impl_request_args_type {
         ($args_name: ident) => {
             paste::paste! {
-                impl $crate::payload::args::ArgsType for [<$args_name Args>] {
-                    fn args_val(self) -> crate::payload::args::Args {
-                        crate::payload::args::Args::$args_name(self)
+                impl $crate::payload::reqres::ArgsType for [<$args_name Args>] {
+                    fn args_val(self) -> crate::payload::reqres::Args {
+                        crate::payload::reqres::Args::$args_name(self)
                     }
                 }
 
-                impl $crate::payload::args::RequestArgsType for [<$args_name Args>] {
+                impl $crate::payload::reqres::RequestArgsType for [<$args_name Args>] {
                     fn name(&self) -> crate::payload::Command {
                         crate::payload::Command::$args_name
                     }
                 }
 
-                impl $crate::payload::args::sealed::Sealed for [<$args_name Args>] {}
+                impl $crate::payload::reqres::sealed::Sealed for [<$args_name Args>] {}
             }
         };
     }
@@ -109,7 +109,7 @@ mod macros {
         ($args_name: ident) => {
             paste::paste! {
                 #[derive(Debug, Default, Clone, serde::Deserialize, serde::Serialize, PartialEq, Eq, Hash)]
-                pub struct [<$args_name Args>]($crate::payload::args::EmptyBracket);
+                pub struct [<$args_name Args>]($crate::payload::reqres::EmptyBracket);
             }
         };
     }
