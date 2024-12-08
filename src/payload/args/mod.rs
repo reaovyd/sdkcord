@@ -32,13 +32,13 @@ pub enum Args {
     VoiceConnectionStatus(VoiceConnectionStatusArgs),
     SpeakingStart(SpeakingStartArgs),
     SpeakingStop(SpeakingStopArgs),
-    MessageCreate,
-    MessageUpdate,
-    MessageDelete,
-    NotificationCreate,
-    ActivityJoin,
-    ActivitySpectate,
-    ActivityJoinRequest,
+    MessageCreate(MessageCreateArgs),
+    MessageUpdate(MessageUpdateArgs),
+    MessageDelete(MessageDeleteArgs),
+    NotificationCreate(NotificationCreateArgs),
+    ActivityJoin(ActivityJoinArgs),
+    ActivitySpectate(ActivitySpectateArgs),
+    ActivityJoinRequest(ActivityJoinRequestArgs),
 }
 
 #[derive(Debug, Default, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
@@ -108,7 +108,7 @@ mod macros {
     macro_rules! impl_empty_args_type {
         ($args_name: ident) => {
             paste::paste! {
-                #[derive(Debug, Default, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+                #[derive(Debug, Default, Clone, serde::Deserialize, serde::Serialize, PartialEq, Eq, Hash)]
                 pub struct [<$args_name Args>]($crate::payload::args::EmptyBracket);
             }
         };
@@ -124,8 +124,8 @@ pub use auth::*;
 pub use channel::*;
 pub use device::*;
 pub use guild::*;
-// pub use message::*;
-// pub use notification::*;
+pub use message::*;
+pub use notification::*;
 pub use speaking::*;
 pub use voice::*;
 

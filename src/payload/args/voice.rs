@@ -2,7 +2,7 @@ use bon::Builder;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::payload::types::{pan::Pan, voice::VoiceSettings};
+use crate::payload::types::{channel::impl_channel_id_type, pan::Pan, voice::VoiceSettings};
 
 use super::macros::{impl_empty_args_type, impl_event_args_type, impl_request_args_type};
 
@@ -34,24 +34,9 @@ pub struct SelectVoiceChannelArgs {
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct SetVoiceSettingsArgs(pub VoiceSettings);
 
-#[skip_serializing_none]
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
-pub struct VoiceStateCreateArgs(pub VoiceStateEvent);
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
-pub struct VoiceStateUpdateArgs(pub VoiceStateEvent);
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
-pub struct VoiceStateDeleteArgs(pub VoiceStateEvent);
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
-pub struct VoiceStateEvent {
-    #[builder(into)]
-    channel_id: Option<String>,
-}
+impl_channel_id_type!(VoiceStateCreateArgs);
+impl_channel_id_type!(VoiceStateUpdateArgs);
+impl_channel_id_type!(VoiceStateDeleteArgs);
 
 impl_empty_args_type!(GetVoiceSettings);
 impl_empty_args_type!(GetSelectedVoiceChannel);
@@ -74,24 +59,6 @@ impl_event_args_type!(VoiceConnectionStatus);
 
 impl From<VoiceSettings> for SetVoiceSettingsArgs {
     fn from(value: VoiceSettings) -> Self {
-        Self(value)
-    }
-}
-
-impl From<VoiceStateEvent> for VoiceStateCreateArgs {
-    fn from(value: VoiceStateEvent) -> Self {
-        Self(value)
-    }
-}
-
-impl From<VoiceStateEvent> for VoiceStateDeleteArgs {
-    fn from(value: VoiceStateEvent) -> Self {
-        Self(value)
-    }
-}
-
-impl From<VoiceStateEvent> for VoiceStateUpdateArgs {
-    fn from(value: VoiceStateEvent) -> Self {
         Self(value)
     }
 }

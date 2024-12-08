@@ -1,30 +1,9 @@
-use bon::Builder;
-use serde::{Deserialize, Serialize};
-use serde_with::skip_serializing_none;
+use crate::payload::types::channel::impl_channel_id_type;
 
-#[skip_serializing_none]
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
-pub struct SpeakingStartArgs(pub Speaking);
+use super::macros::impl_event_args_type;
 
-#[skip_serializing_none]
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
-pub struct SpeakingStopArgs(pub Speaking);
+impl_channel_id_type!(SpeakingStartArgs);
+impl_channel_id_type!(SpeakingStopArgs);
 
-#[skip_serializing_none]
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
-pub struct Speaking {
-    #[builder(into)]
-    channel_id: Option<String>,
-}
-
-impl From<Speaking> for SpeakingStartArgs {
-    fn from(value: Speaking) -> Self {
-        Self(value)
-    }
-}
-
-impl From<Speaking> for SpeakingStopArgs {
-    fn from(value: Speaking) -> Self {
-        Self(value)
-    }
-}
+impl_event_args_type!(SpeakingStart);
+impl_event_args_type!(SpeakingStop);

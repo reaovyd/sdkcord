@@ -4,7 +4,7 @@ use serde_with::skip_serializing_none;
 
 use crate::payload::types::activity::ActivityRequest;
 
-use super::macros::impl_request_args_type;
+use super::macros::{impl_empty_args_type, impl_event_args_type, impl_request_args_type};
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
@@ -33,6 +33,14 @@ pub struct CloseActivityRequestArgs {
 impl_request_args_type!(SetActivity);
 impl_request_args_type!(SendActivityJoinInvite);
 impl_request_args_type!(CloseActivityRequest);
+
+impl_empty_args_type!(ActivityJoin);
+impl_empty_args_type!(ActivitySpectate);
+impl_empty_args_type!(ActivityJoinRequest);
+
+impl_event_args_type!(ActivityJoin);
+impl_event_args_type!(ActivitySpectate);
+impl_event_args_type!(ActivityJoinRequest);
 
 #[cfg(test)]
 mod tests {
