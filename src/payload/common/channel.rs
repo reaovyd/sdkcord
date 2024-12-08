@@ -14,9 +14,9 @@ mod macros {
         ($args_name: ident) => {
             #[serde_with::skip_serializing_none]
             #[derive(Debug, Clone, serde::Deserialize, serde::Serialize, PartialEq, Eq, Hash)]
-            pub struct $args_name(pub $crate::payload::types::channel::ChannelId);
-            impl From<$crate::payload::types::channel::ChannelId> for $args_name {
-                fn from(value: $crate::payload::types::channel::ChannelId) -> Self {
+            pub struct $args_name(pub $crate::payload::common::channel::ChannelId);
+            impl From<$crate::payload::common::channel::ChannelId> for $args_name {
+                fn from(value: $crate::payload::common::channel::ChannelId) -> Self {
                     Self(value)
                 }
             }

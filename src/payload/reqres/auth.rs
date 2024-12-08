@@ -3,7 +3,7 @@ use std::{collections::HashSet, hash::RandomState, iter::FromIterator};
 use bon::{builder, Builder};
 use serde::{Deserialize, Serialize};
 
-use crate::payload::types::oauth2::OAuth2Scope;
+use crate::payload::common::oauth2::OAuth2Scope;
 
 use super::macros::impl_request_args_type;
 
@@ -32,7 +32,7 @@ impl_request_args_type!(Authorize);
 
 #[cfg(test)]
 mod tests {
-    use crate::payload::types::oauth2::OAuth2Scope;
+    use crate::payload::common::oauth2::OAuth2Scope;
 
     use super::AuthorizeArgs;
 

@@ -111,14 +111,14 @@ impl SubscribeRType for WithSubscribe {}
 #[cfg(test)]
 mod tests {
     use crate::payload::{
-        reqres::{
-            AuthenticateArgs, AuthorizeArgs, GetChannelArgs, GetGuildArgs, GetGuildsArgs,
-            GuildStatusArgs, SetActivityArgs,
-        },
-        types::{
+        common::{
             activity::{Activity, ActivityType, Party},
             channel::ChannelId,
             oauth2::OAuth2Scope,
+        },
+        reqres::{
+            AuthenticateArgs, AuthorizeArgs, GetChannelArgs, GetGuildArgs, GetGuildsArgs,
+            GuildStatusArgs, SetActivityArgs,
         },
     };
 

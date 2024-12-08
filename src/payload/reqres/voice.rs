@@ -2,7 +2,7 @@ use bon::Builder;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::payload::types::{channel::impl_channel_id_type, pan::Pan, voice::VoiceSettings};
+use crate::payload::common::{channel::impl_channel_id_type, pan::Pan, voice::VoiceSettings};
 
 use super::macros::{impl_empty_args_type, impl_event_args_type, impl_request_args_type};
 

@@ -1,4 +1,4 @@
-use crate::payload::types::channel::impl_channel_id_type;
+use crate::payload::common::channel::impl_channel_id_type;
 
 use super::macros::impl_event_args_type;
 

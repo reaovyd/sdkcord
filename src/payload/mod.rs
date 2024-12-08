@@ -87,9 +87,9 @@ pub enum Event {
     ActivityJoinRequest,
 }
 
+pub mod common;
 pub mod reqres;
 pub mod request_builder;
-pub mod types;
 
 #[cfg(test)]
 mod tests {

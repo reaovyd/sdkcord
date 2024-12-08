@@ -2,7 +2,7 @@ use bon::{builder, Builder};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::payload::types::device::Device;
+use crate::payload::common::device::Device;
 
 use super::macros::impl_request_args_type;
 
@@ -21,7 +21,7 @@ impl_request_args_type!(SetCertifiedDevices);
 mod tests {
     use uuid::Uuid;
 
-    use crate::payload::types::device::{Device, DeviceType};
+    use crate::payload::common::device::{Device, DeviceType};
 
     use super::SetCertifiedDevicesArgs;
 

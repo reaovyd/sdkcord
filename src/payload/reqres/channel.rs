@@ -2,7 +2,7 @@ use bon::Builder;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-use crate::payload::types::channel::ChannelId;
+use crate::payload::common::channel::ChannelId;
 
 use super::macros::{impl_empty_args_type, impl_event_args_type, impl_request_args_type};
 
