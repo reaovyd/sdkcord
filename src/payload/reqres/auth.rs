@@ -27,6 +27,17 @@ pub struct AuthorizeArgs {
     username: String,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct AuthorizeData {
+    pub code: String,
+}
+
+// TODO: Add Authenticate data fields
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct AuthenticateData {
+    pub scopes: Vec<OAuth2Scope>,
+}
+
 impl_request_args_type!(Authenticate);
 impl_request_args_type!(Authorize);
 

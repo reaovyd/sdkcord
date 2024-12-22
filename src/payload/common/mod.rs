@@ -1,6 +1,8 @@
 pub mod activity;
+pub mod application;
 pub mod channel;
 pub mod device;
 pub mod oauth2;
+pub mod opcode;
 pub mod pan;
 pub mod voice;
