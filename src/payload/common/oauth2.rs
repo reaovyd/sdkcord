@@ -1,4 +1,7 @@
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 use strum_macros::EnumString;
 
 #[derive(
@@ -65,6 +68,9 @@ pub enum OAuth2Scope {
     #[serde(rename = "guilds.members.read")]
     #[strum(serialize = "guilds.members.read")]
     GuildsMembersRead,
+    #[serde(rename = "guilds.channel.read")]
+    #[strum(serialize = "guilds.channel.read")]
+    GuildsChannelRead,
     #[serde(rename = "identify")]
     #[strum(serialize = "identify")]
     Identify,

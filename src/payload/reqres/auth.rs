@@ -1,30 +1,43 @@
-use std::{collections::HashSet, hash::RandomState, iter::FromIterator};
+use std::{
+    collections::HashSet,
+    hash::RandomState,
+    iter::FromIterator,
+};
 
-use bon::{builder, Builder};
-use serde::{Deserialize, Serialize};
+use bon::{
+    builder,
+    Builder,
+};
+use serde::{
+    Deserialize,
+    Serialize,
+};
+use serde_with::skip_serializing_none;
 
 use crate::payload::common::oauth2::OAuth2Scope;
 
 use super::macros::impl_request_args_type;
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct AuthenticateArgs {
     #[builder(into)]
     access_token: String,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct AuthorizeArgs {
     #[builder(with = |scopes: impl IntoIterator<Item = OAuth2Scope>| {
         HashSet::<OAuth2Scope, RandomState>::from_iter(scopes).into_iter().collect()
     })]
-    scopes: Vec<OAuth2Scope>,
+    scopes: Option<Vec<OAuth2Scope>>,
     #[builder(into)]
     client_id: String,
     #[builder(into)]
-    rpc_token: String,
+    rpc_token: Option<String>,
     #[builder(into)]
-    username: String,
+    username: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
@@ -56,8 +69,8 @@ mod tests {
             .username("123")
             .build();
         for scope in [OAuth2Scope::Rpc, OAuth2Scope::Email] {
-            assert!(args.scopes.contains(&scope));
+            assert!(args.scopes.as_ref().unwrap().contains(&scope));
         }
-        assert_eq!(args.scopes.len(), 2);
+        assert_eq!(args.scopes.as_ref().unwrap().len(), 2);
     }
 }

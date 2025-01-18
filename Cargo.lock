@@ -752,6 +752,7 @@ dependencies = [
  "bon",
  "bytes",
  "futures",
+ "lazy_static",
  "ordered-float",
  "paste",
  "pretty_assertions",

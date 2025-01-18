@@ -1,8 +1,21 @@
-use bon::{bon, builder, Builder};
-use serde::{Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
+use bon::{
+    bon,
+    builder,
+    Builder,
+};
+use serde::{
+    Deserialize,
+    Serialize,
+};
+use serde_repr::{
+    Deserialize_repr,
+    Serialize_repr,
+};
 use serde_with::skip_serializing_none;
-use strum_macros::{Display, EnumString};
+use strum_macros::{
+    Display,
+    EnumString,
+};
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
@@ -153,7 +166,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{Activity, ActivityType, Assets, Party, Secrets};
+    use super::{
+        Activity,
+        ActivityType,
+        Assets,
+        Party,
+        Secrets,
+    };
 
     #[test]
     fn construct_activity_request() {

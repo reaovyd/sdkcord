@@ -97,8 +97,7 @@ mod tests {
 
     #[test]
     fn construct_args() {
-        let payload =
-            PayloadRequest::builder().request().args(GetVoiceSettingsArgs::default()).build();
+        let payload = PayloadRequest::builder().request(GetVoiceSettingsArgs::default()).build();
         let s = serde_json::to_string(&payload).unwrap();
         println!("{}", s)
     }

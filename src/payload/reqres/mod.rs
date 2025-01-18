@@ -1,9 +1,16 @@
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 
-use super::{Command, Event};
+use super::{
+    Command,
+    Event,
+};
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 #[serde(untagged)]
+#[non_exhaustive]
 pub enum Args {
     Authorize(AuthorizeArgs),
     Authenticate(AuthenticateArgs),
@@ -17,9 +24,12 @@ pub enum Args {
     SelectTextChannel(SelectTextChannelArgs),
     GetVoiceSettings(GetVoiceSettingsArgs),
     SetVoiceSettings(SetVoiceSettingsArgs),
+    #[cfg(feature = "untested")]
     SetCertifiedDevices(SetCertifiedDevicesArgs),
     SetActivity(SetActivityArgs),
+    #[cfg(feature = "untested")]
     SendActivityJoinInvite(SendActivityJoinInviteArgs),
+    #[cfg(feature = "untested")]
     CloseActivityRequest(CloseActivityRequestArgs),
     GuildStatus(GuildStatusArgs),
     GuildCreate(GuildCreateArgs),
@@ -36,8 +46,11 @@ pub enum Args {
     MessageUpdate(MessageUpdateArgs),
     MessageDelete(MessageDeleteArgs),
     NotificationCreate(NotificationCreateArgs),
+    #[cfg(feature = "untested")]
     ActivityJoin(ActivityJoinArgs),
+    #[cfg(feature = "untested")]
     ActivitySpectate(ActivitySpectateArgs),
+    #[cfg(feature = "untested")]
     ActivityJoinRequest(ActivityJoinRequestArgs),
 }
 
@@ -122,6 +135,7 @@ mod macros {
 pub use activity::*;
 pub use auth::*;
 pub use channel::*;
+#[cfg(feature = "untested")]
 pub use device::*;
 pub use guild::*;
 pub use message::*;

@@ -26,48 +26,33 @@ pub struct PayloadRequestBuilder<A, RType> {
 }
 
 impl PayloadRequestBuilder<EmptyArgs, EmptyRType> {
-    pub const fn request<A>(self) -> PayloadRequestBuilder<A, WithRequest> {
-        PayloadRequestBuilder { args: None, evt: None, cmd: None, _rtype: PhantomData }
+    pub fn request<A: RequestArgsType>(self, args: A) -> PayloadRequestBuilder<A, WithRequest> {
+        let cmd = args.name();
+        PayloadRequestBuilder { args: Some(args), evt: None, cmd: Some(cmd), _rtype: PhantomData }
     }
 
-    pub const fn subscribe<A>(self) -> PayloadRequestBuilder<A, WithSubscribe> {
+    pub const fn event<A: EventArgsType>(self) -> PayloadRequestBuilder<A, WithEvent> {
+        PayloadRequestBuilder { args: None, evt: None, cmd: None, _rtype: PhantomData }
+    }
+}
+
+impl<A: EventArgsType> PayloadRequestBuilder<A, WithEvent> {
+    pub fn subscribe(self, args: A) -> PayloadRequestBuilder<A, WithEvent> {
+        let evt = args.name();
         PayloadRequestBuilder {
-            args: None,
-            evt: None,
+            args: Some(args),
+            evt: Some(evt),
             cmd: Some(Command::Subscribe),
             _rtype: PhantomData,
         }
     }
 
-    pub const fn unsubscribe<A>(self) -> PayloadRequestBuilder<A, WithUnsubscribe> {
+    pub fn unsubscribe(self, args: A) -> PayloadRequestBuilder<A, WithEvent> {
+        let evt = args.name();
         PayloadRequestBuilder {
-            args: None,
-            evt: None,
-            cmd: Some(Command::Unsubscribe),
-            _rtype: PhantomData,
-        }
-    }
-}
-
-impl<A: RequestArgsType> PayloadRequestBuilder<A, WithRequest> {
-    pub fn args(self, cmd_args: A) -> PayloadRequestBuilder<A, WithRequest> {
-        let cmd = cmd_args.name();
-        PayloadRequestBuilder {
-            args: Some(cmd_args),
-            evt: self.evt,
-            cmd: Some(cmd),
-            _rtype: PhantomData,
-        }
-    }
-}
-
-impl<A: EventArgsType, RType: SubscribeRType> PayloadRequestBuilder<A, RType> {
-    pub fn args(self, event_args: A) -> PayloadRequestBuilder<A, RType> {
-        let evt = event_args.name();
-        PayloadRequestBuilder {
-            args: Some(event_args),
+            args: Some(args),
             evt: Some(evt),
-            cmd: self.cmd,
+            cmd: Some(Command::Unsubscribe),
             _rtype: PhantomData,
         }
     }
@@ -93,20 +78,7 @@ pub struct NoEvent;
 #[derive(Debug, Default, Copy, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct WithRequest;
 #[derive(Debug, Default, Copy, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
-pub struct WithSubscribe;
-#[derive(Debug, Default, Copy, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
-pub struct WithUnsubscribe;
-
-mod sealed {
-    pub trait Sealed {}
-}
-
-pub trait SubscribeRType: sealed::Sealed {}
-impl sealed::Sealed for WithSubscribe {}
-impl sealed::Sealed for WithUnsubscribe {}
-
-impl SubscribeRType for WithUnsubscribe {}
-impl SubscribeRType for WithSubscribe {}
+pub struct WithEvent;
 
 #[cfg(test)]
 mod tests {
@@ -127,8 +99,7 @@ mod tests {
     #[test]
     fn construct_args_payload_authorize() {
         let request = PayloadRequest::builder()
-            .request()
-            .args(
+            .request(
                 AuthorizeArgs::builder()
                     .scopes([
                         OAuth2Scope::Rpc,
@@ -149,8 +120,7 @@ mod tests {
     #[test]
     fn construct_args_payload_authenticate() {
         let request = PayloadRequest::builder()
-            .request()
-            .args(AuthenticateArgs::builder().access_token("access_token1").build())
+            .request(AuthenticateArgs::builder().access_token("access_token1").build())
             .build();
         let request = serde_json::to_string(&request).unwrap();
         assert!(request.contains(r#""access_token":"access_token1""#));
@@ -159,8 +129,7 @@ mod tests {
     #[test]
     fn construct_args_payload_get_guild() {
         let request = PayloadRequest::builder()
-            .request()
-            .args(GetGuildArgs::builder().guild_id("guild_id12").build())
+            .request(GetGuildArgs::builder().guild_id("guild_id12").build())
             .build();
         let request = serde_json::to_string(&request).unwrap();
         assert!(request.contains(r#""guild_id":"guild_id12""#));
@@ -169,7 +138,7 @@ mod tests {
 
     #[test]
     fn construct_args_payload_get_guilds() {
-        let request = PayloadRequest::builder().request().args(GetGuildsArgs::default()).build();
+        let request = PayloadRequest::builder().request(GetGuildsArgs::default()).build();
         let request = serde_json::to_string(&request).unwrap();
         assert!(request.contains(r#"args":{}"#));
     }
@@ -177,8 +146,7 @@ mod tests {
     #[test]
     fn construct_args_payload_get_channel() {
         let request = PayloadRequest::builder()
-            .request()
-            .args(GetChannelArgs(ChannelId::builder().channel_id("123").build()))
+            .request(GetChannelArgs(ChannelId::builder().channel_id("123").build()))
             .build();
         let request = serde_json::to_string(&request).unwrap();
         assert!(request.contains(r#"channel_id":"123""#));
@@ -187,8 +155,8 @@ mod tests {
     #[test]
     fn construct_args_payload_event_guild_status() {
         let request = PayloadRequest::builder()
-            .subscribe()
-            .args(GuildStatusArgs::builder().guild_id("123").build())
+            .event()
+            .subscribe(GuildStatusArgs::builder().guild_id("123").build())
             .build();
         let request = serde_json::to_string(&request).unwrap();
         assert!(request.contains(r#"guild_id":"123""#));
@@ -198,8 +166,7 @@ mod tests {
     #[test]
     fn construct_args_payload_set_activity() {
         let request = PayloadRequest::builder()
-            .request()
-            .args(
+            .request(
                 SetActivityArgs::builder()
                     .pid(12)
                     .activity(

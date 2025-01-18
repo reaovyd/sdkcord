@@ -1,14 +1,27 @@
-use ipccord::payload::{common::opcode::Opcode, request_builder::PayloadRequest};
-use serde::{Deserialize, Serialize};
+use std::str::FromStr;
+
+use ipccord::payload::{
+    common::opcode::Opcode,
+    request_builder::PayloadRequest,
+    Event,
+};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 use serde_json::Value;
 use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
+    io::{
+        AsyncReadExt,
+        AsyncWriteExt,
+    },
     net::UnixStream,
 };
 
 const XDG_RUNTIME_DIR: &str = env!("XDG_RUNTIME_DIR");
 const DISCORD_IPC_PREFIX: &str = "discord-ipc-";
 const PROTOCOL_VERSION: u32 = 1;
+const CLIENT_ID: &str = "1276759902551015485";
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 struct PayloadReady<'a> {
@@ -27,11 +40,12 @@ impl RawDiscordIpcClient {
             if let Ok(mut stream) = UnixStream::connect(socket_path).await {
                 let payload = PayloadReady { v: PROTOCOL_VERSION, client_id };
                 let bytes = serde_json::to_vec(&payload).unwrap();
-                let bytes = pack_bytes(&bytes, &Opcode::Frame);
-                let res = send(&mut stream, &bytes).await;
-                println!("{:?}", res);
-                let evt = res.get("evt").unwrap();
-                if evt == "READY" {
+                let bytes = pack_bytes(&bytes, &Opcode::Handshake);
+                send(&mut stream, &bytes).await;
+                let res = recv(&mut stream).await;
+                let evt = res["evt"].to_string();
+                let evt = Event::from_str(&evt[1..(evt.len() - 1)]).unwrap();
+                if evt == Event::Ready {
                     return Self(stream);
                 } else {
                     panic!("Failed to connect to Discord IPC: {:?}", res);
@@ -41,13 +55,20 @@ impl RawDiscordIpcClient {
         panic!("Failed to connect to Discord IPC after 10 attempts");
     }
 
-    pub async fn send(&mut self, req: &PayloadRequest) -> Value {
-        send(&mut self.0, &serde_json::to_vec(&req).unwrap()).await
+    pub async fn send(&mut self, req: &PayloadRequest) -> Result<(), std::io::Error> {
+        send(&mut self.0, &pack_bytes(&serde_json::to_vec(&req).unwrap(), &Opcode::Frame)).await
+    }
+
+    pub async fn recv(&mut self) -> Value {
+        recv(&mut self.0).await
     }
 }
 
-async fn send(stream: &mut UnixStream, bytes: &[u8]) -> Value {
-    stream.write_all(bytes).await.unwrap();
+async fn send(stream: &mut UnixStream, bytes: &[u8]) -> Result<(), std::io::Error> {
+    stream.write_all(bytes).await
+}
+
+async fn recv(stream: &mut UnixStream) -> Value {
     let mut opcode = [0u8; size_of::<Opcode>()];
     let mut len = [0u8; size_of::<u32>()];
     stream.read_exact(&mut opcode).await.unwrap();

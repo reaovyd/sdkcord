@@ -31,3 +31,8 @@ features = ["rt-multi-thread", "net", "sync", "macros", "io-util"]
 
 [dev-dependencies]
 pretty_assertions = { version = "1.4.0" }
+lazy_static = { version = "1.5.0" }
+
+[features]
+default = []
+untested = []
