@@ -102,19 +102,6 @@ async fn main() {
 
     println!("{}", resp);
 
-    // client
-    //     .send(
-    //         &PayloadRequest::builder()
-    //             .request()
-    //
-    // .args(GetChannelArgs(ChannelId::builder().channel_id("354323960722227202").
-    // build()))             .build(),
-    //     )
-    //     .await
-    //     .unwrap();
-    // let resp = client.recv().await;
-    // println!("{}", resp);
-
     {
         subscribe_to_message_by_channel(&mut client, "354323960722227202").await;
         subscribe_to_message_by_channel(&mut client, "401589031466434570").await;
@@ -122,6 +109,7 @@ async fn main() {
         subscribe_to_message_by_channel(&mut client, "404480479908200448").await;
         subscribe_to_message_by_channel(&mut client, "426225791169462272").await;
         subscribe_to_message_by_channel(&mut client, "457996947341443078").await;
+        subscribe_to_message_by_channel(&mut client, "1203015584309051453").await;
 
         loop {
             let sub_payload = client.recv().await;
