@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use ipccord::payload::{common::opcode::Opcode, request_builder::PayloadRequest, Event};
+use sdkcord::payload::{common::opcode::Opcode, Event, PayloadRequest};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::{
@@ -11,7 +11,6 @@ use tokio::{
 const XDG_RUNTIME_DIR: &str = env!("XDG_RUNTIME_DIR");
 const DISCORD_IPC_PREFIX: &str = "discord-ipc-";
 const PROTOCOL_VERSION: u32 = 1;
-const CLIENT_ID: &str = "1276759902551015485";
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 struct PayloadReady<'a> {

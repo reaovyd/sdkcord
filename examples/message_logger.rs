@@ -1,12 +1,10 @@
 use common::RawDiscordIpcClient;
-use ipccord::payload::{
-    common::{channel::ChannelId, oauth2::OAuth2Scope},
-    reqres::{
-        AuthenticateArgs, AuthorizeArgs, MessageCreateArgs, MessageDeleteArgs, MessageUpdateArgs,
-    },
-    request_builder::PayloadRequest,
-};
 use reqwest::Client;
+use sdkcord::payload::{
+    common::{channel::ChannelId, oauth2::OAuth2Scope},
+    PayloadRequest,
+    {AuthenticateArgs, AuthorizeArgs, MessageCreateArgs, MessageDeleteArgs, MessageUpdateArgs},
+};
 use serde_json::Value;
 
 async fn subscribe_to_message_by_channel(client: &mut RawDiscordIpcClient, channel_id: &str) {
@@ -75,7 +73,7 @@ async fn main() {
         .post("https://discord.com/api/oauth2/token")
         .form(&[
             ("client_id", "1276759902551015485"),
-            ("client_secret", "2nygKeJU085KoLPLr44_FF7ZZPLPprXj"),
+            ("client_secret", ""),
             ("grant_type", "authorization_code"),
             ("code", code),
         ])

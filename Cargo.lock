@@ -745,35 +745,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ipccord"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bon",
- "bytes",
- "futures",
- "lazy_static",
- "ordered-float",
- "paste",
- "pretty_assertions",
- "reqwest",
- "serde",
- "serde_json",
- "serde_repr",
- "serde_urlencoded",
- "serde_with",
- "strum",
- "strum_macros",
- "thiserror",
- "tokio",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
- "url",
- "uuid",
-]
-
-[[package]]
 name = "ipnet"
 version = "2.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1256,6 +1227,35 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f29ebaa345f945cec9fbbc532eb307f0fdad8161f281b6369539c8d84876b3d"
 dependencies = [
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "sdkcord"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bon",
+ "bytes",
+ "futures",
+ "lazy_static",
+ "ordered-float",
+ "paste",
+ "pretty_assertions",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_repr",
+ "serde_urlencoded",
+ "serde_with",
+ "strum",
+ "strum_macros",
+ "thiserror",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+ "uuid",
 ]
 
 [[package]]
