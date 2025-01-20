@@ -1,4 +1,3 @@
-use reqres::Args;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use strum_macros::EnumString;
@@ -12,6 +11,59 @@ pub struct Payload {
     pub evt: Option<Event>,
     pub data: Option<()>,
     pub args: Option<Args>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[serde(untagged)]
+#[non_exhaustive]
+pub enum Args {
+    Authorize(AuthorizeArgs),
+    Authenticate(AuthenticateArgs),
+    GetGuild(GetGuildArgs),
+    GetGuilds(GetGuildsArgs),
+    GetChannel(GetChannelArgs),
+    GetChannels(GetChannelsArgs),
+    SetUserVoiceSettings(SetUserVoiceSettingsArgs),
+    SelectVoiceChannel(SelectVoiceChannelArgs),
+    GetSelectedVoiceChannel(GetSelectedVoiceChannelArgs),
+    SelectTextChannel(SelectTextChannelArgs),
+    GetVoiceSettings(GetVoiceSettingsArgs),
+    SetVoiceSettings(SetVoiceSettingsArgs),
+    #[cfg(feature = "untested")]
+    SetCertifiedDevices(SetCertifiedDevicesArgs),
+    SetActivity(SetActivityArgs),
+    #[cfg(feature = "untested")]
+    SendActivityJoinInvite(SendActivityJoinInviteArgs),
+    #[cfg(feature = "untested")]
+    CloseActivityRequest(CloseActivityRequestArgs),
+    GuildStatus(GuildStatusArgs),
+    GuildCreate(GuildCreateArgs),
+    ChannelCreate(ChannelCreateArgs),
+    VoiceChannelSelect(VoiceChannelSelectArgs),
+    VoiceStateCreate(VoiceStateCreateArgs),
+    VoiceStateUpdate(VoiceStateUpdateArgs),
+    VoiceStateDelete(VoiceStateDeleteArgs),
+    VoiceSettingsUpdate(VoiceSettingsUpdateArgs),
+    VoiceConnectionStatus(VoiceConnectionStatusArgs),
+    SpeakingStart(SpeakingStartArgs),
+    SpeakingStop(SpeakingStopArgs),
+    MessageCreate(MessageCreateArgs),
+    MessageUpdate(MessageUpdateArgs),
+    MessageDelete(MessageDeleteArgs),
+    NotificationCreate(NotificationCreateArgs),
+    #[cfg(feature = "untested")]
+    ActivityJoin(ActivityJoinArgs),
+    #[cfg(feature = "untested")]
+    ActivitySpectate(ActivitySpectateArgs),
+    #[cfg(feature = "untested")]
+    ActivityJoinRequest(ActivityJoinRequestArgs),
+}
+
+#[derive(Debug, Default, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct EmptyBracket {
+    #[serde(flatten)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    _inner: Option<()>,
 }
 
 #[derive(
@@ -87,13 +139,51 @@ pub enum Event {
     ActivityJoinRequest,
 }
 
+pub trait ArgsType: sealed::Sealed {
+    fn args_val(self) -> Args;
+}
+
+pub trait EventArgsType: ArgsType {
+    fn name(&self) -> Event;
+}
+
+pub trait RequestArgsType: ArgsType {
+    fn name(&self) -> Command;
+}
+
+mod sealed {
+    pub trait Sealed {}
+}
+
+pub use activity::*;
+pub use auth::*;
+pub use channel::*;
+#[cfg(feature = "untested")]
+pub use device::*;
+pub use guild::*;
+pub use message::*;
+pub use notification::*;
+pub use request::*;
+pub use speaking::*;
+pub use voice::*;
+
+mod activity;
+mod auth;
+mod channel;
+mod device;
+mod guild;
+mod macros;
+mod message;
+mod notification;
+mod request;
+mod speaking;
+mod voice;
+
 pub mod common;
-pub mod reqres;
-pub mod request_builder;
 
 #[cfg(test)]
 mod tests {
-    use super::{reqres::GetVoiceSettingsArgs, request_builder::PayloadRequest};
+    use super::{request::PayloadRequest, GetVoiceSettingsArgs};
 
     #[test]
     fn construct_args() {

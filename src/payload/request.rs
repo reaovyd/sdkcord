@@ -4,16 +4,15 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::{
-    reqres::{ArgsType, EventArgsType, RequestArgsType},
-    Command, Event, Payload,
+    Command, Event, Payload, {ArgsType, EventArgsType, RequestArgsType},
 };
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct PayloadRequest(Payload);
 
 impl PayloadRequest {
-    pub fn builder() -> PayloadRequestBuilder<EmptyArgs, EmptyRType> {
-        PayloadRequestBuilder::default()
+    pub const fn builder() -> PayloadRequestBuilder<EmptyArgs, EmptyRType> {
+        PayloadRequestBuilder { args: None, evt: None, cmd: None, _rtype: PhantomData }
     }
 }
 
@@ -88,10 +87,8 @@ mod tests {
             channel::ChannelId,
             oauth2::OAuth2Scope,
         },
-        reqres::{
-            AuthenticateArgs, AuthorizeArgs, GetChannelArgs, GetGuildArgs, GetGuildsArgs,
-            GuildStatusArgs, SetActivityArgs,
-        },
+        AuthenticateArgs, AuthorizeArgs, GetChannelArgs, GetGuildArgs, GetGuildsArgs,
+        GuildStatusArgs, SetActivityArgs,
     };
 
     use super::PayloadRequest;
