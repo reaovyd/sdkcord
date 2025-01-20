@@ -1,7 +1,4 @@
-use serde_repr::{
-    Deserialize_repr,
-    Serialize_repr,
-};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use strum_macros::EnumString;
 
 #[derive(

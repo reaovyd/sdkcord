@@ -1,16 +1,7 @@
-use bon::{
-    builder,
-    Builder,
-};
+use bon::{builder, Builder};
 use ordered_float::OrderedFloat;
-use serde::{
-    Deserialize,
-    Serialize,
-};
-use serde_repr::{
-    Deserialize_repr,
-    Serialize_repr,
-};
+use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use serde_with::skip_serializing_none;
 use strum_macros::EnumString;
 
@@ -172,12 +163,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use super::{
-        KeyType,
-        ModeType,
-        ShortcutKeyCombo,
-        VoiceSettings,
-        VoiceSettingsIO,
-        VoiceSettingsInput,
+        KeyType, ModeType, ShortcutKeyCombo, VoiceSettings, VoiceSettingsIO, VoiceSettingsInput,
         VoiceSettingsMode,
     };
 

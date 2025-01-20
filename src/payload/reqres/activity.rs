@@ -1,17 +1,10 @@
 use bon::Builder;
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
 use crate::payload::common::activity::ActivityRequest;
 
-use super::macros::{
-    impl_empty_args_type,
-    impl_event_args_type,
-    impl_request_args_type,
-};
+use super::macros::{impl_empty_args_type, impl_event_args_type, impl_request_args_type};
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
@@ -59,10 +52,7 @@ impl_event_args_type!(ActivityJoinRequest);
 
 #[cfg(test)]
 mod tests {
-    use crate::payload::common::activity::{
-        Activity,
-        ActivityType,
-    };
+    use crate::payload::common::activity::{Activity, ActivityType};
 
     use super::SetActivityArgs;
 

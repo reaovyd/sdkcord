@@ -1,20 +1,10 @@
 use std::str::FromStr;
 
-use ipccord::payload::{
-    common::opcode::Opcode,
-    request_builder::PayloadRequest,
-    Event,
-};
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use ipccord::payload::{common::opcode::Opcode, request_builder::PayloadRequest, Event};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::{
-    io::{
-        AsyncReadExt,
-        AsyncWriteExt,
-    },
+    io::{AsyncReadExt, AsyncWriteExt},
     net::UnixStream,
 };
 

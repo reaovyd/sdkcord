@@ -1,12 +1,6 @@
 #![cfg(feature = "untested")]
-use bon::{
-    builder,
-    Builder,
-};
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use bon::{builder, Builder};
+use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
 use crate::payload::common::device::Device;
@@ -29,10 +23,7 @@ impl_request_args_type!(SetCertifiedDevices);
 mod tests {
     use uuid::Uuid;
 
-    use crate::payload::common::device::{
-        Device,
-        DeviceType,
-    };
+    use crate::payload::common::device::{Device, DeviceType};
 
     use super::SetCertifiedDevicesArgs;
 

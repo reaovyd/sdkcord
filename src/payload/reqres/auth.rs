@@ -1,17 +1,7 @@
-use std::{
-    collections::HashSet,
-    hash::RandomState,
-    iter::FromIterator,
-};
+use std::{collections::HashSet, hash::RandomState, iter::FromIterator};
 
-use bon::{
-    builder,
-    Builder,
-};
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use bon::{builder, Builder};
+use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
 use crate::payload::common::oauth2::OAuth2Scope;

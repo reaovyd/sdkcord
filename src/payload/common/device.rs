@@ -1,11 +1,5 @@
-use bon::{
-    builder,
-    Builder,
-};
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use bon::{builder, Builder};
+use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use strum_macros::EnumString;
 use uuid::Uuid;

@@ -1,12 +1,6 @@
-use bon::{
-    builder,
-    Builder,
-};
+use bon::{builder, Builder};
 use ordered_float::OrderedFloat;
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct Pan {
