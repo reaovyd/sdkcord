@@ -8,6 +8,7 @@ use super::{
 };
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[repr(transparent)]
 pub struct PayloadRequest(Box<Payload>);
 
 impl PayloadRequest {
@@ -25,17 +26,20 @@ pub struct PayloadRequestBuilder<A, RType> {
 }
 
 impl PayloadRequestBuilder<EmptyArgs, EmptyRType> {
+    #[inline(always)]
     pub fn request<A: RequestArgsType>(self, args: A) -> PayloadRequestBuilder<A, WithRequest> {
         let cmd = args.name();
         PayloadRequestBuilder { args: Some(args), evt: None, cmd: Some(cmd), _rtype: PhantomData }
     }
 
+    #[inline(always)]
     pub const fn event<A: EventArgsType>(self) -> PayloadRequestBuilder<A, WithEvent> {
         PayloadRequestBuilder { args: None, evt: None, cmd: None, _rtype: PhantomData }
     }
 }
 
 impl<A: EventArgsType> PayloadRequestBuilder<A, WithEvent> {
+    #[inline(always)]
     pub fn subscribe(self, args: A) -> PayloadRequestBuilder<A, WithEvent> {
         let evt = args.name();
         PayloadRequestBuilder {
@@ -46,6 +50,7 @@ impl<A: EventArgsType> PayloadRequestBuilder<A, WithEvent> {
         }
     }
 
+    #[inline(always)]
     pub fn unsubscribe(self, args: A) -> PayloadRequestBuilder<A, WithEvent> {
         let evt = args.name();
         PayloadRequestBuilder {
@@ -58,6 +63,7 @@ impl<A: EventArgsType> PayloadRequestBuilder<A, WithEvent> {
 }
 
 impl<A: ArgsType, RType> PayloadRequestBuilder<A, RType> {
+    #[inline(always)]
     pub fn build(self) -> PayloadRequest {
         let cmd = self.cmd.unwrap();
         let evt = self.evt;
