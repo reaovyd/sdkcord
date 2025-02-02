@@ -29,4 +29,6 @@
 )]
 #![deny(unsafe_code, unreachable_pub)]
 
+pub mod codec;
 pub mod payload;
+mod pool;

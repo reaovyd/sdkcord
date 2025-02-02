@@ -24,6 +24,7 @@ ordered-float = { version = "4.2.2", features = ["serde"] }
 url = { version = "2.5.2", features = ["serde"] }
 serde_repr = { version = "0.1.19" }
 serde_with = { version = "3.10.0" }
+async-channel = { version = "2.3.1" }
 
 [dependencies.tokio]
 version = "1.39.3"

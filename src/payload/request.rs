@@ -8,7 +8,7 @@ use super::{
 };
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
-pub struct PayloadRequest(Payload);
+pub struct PayloadRequest(Box<Payload>);
 
 impl PayloadRequest {
     pub const fn builder() -> PayloadRequestBuilder<EmptyArgs, EmptyRType> {
@@ -64,7 +64,7 @@ impl<A: ArgsType, RType> PayloadRequestBuilder<A, RType> {
         let args = self.args.unwrap().args_val();
 
         let payload = Payload { cmd, nonce: Uuid::new_v4(), evt, data: None, args: Some(args) };
-        PayloadRequest(payload)
+        PayloadRequest(Box::new(payload))
     }
 }
 
