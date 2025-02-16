@@ -73,7 +73,7 @@ async fn main() {
         .post("https://discord.com/api/oauth2/token")
         .form(&[
             ("client_id", "1276759902551015485"),
-            ("client_secret", ""),
+            ("client_secret", "CddhC2Jn6Mhr-EtogoiQAI-bOWP8D1rz"),
             ("grant_type", "authorization_code"),
             ("code", code),
         ])

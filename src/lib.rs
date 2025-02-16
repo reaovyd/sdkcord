@@ -29,6 +29,7 @@
 )]
 #![deny(unsafe_code, unreachable_pub)]
 
+mod actors;
 pub mod codec;
 pub mod payload;
 mod pool;

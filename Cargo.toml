@@ -12,8 +12,8 @@ tokio-util = { version = "0.7.11", features = ["codec"] }
 futures = { version = "0.3.30" }
 tracing = { version = "0.1.40", features = ["log"] }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
-strum = { version = "0.26.3" }
-strum_macros = { version = "0.26.4" }
+strum = { version = "0.27.0" }
+strum_macros = { version = "0.27.0" }
 paste = { version = "1.0.15" }
 bon = { version = "3.2.0" }
 uuid = { version = "1.10.0", features = ["serde", "v4"] }

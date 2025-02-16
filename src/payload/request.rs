@@ -12,6 +12,7 @@ use super::{
 pub struct PayloadRequest(Box<Payload>);
 
 impl PayloadRequest {
+    #[inline(always)]
     pub const fn builder() -> PayloadRequestBuilder<EmptyArgs, EmptyRType> {
         PayloadRequestBuilder { args: None, evt: None, cmd: None, _rtype: PhantomData }
     }
