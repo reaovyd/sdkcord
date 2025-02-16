@@ -9,7 +9,7 @@ use super::{
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 #[repr(transparent)]
-pub struct PayloadRequest(Box<Payload>);
+pub struct PayloadRequest(pub(crate) Box<Payload>);
 
 impl PayloadRequest {
     #[inline(always)]

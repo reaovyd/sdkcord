@@ -166,6 +166,7 @@ pub use guild::*;
 pub use message::*;
 pub use notification::*;
 pub use request::*;
+pub use response::*;
 pub use speaking::*;
 pub use voice::*;
 
@@ -178,6 +179,7 @@ mod macros;
 mod message;
 mod notification;
 mod request;
+mod response;
 mod speaking;
 mod voice;
 
