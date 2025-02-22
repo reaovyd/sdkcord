@@ -12,10 +12,10 @@ pub(crate) struct Client<M, R>(Sender<(M, OneshotSender<R>)>);
 // will be used in futures to send for data processing
 impl<M: Send + Sync + 'static, R: Send + Sync + 'static> Client<M, R> {
     #[inline(always)]
-    pub(crate) async fn send(&self, data: M) -> Result<R, PoolError> {
+    pub(crate) async fn send(&self, data: M) -> Result<R, SerdePoolError> {
         let (sndr, recv) = tokio::sync::oneshot::channel();
-        self.0.send((data, sndr)).await.map_err(|_| PoolError::PoolSend)?;
-        recv.await.map_err(PoolError::OneshotRecv)
+        self.0.send((data, sndr)).await.map_err(|_| SerdePoolError::PoolSend)?;
+        recv.await.map_err(SerdePoolError::OneshotRecv)
     }
 }
 
@@ -52,7 +52,7 @@ where
 }
 
 #[derive(Debug, Clone, Error)]
-pub(crate) enum PoolError {
+pub(crate) enum SerdePoolError {
     #[error("the pool could not receive the response as pool channel has been closed")]
     PoolSend,
     #[error("the oneshot channel sender has been killed and channel is closed without messages")]

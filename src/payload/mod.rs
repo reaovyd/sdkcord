@@ -1,5 +1,3 @@
-use bytes::Bytes;
-use common::opcode::Opcode;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use strum_macros::EnumString;
