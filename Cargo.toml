@@ -20,12 +20,13 @@ uuid = { version = "1.10.0", features = ["serde", "v4"] }
 anyhow = { version = "1.0.86" }
 reqwest = { version = "0.12.7", features = ["json"] }
 serde_urlencoded = { version = "0.7.1" }
-ordered-float = { version = "4.2.2", features = ["serde"] }
+ordered-float = { version = "5.0.0", features = ["serde"] }
 url = { version = "2.5.2", features = ["serde"] }
 serde_repr = { version = "0.1.19" }
 serde_with = { version = "3.10.0" }
 async-channel = { version = "2.3.1" }
 kameo = { version = "0.14.0", features = ["macros"] }
+dashmap = { version = "6.1.0" }
 
 [dependencies.tokio]
 version = "1.39.3"

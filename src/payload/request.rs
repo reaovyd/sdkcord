@@ -70,7 +70,8 @@ impl<A: ArgsType, RType> PayloadRequestBuilder<A, RType> {
         let evt = self.evt;
         let args = self.args.unwrap().args_val();
 
-        let payload = Payload { cmd, nonce: Uuid::new_v4(), evt, data: None, args: Some(args) };
+        let payload =
+            Payload { cmd, nonce: Some(Uuid::new_v4()), evt, data: None, args: Some(args) };
         PayloadRequest(Box::new(payload))
     }
 }

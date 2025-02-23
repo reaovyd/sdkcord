@@ -9,10 +9,19 @@ use tracing::{error, instrument};
 #[derive(Debug, Clone)]
 pub(crate) struct Client<M, R>(Sender<(M, OneshotSender<R>)>);
 
-// will be used in futures to send for data processing
-impl<M: Send + Sync + 'static, R: Send + Sync + 'static> Client<M, R> {
+impl<M, R> Client<M, R>
+where
+    M: Send + Sync + 'static,
+    R: Send + Sync + 'static,
+{
+    pub(crate) async fn deserialize(&self, data: M) -> Result<R, SerdePoolError> {
+        self.send(data).await
+    }
+    pub(crate) async fn serialize(&self, data: M) -> Result<R, SerdePoolError> {
+        self.send(data).await
+    }
     #[inline(always)]
-    pub(crate) async fn send(&self, data: M) -> Result<R, SerdePoolError> {
+    async fn send(&self, data: M) -> Result<R, SerdePoolError> {
         let (sndr, recv) = tokio::sync::oneshot::channel();
         self.0.send((data, sndr)).await.map_err(|_| SerdePoolError::PoolSend)?;
         recv.await.map_err(SerdePoolError::OneshotRecv)

@@ -7,7 +7,7 @@ use uuid::Uuid;
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct Payload {
     pub cmd: Command,
-    pub nonce: Uuid,
+    pub nonce: Option<Uuid>,
     pub evt: Option<Event>,
     pub data: Option<()>,
     pub args: Option<Args>,

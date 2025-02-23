@@ -1,21 +1,27 @@
-use std::io;
+use std::{io, sync::Arc, time::Duration};
 
+use dashmap::DashMap;
 use futures::SinkExt;
 use kameo::{
     actor::ActorRef,
-    error::BoxError,
+    error::{BoxError, SendError},
     mailbox::bounded::BoundedMailbox,
     message::{Context, Message, StreamMessage},
     Actor,
 };
-use tokio::io::{AsyncRead, AsyncWrite};
+use thiserror::Error;
+use tokio::{
+    io::{AsyncRead, AsyncWrite},
+    sync::oneshot,
+};
 use tokio_util::codec::{FramedRead, FramedWrite};
 use tracing::{error, info, instrument};
+use uuid::Uuid;
 
 use crate::{
     codec::{Frame, FrameCodec},
     payload::{PayloadRequest, PayloadResponse},
-    pool::Client,
+    pool::{Client, SerdePoolError},
 };
 
 #[derive(Actor)]
@@ -26,6 +32,34 @@ where
     T: AsyncWrite + Unpin,
 {
     writer: ActorRef<Writer<T>>,
+    pending_requests: Arc<DashMap<Uuid, oneshot::Sender<PayloadResponse>>>,
+}
+
+impl<T> Message<PayloadRequest> for Coordinator<T>
+where
+    T: Send + Sync + 'static,
+    T: AsyncWrite + Unpin,
+{
+    type Reply = Result<(), CoordinatorError>;
+
+    async fn handle(
+        &mut self,
+        msg: PayloadRequest,
+        _: Context<'_, Self, Self::Reply>,
+    ) -> Self::Reply {
+        self.writer.ask(msg).reply_timeout(Duration::from_secs(5)).await.map_err(
+            |err| match err {
+                SendError::ActorNotRunning(req) => {
+                    CoordinatorError::IpcWriterUnavailable(Some(req))
+                }
+                SendError::ActorStopped => CoordinatorError::IpcWriterUnavailable(None),
+                SendError::MailboxFull(req) => CoordinatorError::IpcWriterUnavailable(Some(req)),
+                SendError::HandlerError(err) => CoordinatorError::RequestFailed(err),
+                SendError::Timeout(req) => CoordinatorError::WriterTimeout(req),
+            },
+        )?;
+        Ok(())
+    }
 }
 
 impl<T> Message<PayloadResponse> for Coordinator<T>
@@ -40,12 +74,34 @@ where
         resp: PayloadResponse,
         _: Context<'_, Self, Self::Reply>,
     ) -> Self::Reply {
-        // TODO:
-        // 1. pull nonce out of msg
-        // 2. remove out of concurrent map and get oneshot
-        // 3. oneshot send back payload response.
-        let nonce = resp.0.nonce;
-        todo!()
+        let pending_requests = self.pending_requests.clone();
+
+        tokio::spawn(async move {
+            if resp.0.evt.is_some() && resp.0.nonce.is_none() {
+                todo!("send this to some event listener");
+                return;
+            }
+
+            if resp.0.nonce.is_none() {
+                error!("nonce is missing from payload response...");
+                return;
+            }
+
+            if let Some((nonce, sender)) =
+                { pending_requests.remove(resp.0.nonce.as_ref().unwrap()) }
+            {
+                if sender.send(resp).is_err() {
+                    error!(
+                        "nonce id: [{}] failed to send to client; receiver end may have died!",
+                        nonce
+                    );
+                } else {
+                    info!("nonce id: [{}] successfully sent to client", nonce)
+                }
+            } else {
+                error!("nonce cannot be found in pending requests...");
+            }
+        });
     }
 }
 
@@ -92,7 +148,7 @@ where
     T: AsyncWrite + Unpin,
 {
     // TODO: add a response here...
-    type Reply = Result<(), ()>;
+    type Reply = Result<(), WriterError>;
 
     #[instrument(skip(self, msg))]
     async fn handle(
@@ -100,16 +156,8 @@ where
         msg: PayloadRequest,
         _: kameo::message::Context<'_, Self, Self::Reply>,
     ) -> Self::Reply {
-        let payload_resp = self.serializer_client.send(msg).await;
-        match payload_resp {
-            Ok(frame) => {
-                self.writer.send(frame).await.expect("failed to write to ipc...");
-            }
-            Err(err) => {
-                error!("error when sending request for serialization: {}", err);
-            }
-        }
-        todo!()
+        let frame = self.serializer_client.serialize(msg).await?;
+        Ok(self.writer.send(frame).await?)
     }
 }
 
@@ -130,30 +178,54 @@ where
     ) -> Self::Reply {
         match msg {
             StreamMessage::Next(frame) => {
-                match frame {
-                    Ok(frame) => {
-                        let payload_resp = self.deserializer_client.send(frame).await;
-                        match payload_resp {
-                            Ok(payload_resp) => {
-                                // TODO: send response to a coordinator response pool when we're ready
-                                self.coordinator.tell(payload_resp);
-                            }
-                            Err(err) => {
-                                error!("error when sending frame for deserialization: {}", err);
+                // NOTE: cloning actorrefs are "cheap" since it clones Arcs or mpsc::Sender
+                let coordinator = self.coordinator.clone();
+                let deserializer_client = self.deserializer_client.clone();
+                tokio::spawn(async move {
+                    match frame {
+                        Ok(frame) => {
+                            let resp = deserializer_client.deserialize(frame).await;
+                            match resp {
+                                Ok(resp) => {
+                                    if let Err(err) = coordinator.tell(resp).await {
+                                        error!("{}", err);
+                                    }
+                                }
+                                Err(err) => {
+                                    error!("{}", err);
+                                }
                             }
                         }
-                    }
-                    Err(err) => {
-                        error!("error when reading frame from discord ipc: {}", err);
-                    }
-                };
+                        Err(err) => {
+                            error!("{}", err);
+                        }
+                    };
+                });
             }
             StreamMessage::Started(()) => {
-                info!("started listening to discord ipc")
+                info!("started listening to discord ipc");
             }
             StreamMessage::Finished(()) => {
-                info!("stopped listening to discord ipc")
+                info!("stopped listening to discord ipc");
             }
         }
     }
+}
+
+#[derive(Debug, Error)]
+pub(crate) enum CoordinatorError {
+    #[error("discord ipc server is unavailable")]
+    IpcWriterUnavailable(Option<PayloadRequest>),
+    #[error("request failed")]
+    RequestFailed(WriterError),
+    #[error("timeout writing to ipc server")]
+    WriterTimeout(Option<PayloadRequest>),
+}
+
+#[derive(Debug, Error)]
+pub(crate) enum WriterError {
+    #[error(transparent)]
+    Serialization(#[from] SerdePoolError),
+    #[error(transparent)]
+    Ipc(#[from] io::Error),
 }
