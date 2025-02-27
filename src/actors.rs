@@ -31,7 +31,7 @@ pub(crate) struct Coordinator<T: Send + Sync + 'static> {
     pending_requests: Arc<DashMap<Uuid, oneshot::Sender<PayloadResponse>>>,
 }
 
-impl<T> Message<PayloadRequest> for Coordinator<T>
+impl<T> Message<(PayloadRequest, oneshot::Sender<PayloadResponse>)> for Coordinator<T>
 where
     T: Send + Sync + 'static,
     T: AsyncWrite + Unpin,
@@ -40,11 +40,19 @@ where
 
     async fn handle(
         &mut self,
-        msg: PayloadRequest,
+        msg: (PayloadRequest, oneshot::Sender<PayloadResponse>),
         _: Context<'_, Self, Self::Reply>,
     ) -> Self::Reply {
-        self.writer.ask(msg).reply_timeout(Duration::from_secs(5)).await.map_err(
-            |err| match err {
+        let request = msg.0;
+        let callback = msg.1;
+        let nonce = request.0.nonce.unwrap();
+
+        self.pending_requests.insert(nonce, callback);
+
+        // NOTE: from client caller, they will get a CoordinatorError response
+        self.writer.ask(request).reply_timeout(Duration::from_secs(5)).await.map_err(|err| {
+            self.pending_requests.remove(&nonce);
+            match err {
                 SendError::ActorNotRunning(req) => {
                     CoordinatorError::IpcWriterUnavailable(Some(req))
                 }
@@ -52,8 +60,9 @@ where
                 SendError::MailboxFull(req) => CoordinatorError::IpcWriterUnavailable(Some(req)),
                 SendError::HandlerError(err) => CoordinatorError::RequestFailed(err),
                 SendError::Timeout(req) => CoordinatorError::WriterTimeout(req),
-            },
-        )?;
+            }
+        })?;
+
         Ok(())
     }
 }
@@ -73,6 +82,8 @@ where
         let pending_requests = self.pending_requests.clone();
 
         tokio::spawn(async move {
+            // if this is an event, the nonce wouldn't be present
+            // only responses have nonces
             if resp.0.evt.is_some() && resp.0.nonce.is_none() {
                 todo!("send this to some event listener");
                 return;
