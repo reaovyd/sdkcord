@@ -26,11 +26,7 @@ use crate::{
 
 #[derive(Actor)]
 #[actor(mailbox = bounded(1024))]
-pub(crate) struct Coordinator<T>
-where
-    T: Send + Sync + 'static,
-    T: AsyncWrite + Unpin,
-{
+pub(crate) struct Coordinator<T: Send + Sync + 'static> {
     writer: ActorRef<Writer<T>>,
     pending_requests: Arc<DashMap<Uuid, oneshot::Sender<PayloadResponse>>>,
 }
@@ -105,11 +101,7 @@ where
     }
 }
 
-pub(crate) struct Reader<T, W>
-where
-    W: Send + Sync + 'static,
-    W: AsyncWrite + Unpin,
-{
+pub(crate) struct Reader<T, W: Send + Sync + 'static> {
     deserializer_client: Client<Frame, PayloadResponse>,
     reader: Option<FramedRead<T, FrameCodec>>,
     coordinator: ActorRef<Coordinator<W>>,
@@ -135,11 +127,21 @@ where
     }
 }
 
-#[derive(Actor)]
-#[actor(mailbox = bounded(64))]
-pub(crate) struct Writer<T: Send + Sync + 'static> {
+pub(crate) struct Writer<T> {
     serializer_client: Client<PayloadRequest, Frame>,
     writer: FramedWrite<T, FrameCodec>,
+}
+
+impl<T> Actor for Writer<T>
+where
+    T: Send + Sync + 'static,
+{
+    type Mailbox = BoundedMailbox<Self>;
+
+    fn new_mailbox() -> (Self::Mailbox, <Self::Mailbox as kameo::mailbox::Mailbox<Self>>::Receiver)
+    {
+        Self::Mailbox::new(64)
+    }
 }
 
 impl<T> Message<PayloadRequest> for Writer<T>
