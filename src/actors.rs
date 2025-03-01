@@ -86,7 +86,6 @@ where
             // only responses have nonces
             if resp.0.evt.is_some() && resp.0.nonce.is_none() {
                 todo!("send this to some event listener");
-                return;
             }
 
             if resp.0.nonce.is_none() {
