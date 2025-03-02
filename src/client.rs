@@ -45,7 +45,7 @@ where
         let resp = tokio::time::timeout_at(Instant::now() + Duration::from_secs(5), recv)
             .await
             .map_err(ClientError::Timeout)?
-            .map_err(|err| ClientError::Loss(err.to_string()))?;
+            .map_err(|err| ClientError::ResponseDropped(err.to_string()))?;
         Ok(resp)
     }
 }
@@ -59,5 +59,5 @@ pub enum ClientError {
     #[error("response timeout from server! haven't received a response after {0} seconds...")]
     Timeout(Elapsed),
     #[error("server dropped response; response unrecoverable: {0}")]
-    Loss(String),
+    ResponseDropped(String),
 }
