@@ -32,5 +32,6 @@
 mod actors;
 pub mod client;
 pub mod codec;
+pub mod conn;
 pub mod payload;
 mod pool;

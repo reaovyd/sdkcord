@@ -14,6 +14,12 @@ use tokio::{
     time::{Instant, error::Elapsed},
 };
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct ClientConfig {
+    client_id: String,
+    client_secret: Option<String>,
+}
+
 #[derive(Debug, Clone)]
 pub struct SdkClient<T: Send + Sync + 'static> {
     coordinator: ActorRef<Coordinator<T>>,
@@ -28,14 +34,16 @@ where
     pub async fn send_request(
         &self,
         request: PayloadRequest,
-    ) -> Result<PayloadResponse, ClientError> {
+    ) -> Result<PayloadResponse, SdkClientError> {
         let (sndr, recv) = oneshot::channel::<PayloadResponse>();
         if let Err(send_err) = self.coordinator.ask((request, sndr)).await {
             match send_err {
-                SendError::ActorNotRunning(err) => ClientError::SendRequest(Some(err.0)),
-                SendError::ActorStopped => ClientError::SendRequest(None),
-                SendError::MailboxFull(err) => ClientError::SendRequest(Some(err.0)),
-                SendError::HandlerError(err) => ClientError::InternalCoordinator(err.to_string()),
+                SendError::ActorNotRunning(err) => SdkClientError::SendRequest(Some(err.0)),
+                SendError::ActorStopped => SdkClientError::SendRequest(None),
+                SendError::MailboxFull(err) => SdkClientError::SendRequest(Some(err.0)),
+                SendError::HandlerError(err) => {
+                    SdkClientError::InternalCoordinator(err.to_string())
+                }
                 SendError::Timeout(_) => {
                     // server has a timeout on its end so client will always receive a response...
                     panic!(
@@ -46,14 +54,14 @@ where
         }
         let resp = tokio::time::timeout_at(Instant::now() + Duration::from_secs(5), recv)
             .await
-            .map_err(ClientError::Timeout)?
-            .map_err(|err| ClientError::ResponseDropped(err.to_string()))?;
+            .map_err(SdkClientError::Timeout)?
+            .map_err(|err| SdkClientError::ResponseDropped(err.to_string()))?;
         Ok(resp)
     }
 }
 
 #[derive(Debug, Error)]
-pub enum ClientError {
+pub enum SdkClientError {
     #[error("failed to send the request!")]
     SendRequest(Option<PayloadRequest>),
     #[error("internal server received the request, but failed to process it... {0}")]
