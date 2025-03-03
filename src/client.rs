@@ -11,15 +11,15 @@ use crate::{
 use tokio::{
     io::AsyncWrite,
     sync::oneshot::{self},
-    time::{error::Elapsed, Instant},
+    time::{Instant, error::Elapsed},
 };
 
-#[derive(Debug)]
-pub struct Client<T: Send + Sync + 'static> {
+#[derive(Debug, Clone)]
+pub struct SdkClient<T: Send + Sync + 'static> {
     coordinator: ActorRef<Coordinator<T>>,
 }
 
-impl<T> Client<T>
+impl<T> SdkClient<T>
 where
     T: Send + Sync + 'static,
     T: AsyncWrite + Unpin,
@@ -38,7 +38,9 @@ where
                 SendError::HandlerError(err) => ClientError::InternalCoordinator(err.to_string()),
                 SendError::Timeout(_) => {
                     // server has a timeout on its end so client will always receive a response...
-                    panic!("this should never happen since we don't have timeout setup from client to server!")
+                    panic!(
+                        "this should never happen since we don't have timeout setup from client to server!"
+                    )
                 }
             };
         }

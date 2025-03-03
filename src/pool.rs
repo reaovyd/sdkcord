@@ -3,7 +3,7 @@ use std::thread;
 use async_channel::Sender;
 use bon::builder;
 use thiserror::Error;
-use tokio::sync::oneshot::{error::RecvError, Sender as OneshotSender};
+use tokio::sync::oneshot::{Sender as OneshotSender, error::RecvError};
 use tracing::{error, instrument};
 
 #[derive(Debug, Clone)]
@@ -23,7 +23,10 @@ where
     #[inline(always)]
     async fn send(&self, data: M) -> Result<R, SerdePoolError> {
         let (sndr, recv) = tokio::sync::oneshot::channel();
-        self.0.send((data, sndr)).await.map_err(|_| SerdePoolError::PoolSend)?;
+        self.0
+            .send((data, sndr))
+            .await
+            .map_err(|_| SerdePoolError::PoolSend)?;
         recv.await.map_err(SerdePoolError::OneshotRecv)
     }
 }

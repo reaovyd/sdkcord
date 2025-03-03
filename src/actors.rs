@@ -3,11 +3,11 @@ use std::{io, sync::Arc, time::Duration};
 use dashmap::DashMap;
 use futures::SinkExt;
 use kameo::{
+    Actor,
     actor::ActorRef,
     error::{BoxError, SendError},
     mailbox::bounded::BoundedMailbox,
     message::{Context, Message, StreamMessage},
-    Actor,
 };
 use thiserror::Error;
 use tokio::{
@@ -50,18 +50,24 @@ where
         self.pending_requests.insert(nonce, callback);
 
         // NOTE: from client caller, they will get a CoordinatorError response
-        self.writer.ask(request).reply_timeout(Duration::from_secs(5)).await.map_err(|err| {
-            self.pending_requests.remove(&nonce);
-            match err {
-                SendError::ActorNotRunning(req) => {
-                    CoordinatorError::IpcWriterUnavailable(Some(req))
+        self.writer
+            .ask(request)
+            .reply_timeout(Duration::from_secs(5))
+            .await
+            .map_err(|err| {
+                self.pending_requests.remove(&nonce);
+                match err {
+                    SendError::ActorNotRunning(req) => {
+                        CoordinatorError::IpcWriterUnavailable(Some(req))
+                    }
+                    SendError::ActorStopped => CoordinatorError::IpcWriterUnavailable(None),
+                    SendError::MailboxFull(req) => {
+                        CoordinatorError::IpcWriterUnavailable(Some(req))
+                    }
+                    SendError::HandlerError(err) => CoordinatorError::RequestFailed(err),
+                    SendError::Timeout(req) => CoordinatorError::WriterTimeout(req),
                 }
-                SendError::ActorStopped => CoordinatorError::IpcWriterUnavailable(None),
-                SendError::MailboxFull(req) => CoordinatorError::IpcWriterUnavailable(Some(req)),
-                SendError::HandlerError(err) => CoordinatorError::RequestFailed(err),
-                SendError::Timeout(req) => CoordinatorError::WriterTimeout(req),
-            }
-        })?;
+            })?;
 
         Ok(())
     }
@@ -125,8 +131,10 @@ where
     W: AsyncWrite + Unpin,
 {
     type Mailbox = BoundedMailbox<Self>;
-    fn new_mailbox() -> (Self::Mailbox, <Self::Mailbox as kameo::mailbox::Mailbox<Self>>::Receiver)
-    {
+    fn new_mailbox() -> (
+        Self::Mailbox,
+        <Self::Mailbox as kameo::mailbox::Mailbox<Self>>::Receiver,
+    ) {
         Self::Mailbox::new(512)
     }
 
@@ -148,8 +156,10 @@ where
 {
     type Mailbox = BoundedMailbox<Self>;
 
-    fn new_mailbox() -> (Self::Mailbox, <Self::Mailbox as kameo::mailbox::Mailbox<Self>>::Receiver)
-    {
+    fn new_mailbox() -> (
+        Self::Mailbox,
+        <Self::Mailbox as kameo::mailbox::Mailbox<Self>>::Receiver,
+    ) {
         Self::Mailbox::new(64)
     }
 }

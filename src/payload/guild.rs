@@ -1,4 +1,4 @@
-use bon::{builder, Builder};
+use bon::{Builder, builder};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
@@ -41,7 +41,10 @@ mod tests {
 
     #[test]
     fn construct_timeout_existing() {
-        let args = GetGuildArgs::builder().guild_id("1234").timeout(12345).build();
+        let args = GetGuildArgs::builder()
+            .guild_id("1234")
+            .timeout(12345)
+            .build();
         assert_eq!(args.guild_id.as_str(), "1234");
         assert_eq!(args.timeout, Some(12345));
     }

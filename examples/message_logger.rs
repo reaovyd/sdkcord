@@ -1,9 +1,9 @@
 use common::RawDiscordIpcClient;
 use reqwest::Client;
 use sdkcord::payload::{
-    common::{channel::ChannelId, oauth2::OAuth2Scope},
+    AuthenticateArgs, AuthorizeArgs, MessageCreateArgs, MessageDeleteArgs, MessageUpdateArgs,
     PayloadRequest,
-    {AuthenticateArgs, AuthorizeArgs, MessageCreateArgs, MessageDeleteArgs, MessageUpdateArgs},
+    common::{channel::ChannelId, oauth2::OAuth2Scope},
 };
 use serde_json::Value;
 
@@ -12,7 +12,9 @@ async fn subscribe_to_message_by_channel(client: &mut RawDiscordIpcClient, chann
         .send(
             &PayloadRequest::builder()
                 .event()
-                .subscribe(MessageCreateArgs(ChannelId::builder().channel_id(channel_id).build()))
+                .subscribe(MessageCreateArgs(
+                    ChannelId::builder().channel_id(channel_id).build(),
+                ))
                 .build(),
         )
         .await
@@ -22,7 +24,9 @@ async fn subscribe_to_message_by_channel(client: &mut RawDiscordIpcClient, chann
         .send(
             &PayloadRequest::builder()
                 .event()
-                .subscribe(MessageUpdateArgs(ChannelId::builder().channel_id(channel_id).build()))
+                .subscribe(MessageUpdateArgs(
+                    ChannelId::builder().channel_id(channel_id).build(),
+                ))
                 .build(),
         )
         .await
@@ -32,7 +36,9 @@ async fn subscribe_to_message_by_channel(client: &mut RawDiscordIpcClient, chann
         .send(
             &PayloadRequest::builder()
                 .event()
-                .subscribe(MessageDeleteArgs(ChannelId::builder().channel_id(channel_id).build()))
+                .subscribe(MessageDeleteArgs(
+                    ChannelId::builder().channel_id(channel_id).build(),
+                ))
                 .build(),
         )
         .await
@@ -90,7 +96,11 @@ async fn main() {
     client
         .send(
             &PayloadRequest::builder()
-                .request(AuthenticateArgs::builder().access_token(access_token).build())
+                .request(
+                    AuthenticateArgs::builder()
+                        .access_token(access_token)
+                        .build(),
+                )
                 .build(),
         )
         .await

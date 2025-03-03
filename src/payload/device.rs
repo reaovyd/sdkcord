@@ -1,5 +1,5 @@
 #![cfg(feature = "untested")]
-use bon::{builder, Builder};
+use bon::{Builder, builder};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 

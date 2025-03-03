@@ -1,4 +1,4 @@
-use bon::{builder, Builder};
+use bon::{Builder, builder};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use strum_macros::EnumString;
@@ -61,7 +61,10 @@ where
     UrlT: Into<String>,
 {
     fn from(value: (NameT, UrlT)) -> Self {
-        Self { name: value.0.into(), url: value.1.into() }
+        Self {
+            name: value.0.into(),
+            url: value.1.into(),
+        }
     }
 }
 
@@ -71,6 +74,9 @@ where
     UrlT: Into<String>,
 {
     fn from(value: (NameT, UrlT)) -> Self {
-        Self { name: value.0.into(), url: value.1.into() }
+        Self {
+            name: value.0.into(),
+            url: value.1.into(),
+        }
     }
 }

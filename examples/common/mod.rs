@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use sdkcord::payload::{common::opcode::Opcode, Event, PayloadRequest};
+use sdkcord::payload::{Event, PayloadRequest, common::opcode::Opcode};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::{
@@ -27,7 +27,10 @@ impl RawDiscordIpcClient {
         for port_id in 0..10 {
             let socket_path = format!("{}/{}{}", XDG_RUNTIME_DIR, DISCORD_IPC_PREFIX, port_id);
             if let Ok(mut stream) = UnixStream::connect(socket_path).await {
-                let payload = PayloadReady { v: PROTOCOL_VERSION, client_id };
+                let payload = PayloadReady {
+                    v: PROTOCOL_VERSION,
+                    client_id,
+                };
                 let bytes = serde_json::to_vec(&payload).unwrap();
                 let bytes = pack_bytes(&bytes, &Opcode::Handshake);
                 send(&mut stream, &bytes).await;
@@ -45,7 +48,11 @@ impl RawDiscordIpcClient {
     }
 
     pub async fn send(&mut self, req: &PayloadRequest) -> Result<(), std::io::Error> {
-        send(&mut self.0, &pack_bytes(&serde_json::to_vec(&req).unwrap(), &Opcode::Frame)).await
+        send(
+            &mut self.0,
+            &pack_bytes(&serde_json::to_vec(&req).unwrap(), &Opcode::Frame),
+        )
+        .await
     }
 
     pub async fn recv(&mut self) -> Value {

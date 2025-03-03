@@ -3,9 +3,7 @@ use std::marker::PhantomData;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{
-    Command, Event, Payload, {ArgsType, EventArgsType, RequestArgsType},
-};
+use super::{ArgsType, Command, Event, EventArgsType, Payload, RequestArgsType};
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 #[repr(transparent)]
@@ -14,7 +12,12 @@ pub struct PayloadRequest(pub(crate) Box<Payload>);
 impl PayloadRequest {
     #[inline(always)]
     pub const fn builder() -> PayloadRequestBuilder<EmptyArgs, EmptyRType> {
-        PayloadRequestBuilder { args: None, evt: None, cmd: None, _rtype: PhantomData }
+        PayloadRequestBuilder {
+            args: None,
+            evt: None,
+            cmd: None,
+            _rtype: PhantomData,
+        }
     }
 }
 
@@ -30,12 +33,22 @@ impl PayloadRequestBuilder<EmptyArgs, EmptyRType> {
     #[inline(always)]
     pub fn request<A: RequestArgsType>(self, args: A) -> PayloadRequestBuilder<A, WithRequest> {
         let cmd = args.name();
-        PayloadRequestBuilder { args: Some(args), evt: None, cmd: Some(cmd), _rtype: PhantomData }
+        PayloadRequestBuilder {
+            args: Some(args),
+            evt: None,
+            cmd: Some(cmd),
+            _rtype: PhantomData,
+        }
     }
 
     #[inline(always)]
     pub const fn event<A: EventArgsType>(self) -> PayloadRequestBuilder<A, WithEvent> {
-        PayloadRequestBuilder { args: None, evt: None, cmd: None, _rtype: PhantomData }
+        PayloadRequestBuilder {
+            args: None,
+            evt: None,
+            cmd: None,
+            _rtype: PhantomData,
+        }
     }
 }
 
@@ -70,8 +83,13 @@ impl<A: ArgsType, RType> PayloadRequestBuilder<A, RType> {
         let evt = self.evt;
         let args = self.args.unwrap().args_val();
 
-        let payload =
-            Payload { cmd, nonce: Some(Uuid::new_v4()), evt, data: None, args: Some(args) };
+        let payload = Payload {
+            cmd,
+            nonce: Some(Uuid::new_v4()),
+            evt,
+            data: None,
+            args: Some(args),
+        };
         PayloadRequest(Box::new(payload))
     }
 }
@@ -90,13 +108,13 @@ pub struct WithEvent;
 #[cfg(test)]
 mod tests {
     use crate::payload::{
+        AuthenticateArgs, AuthorizeArgs, GetChannelArgs, GetGuildArgs, GetGuildsArgs,
+        GuildStatusArgs, SetActivityArgs,
         common::{
             activity::{Activity, ActivityType, Party},
             channel::ChannelId,
             oauth2::OAuth2Scope,
         },
-        AuthenticateArgs, AuthorizeArgs, GetChannelArgs, GetGuildArgs, GetGuildsArgs,
-        GuildStatusArgs, SetActivityArgs,
     };
 
     use super::PayloadRequest;
@@ -125,7 +143,11 @@ mod tests {
     #[test]
     fn construct_args_payload_authenticate() {
         let request = PayloadRequest::builder()
-            .request(AuthenticateArgs::builder().access_token("access_token1").build())
+            .request(
+                AuthenticateArgs::builder()
+                    .access_token("access_token1")
+                    .build(),
+            )
             .build();
         let request = serde_json::to_string(&request).unwrap();
         assert!(request.contains(r#""access_token":"access_token1""#));
@@ -143,7 +165,9 @@ mod tests {
 
     #[test]
     fn construct_args_payload_get_guilds() {
-        let request = PayloadRequest::builder().request(GetGuildsArgs::default()).build();
+        let request = PayloadRequest::builder()
+            .request(GetGuildsArgs::default())
+            .build();
         let request = serde_json::to_string(&request).unwrap();
         assert!(request.contains(r#"args":{}"#));
     }
@@ -151,7 +175,9 @@ mod tests {
     #[test]
     fn construct_args_payload_get_channel() {
         let request = PayloadRequest::builder()
-            .request(GetChannelArgs(ChannelId::builder().channel_id("123").build()))
+            .request(GetChannelArgs(
+                ChannelId::builder().channel_id("123").build(),
+            ))
             .build();
         let request = serde_json::to_string(&request).unwrap();
         assert!(request.contains(r#"channel_id":"123""#));

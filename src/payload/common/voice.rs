@@ -1,4 +1,4 @@
-use bon::{builder, Builder};
+use bon::{Builder, builder};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -154,7 +154,10 @@ where
     NameT: Into<String>,
 {
     fn from(value: (IdT, NameT)) -> Self {
-        AvailableDevice { id: value.0.into(), name: value.1.into() }
+        AvailableDevice {
+            id: value.0.into(),
+            name: value.1.into(),
+        }
     }
 }
 
@@ -169,8 +172,11 @@ mod tests {
 
     #[test]
     fn construct_shortcut_keycombo() {
-        let skc =
-            ShortcutKeyCombo::builder().key_type(KeyType::KeyboardKey).code(12).name("123").build();
+        let skc = ShortcutKeyCombo::builder()
+            .key_type(KeyType::KeyboardKey)
+            .code(12)
+            .name("123")
+            .build();
         assert_eq!(skc.key_type, KeyType::KeyboardKey);
         assert_eq!(skc.code, 12);
         assert_eq!(skc.name.as_str(), "123");

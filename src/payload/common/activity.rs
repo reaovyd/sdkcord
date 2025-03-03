@@ -1,4 +1,4 @@
-use bon::{bon, builder, Builder};
+use bon::{Builder, bon, builder};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use serde_with::skip_serializing_none;
@@ -137,7 +137,10 @@ pub struct Button {
 
 impl From<(u64, u64)> for Timestamps {
     fn from(value: (u64, u64)) -> Self {
-        Timestamps { start: Some(value.0), end: Some(value.1) }
+        Timestamps {
+            start: Some(value.0),
+            end: Some(value.1),
+        }
     }
 }
 
@@ -147,7 +150,10 @@ where
     UrlT: Into<String>,
 {
     fn from(value: (LabelT, UrlT)) -> Self {
-        Button { label: Some(value.0.into()), url: Some(value.1.into()) }
+        Button {
+            label: Some(value.0.into()),
+            url: Some(value.1.into()),
+        }
     }
 }
 
@@ -171,7 +177,13 @@ mod tests {
                     .build(),
             )
             .party(Party::builder().id("123").size([1, 2]).build())
-            .secrets(Secrets::builder().join("123").spectate("145").secrets_match("123").build())
+            .secrets(
+                Secrets::builder()
+                    .join("123")
+                    .spectate("145")
+                    .secrets_match("123")
+                    .build(),
+            )
             .call();
         let activity_request = serde_json::to_string(&activity_request).unwrap();
         assert!(activity_request.contains("\"details\":\"Details1\""));

@@ -185,11 +185,13 @@ pub mod common;
 
 #[cfg(test)]
 mod tests {
-    use super::{request::PayloadRequest, GetVoiceSettingsArgs};
+    use super::{GetVoiceSettingsArgs, request::PayloadRequest};
 
     #[test]
     fn construct_args() {
-        let payload = PayloadRequest::builder().request(GetVoiceSettingsArgs::default()).build();
+        let payload = PayloadRequest::builder()
+            .request(GetVoiceSettingsArgs::default())
+            .build();
         let s = serde_json::to_string(&payload).unwrap();
         println!("{}", s)
     }

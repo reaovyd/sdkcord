@@ -70,7 +70,11 @@ impl Decoder for FrameCodec {
         let payload =
             src[(OPCODE_SIZE + PAYLOAD_SIZE)..(OPCODE_SIZE + PAYLOAD_SIZE + payload_len)].to_vec();
         src.advance(OPCODE_SIZE + PAYLOAD_SIZE + payload_len);
-        Ok(Some(Frame { opcode, len: payload_len as u32, payload: Bytes::from(payload) }))
+        Ok(Some(Frame {
+            opcode,
+            len: payload_len as u32,
+            payload: Bytes::from(payload),
+        }))
     }
 }
 
