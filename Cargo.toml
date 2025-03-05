@@ -28,6 +28,9 @@ async-channel = { version = "2.3.1" }
 kameo = { version = "0.14.0", features = ["macros"] }
 dashmap = { version = "6.1.0" }
 
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59.0" }
+
 [dependencies.tokio]
 version = "1.39.3"
 features = ["rt-multi-thread", "net", "sync", "macros", "io-util"]
