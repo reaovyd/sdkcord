@@ -9,7 +9,7 @@ use tracing::{error, instrument};
 
 use crate::{
     codec::Frame,
-    payload::{Request, common::opcode::Opcode},
+    payload::{PayloadResponse, Request, common::opcode::Opcode},
 };
 
 #[derive(Debug, Clone)]
@@ -87,6 +87,10 @@ pub(crate) fn serialize(request: &Request) -> Result<Frame, SerdeProcessingError
         len: payload.len() as u32,
         payload,
     })
+}
+
+pub(crate) fn deserialize(request: &Frame) -> Result<PayloadResponse, SerdeProcessingError> {
+    todo!()
 }
 
 #[derive(Debug, Clone, Error)]

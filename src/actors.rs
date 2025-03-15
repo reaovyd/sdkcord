@@ -34,6 +34,18 @@ pub(crate) struct Coordinator<T: Send + Sync + 'static> {
     pending_requests: Arc<DashMap<Uuid, oneshot::Sender<PayloadResponse>>>,
 }
 
+impl<T> Coordinator<T>
+where
+    T: Send + Sync + 'static,
+{
+    pub(crate) fn new(writer: ActorRef<Writer<T>>) -> Self {
+        Self {
+            writer,
+            pending_requests: Arc::new(DashMap::new()),
+        }
+    }
+}
+
 impl<T> Message<(Request, oneshot::Sender<PayloadResponse>)> for Coordinator<T>
 where
     T: Send + Sync + 'static,
@@ -131,7 +143,7 @@ fn send_response(
                 info!("nonce id: [{}] successfully sent to client", nonce)
             }
         } else {
-            error!("nonce cannot be found in pending requests...");
+            error!("nonce cannot be found in pending requests (perhaps client has timed out?)...");
         }
     } else {
         error!("nonce cannot be found in the response...");
@@ -139,9 +151,29 @@ fn send_response(
 }
 
 pub(crate) struct Reader<T, W: Send + Sync + 'static> {
-    deserializer_client: Client<Frame, PayloadResponse>,
+    deserializer_client: Client<Frame, Result<PayloadResponse, SerdeProcessingError>>,
     reader: Option<FramedRead<T, FrameCodec>>,
     coordinator: ActorRef<Coordinator<W>>,
+}
+
+impl<T, W> Reader<T, W>
+where
+    T: Send + Sync + 'static,
+    T: AsyncRead + Unpin,
+    W: Send + Sync + 'static,
+    W: AsyncWrite + Unpin,
+{
+    pub(crate) const fn new(
+        deserializer_client: Client<Frame, Result<PayloadResponse, SerdeProcessingError>>,
+        reader: FramedRead<T, FrameCodec>,
+        coordinator: ActorRef<Coordinator<W>>,
+    ) -> Self {
+        Self {
+            deserializer_client,
+            reader: Some(reader),
+            coordinator,
+        }
+    }
 }
 
 impl<T, W> Actor for Reader<T, W>
@@ -169,6 +201,22 @@ where
 pub(crate) struct Writer<T> {
     serializer_client: Client<Request, Result<Frame, SerdeProcessingError>>,
     writer: FramedWrite<T, FrameCodec>,
+}
+
+impl<T> Writer<T>
+where
+    T: Send + Sync + 'static,
+    T: AsyncWrite + Unpin,
+{
+    pub(crate) const fn new(
+        serializer_client: Client<Request, Result<Frame, SerdeProcessingError>>,
+        writer: FramedWrite<T, FrameCodec>,
+    ) -> Self {
+        Self {
+            serializer_client,
+            writer,
+        }
+    }
 }
 
 impl<T> Actor for Writer<T>
@@ -230,17 +278,30 @@ where
                             let resp = deserializer_client.deserialize(frame).await;
                             match resp {
                                 Ok(resp) => {
-                                    if let Err(err) = coordinator.tell(resp).await {
-                                        error!("{}", err);
-                                    }
+                                    match resp {
+                                        Ok(resp) => {
+                                            if let Err(err) = coordinator.tell(resp).await {
+                                                error!(
+                                                    "failed to send response to coordinator: {}",
+                                                    err
+                                                );
+                                            }
+                                        }
+                                        Err(err) => {
+                                            error!("deserialization operation failed: {}", err);
+                                        }
+                                    };
                                 }
                                 Err(err) => {
-                                    error!("{}", err);
+                                    error!(
+                                        "error while sending message for deserialization: {}",
+                                        err
+                                    );
                                 }
                             }
                         }
                         Err(err) => {
-                            error!("{}", err);
+                            error!("frame error: {}", err);
                         }
                     };
                 });

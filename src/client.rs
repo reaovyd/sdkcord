@@ -1,16 +1,14 @@
 use std::{marker::PhantomData, time::Duration};
 
-use bytes::Bytes;
 use kameo::{actor::ActorRef, error::SendError};
 use thiserror::Error;
+use tokio_util::codec::{FramedRead, FramedWrite};
 
 use crate::{
-    actors::Coordinator,
-    codec::Frame,
-    payload::{
-        ConnectRequest, Payload, PayloadRequest, PayloadResponse, Request, common::opcode::Opcode,
-    },
-    pool::{serialize, spawn_pool},
+    actors::{Coordinator, Reader, Writer},
+    codec::FrameCodec,
+    payload::{ConnectRequest, PayloadRequest, PayloadResponse, Request},
+    pool::{deserialize, serialize, spawn_pool},
 };
 
 #[cfg(unix)]
@@ -25,6 +23,8 @@ use tokio::{
     time::{Instant, error::Elapsed},
 };
 
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
+
 pub async fn spawn_client<T: Send + Sync + 'static>()
 -> Result<SdkClient<T, UnreadyState>, SdkClientError> {
     #[cfg(unix)]
@@ -36,9 +36,15 @@ pub async fn spawn_client<T: Send + Sync + 'static>()
         .await
         .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
 
-    let serialization_client = spawn_pool().cap(512).num_threads(16).op(serialize).call();
+    let serializer_client = spawn_pool().cap(512).num_threads(16).op(serialize).call();
     // TODO: make this deserialization function...
-    let deserialization_client = spawn_pool().cap(512).num_threads(16).op(serialize).call();
+    let deserialization_client = spawn_pool().cap(512).num_threads(16).op(deserialize).call();
+    let framed_write = FramedWrite::new(wh, FrameCodec {});
+    let framed_read = FramedRead::new(rh, FrameCodec {});
+
+    let writer = kameo::spawn(Writer::new(serializer_client, framed_write));
+    let coordinator = kameo::spawn(Coordinator::new(writer));
+    let reader = Reader::new(deserialization_client, framed_read, coordinator);
 
     todo!()
 }
@@ -68,7 +74,7 @@ where
             .await
             .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
 
-        tokio::time::timeout_at(Instant::now() + Duration::from_secs(5), recv)
+        tokio::time::timeout_at(Instant::now() + REQUEST_TIMEOUT, recv)
             .await
             .map_err(SdkClientError::Timeout)?
             .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
@@ -122,7 +128,7 @@ where
                 }
             };
         }
-        let resp = tokio::time::timeout_at(Instant::now() + Duration::from_secs(5), recv)
+        let resp = tokio::time::timeout_at(Instant::now() + REQUEST_TIMEOUT, recv)
             .await
             .map_err(SdkClientError::Timeout)?
             .map_err(|err| SdkClientError::ResponseDropped(err.to_string()))?;
