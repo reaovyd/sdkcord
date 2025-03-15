@@ -41,7 +41,7 @@ where
 
         tokio::time::timeout_at(Instant::now() + Duration::from_secs(5), recv)
             .await
-            .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?
+            .map_err(SdkClientError::Timeout)?
             .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
         Ok(SdkClient {
             coordinator: self.coordinator,
