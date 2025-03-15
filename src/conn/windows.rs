@@ -16,6 +16,9 @@ use windows_sys::Win32::Foundation::ERROR_PIPE_BUSY;
 // taking from this as well since i can't figure this out haha
 
 const DISCORD_WINDOWS_DIR: &str = r"\\?\pipe\discord-ipc-";
+const IPC_CHANNELS: usize = 10;
+const RETRY_ATTEMPTS: usize = 5;
+
 pub(crate) struct ClientWriteHalf {
     inner: Arc<NamedPipeClient>,
 }
@@ -88,9 +91,9 @@ async fn connect_windows() -> Result<(ClientReadHalf, ClientWriteHalf), Connecti
 }
 
 async fn get_client_connection() -> Result<NamedPipeClient, ConnectionError> {
-    for i in 0..10 {
-        for _ in 0..5 {
-            match ClientOptions::new().open(format!("{DISCORD_WINDOWS_DIR}{i}")) {
+    for channel in 0..IPC_CHANNELS {
+        for _ in 0..RETRY_ATTEMPTS {
+            match ClientOptions::new().open(format!("{DISCORD_WINDOWS_DIR}{channel}")) {
                 Ok(client) => {
                     return Ok(client);
                 }

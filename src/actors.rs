@@ -20,9 +20,11 @@ use uuid::Uuid;
 
 use crate::{
     codec::{Frame, FrameCodec},
-    payload::{PayloadRequest, PayloadResponse},
+    payload::{Event, PayloadResponse, Request},
     pool::{Client, SerdePoolError},
 };
+
+const CONNECT_UUID: Uuid = Uuid::from_u128(0xdffa20e1_f231_4792_9684_4b8449823bbd);
 
 #[derive(Actor)]
 #[actor(mailbox = bounded(1024))]
@@ -31,7 +33,7 @@ pub(crate) struct Coordinator<T: Send + Sync + 'static> {
     pending_requests: Arc<DashMap<Uuid, oneshot::Sender<PayloadResponse>>>,
 }
 
-impl<T> Message<(PayloadRequest, oneshot::Sender<PayloadResponse>)> for Coordinator<T>
+impl<T> Message<(Request, oneshot::Sender<PayloadResponse>)> for Coordinator<T>
 where
     T: Send + Sync + 'static,
     T: AsyncWrite + Unpin,
@@ -40,16 +42,23 @@ where
 
     async fn handle(
         &mut self,
-        msg: (PayloadRequest, oneshot::Sender<PayloadResponse>),
+        msg: (Request, oneshot::Sender<PayloadResponse>),
         _: Context<'_, Self, Self::Reply>,
     ) -> Self::Reply {
         let request = msg.0;
         let callback = msg.1;
-        let nonce = request.0.nonce.unwrap();
+        let nonce = {
+            if let Request::Payload(payload) = &request {
+                payload.0.nonce.unwrap()
+            } else {
+                CONNECT_UUID
+            }
+        };
 
         self.pending_requests.insert(nonce, callback);
 
         // NOTE: from client caller, they will get a CoordinatorError response
+        // and it won't be pending on the oneshot receiver
         self.writer
             .ask(request)
             .reply_timeout(Duration::from_secs(5))
@@ -82,38 +91,49 @@ where
 
     async fn handle(
         &mut self,
-        resp: PayloadResponse,
+        mut resp: PayloadResponse,
         _: Context<'_, Self, Self::Reply>,
     ) -> Self::Reply {
         let pending_requests = self.pending_requests.clone();
 
         tokio::spawn(async move {
-            // if this is an event, the nonce wouldn't be present
-            // only responses have nonces
-            if resp.0.evt.is_some() && resp.0.nonce.is_none() {
-                todo!("send this to some event listener");
-            }
-
-            if resp.0.nonce.is_none() {
-                error!("nonce is missing from payload response...");
-                return;
-            }
-
-            if let Some((nonce, sender)) =
-                { pending_requests.remove(resp.0.nonce.as_ref().unwrap()) }
-            {
-                if sender.send(resp).is_err() {
-                    error!(
-                        "nonce id: [{}] failed to send to client; receiver end may have died!",
-                        nonce
-                    );
-                } else {
-                    info!("nonce id: [{}] successfully sent to client", nonce)
+            match resp.0.evt.as_ref() {
+                Some(Event::Ready) => {
+                    // little bit of a hacky way
+                    resp.0.nonce = Some(CONNECT_UUID);
+                    send_response(&pending_requests, resp);
                 }
-            } else {
-                error!("nonce cannot be found in pending requests...");
+                None | Some(Event::Error) => {
+                    // only Event with a nonce is the Error type has a nonce
+                    send_response(&pending_requests, resp);
+                }
+                _ => {
+                    // TODO: send event to some listener...
+                }
             }
         });
+    }
+}
+
+fn send_response(
+    pending_requests: &Arc<DashMap<Uuid, oneshot::Sender<PayloadResponse>>>,
+    resp: PayloadResponse,
+) {
+    if let Some(nonce) = resp.0.nonce.as_ref() {
+        if let Some((nonce, sender)) = { pending_requests.remove(nonce) } {
+            if sender.send(resp).is_err() {
+                error!(
+                    "nonce id: [{}] failed to send to client; receiver end may have died!",
+                    nonce
+                );
+            } else {
+                info!("nonce id: [{}] successfully sent to client", nonce)
+            }
+        } else {
+            error!("nonce cannot be found in pending requests...");
+        }
+    } else {
+        error!("nonce cannot be found in the response...");
     }
 }
 
@@ -146,7 +166,7 @@ where
 }
 
 pub(crate) struct Writer<T> {
-    serializer_client: Client<PayloadRequest, Frame>,
+    serializer_client: Client<Request, Frame>,
     writer: FramedWrite<T, FrameCodec>,
 }
 
@@ -164,7 +184,7 @@ where
     }
 }
 
-impl<T> Message<PayloadRequest> for Writer<T>
+impl<T> Message<Request> for Writer<T>
 where
     T: Send + Sync + 'static,
     T: AsyncWrite + Unpin,
@@ -175,7 +195,7 @@ where
     #[instrument(skip(self, msg))]
     async fn handle(
         &mut self,
-        msg: PayloadRequest,
+        msg: Request,
         _: kameo::message::Context<'_, Self, Self::Reply>,
     ) -> Self::Reply {
         let frame = self.serializer_client.serialize(msg).await?;
@@ -237,11 +257,11 @@ where
 #[derive(Debug, Error)]
 pub(crate) enum CoordinatorError {
     #[error("discord ipc server is unavailable")]
-    IpcWriterUnavailable(Option<PayloadRequest>),
+    IpcWriterUnavailable(Option<Request>),
     #[error("request failed")]
     RequestFailed(WriterError),
     #[error("timeout writing to ipc server")]
-    WriterTimeout(Option<PayloadRequest>),
+    WriterTimeout(Option<Request>),
 }
 
 #[derive(Debug, Error)]

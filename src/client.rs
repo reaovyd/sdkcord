@@ -1,11 +1,11 @@
-use std::time::Duration;
+use std::{marker::PhantomData, time::Duration};
 
 use kameo::{actor::ActorRef, error::SendError};
 use thiserror::Error;
 
 use crate::{
     actors::Coordinator,
-    payload::{PayloadRequest, PayloadResponse},
+    payload::{ConnectRequest, PayloadRequest, PayloadResponse, Request},
 };
 
 use tokio::{
@@ -14,18 +14,43 @@ use tokio::{
     time::{Instant, error::Elapsed},
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ClientConfig {
-    client_id: String,
-    client_secret: Option<String>,
-}
-
 #[derive(Debug, Clone)]
-pub struct SdkClient<T: Send + Sync + 'static> {
+pub struct SdkClient<T: Send + Sync + 'static, S> {
     coordinator: ActorRef<Coordinator<T>>,
+    _state: PhantomData<S>,
 }
 
-impl<T> SdkClient<T>
+impl<T, S> SdkClient<T, S>
+where
+    T: Send + Sync + 'static,
+    T: AsyncWrite + Unpin,
+{
+    #[inline(always)]
+    pub async fn connect(
+        self,
+        client_id: &str,
+    ) -> Result<SdkClient<T, ReadyState>, SdkClientError> {
+        let (sndr, recv) = oneshot::channel::<PayloadResponse>();
+        self.coordinator
+            .tell((
+                Request::Connect(ConnectRequest::new(client_id.to_string())),
+                sndr,
+            ))
+            .await
+            .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
+
+        tokio::time::timeout_at(Instant::now() + Duration::from_secs(5), recv)
+            .await
+            .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?
+            .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
+        Ok(SdkClient {
+            coordinator: self.coordinator,
+            _state: PhantomData,
+        })
+    }
+}
+
+impl<T> SdkClient<T, ReadyState>
 where
     T: Send + Sync + 'static,
     T: AsyncWrite + Unpin,
@@ -36,13 +61,29 @@ where
         request: PayloadRequest,
     ) -> Result<PayloadResponse, SdkClientError> {
         let (sndr, recv) = oneshot::channel::<PayloadResponse>();
-        if let Err(send_err) = self.coordinator.ask((request, sndr)).await {
+        if let Err(send_err) = self
+            .coordinator
+            .tell((Request::Payload(request), sndr))
+            .await
+        {
             match send_err {
-                SendError::ActorNotRunning(err) => SdkClientError::SendRequest(Some(err.0)),
+                SendError::ActorNotRunning(err) => {
+                    if let Request::Payload(payload) = err.0 {
+                        return Err(SdkClientError::SendRequest(Some(payload)));
+                    } else {
+                        return Err(SdkClientError::SendRequest(None));
+                    }
+                }
                 SendError::ActorStopped => SdkClientError::SendRequest(None),
-                SendError::MailboxFull(err) => SdkClientError::SendRequest(Some(err.0)),
+                SendError::MailboxFull(err) => {
+                    if let Request::Payload(payload) = err.0 {
+                        return Err(SdkClientError::SendRequest(Some(payload)));
+                    } else {
+                        return Err(SdkClientError::SendRequest(None));
+                    }
+                }
                 SendError::HandlerError(err) => {
-                    SdkClientError::InternalCoordinator(err.to_string())
+                    return Err(SdkClientError::InternalCoordinator(err.to_string()));
                 }
                 SendError::Timeout(_) => {
                     // server has a timeout on its end so client will always receive a response...
@@ -70,4 +111,9 @@ pub enum SdkClientError {
     Timeout(Elapsed),
     #[error("server dropped response; response unrecoverable: {0}")]
     ResponseDropped(String),
+    #[error("client failed to connect to ipc {0}")]
+    ConnectionFailed(String),
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct ReadyState;

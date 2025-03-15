@@ -5,6 +5,30 @@ use uuid::Uuid;
 
 use super::{ArgsType, Command, Event, EventArgsType, Payload, RequestArgsType};
 
+const PROTOCOL_VERSION: u32 = 1;
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub(crate) enum Request {
+    Connect(ConnectRequest),
+    Payload(PayloadRequest),
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub(crate) struct ConnectRequest {
+    v: u32,
+    client_id: String,
+}
+
+impl ConnectRequest {
+    #[inline(always)]
+    pub(crate) const fn new(client_id: String) -> Self {
+        Self {
+            v: PROTOCOL_VERSION,
+            client_id,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct PayloadRequest(pub(crate) Box<Payload>);
