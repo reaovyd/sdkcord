@@ -35,3 +35,5 @@ pub mod codec;
 pub mod conn;
 pub mod payload;
 mod pool;
+
+pub use pool::SerdeProcessingError;

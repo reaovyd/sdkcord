@@ -1,4 +1,3 @@
-
 use std::env;
 
 use tokio::net::{unix::OwnedReadHalf, unix::OwnedWriteHalf};
@@ -16,7 +15,7 @@ const DISCORD_UNIX_PATHS: [&str; 4] = [
     "snap.discord/",
 ];
 
-async fn connect_unix() -> Result<(OwnedReadHalf, OwnedWriteHalf), ConnectionError> {
+pub(crate) async fn connect_unix() -> Result<(OwnedReadHalf, OwnedWriteHalf), ConnectionError> {
     for dir in DISCORD_UNIX_DIRS {
         if let Ok(dir) = env::var(dir) {
             for path in DISCORD_UNIX_PATHS {

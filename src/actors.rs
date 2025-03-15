@@ -19,6 +19,7 @@ use tracing::{error, info, instrument};
 use uuid::Uuid;
 
 use crate::{
+    SerdeProcessingError,
     codec::{Frame, FrameCodec},
     payload::{Event, PayloadResponse, Request},
     pool::{Client, SerdePoolError},
@@ -166,7 +167,7 @@ where
 }
 
 pub(crate) struct Writer<T> {
-    serializer_client: Client<Request, Frame>,
+    serializer_client: Client<Request, Result<Frame, SerdeProcessingError>>,
     writer: FramedWrite<T, FrameCodec>,
 }
 
@@ -198,7 +199,7 @@ where
         msg: Request,
         _: kameo::message::Context<'_, Self, Self::Reply>,
     ) -> Self::Reply {
-        let frame = self.serializer_client.serialize(msg).await?;
+        let frame = self.serializer_client.serialize(msg).await??;
         Ok(self.writer.send(frame).await?)
     }
 }
@@ -267,7 +268,9 @@ pub(crate) enum CoordinatorError {
 #[derive(Debug, Error)]
 pub(crate) enum WriterError {
     #[error(transparent)]
-    Serialization(#[from] SerdePoolError),
+    Serialization(#[from] SerdeProcessingError),
     #[error(transparent)]
     Ipc(#[from] io::Error),
+    #[error(transparent)]
+    SerializationPool(#[from] SerdePoolError),
 }

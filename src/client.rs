@@ -1,18 +1,47 @@
 use std::{marker::PhantomData, time::Duration};
 
+use bytes::Bytes;
 use kameo::{actor::ActorRef, error::SendError};
 use thiserror::Error;
 
 use crate::{
     actors::Coordinator,
-    payload::{ConnectRequest, PayloadRequest, PayloadResponse, Request},
+    codec::Frame,
+    payload::{
+        ConnectRequest, Payload, PayloadRequest, PayloadResponse, Request, common::opcode::Opcode,
+    },
+    pool::{serialize, spawn_pool},
 };
+
+#[cfg(unix)]
+use crate::conn::unix::connect_unix;
+
+#[cfg(windows)]
+use crate::conn::windows::connect_windows;
 
 use tokio::{
     io::AsyncWrite,
     sync::oneshot::{self},
     time::{Instant, error::Elapsed},
 };
+
+pub async fn spawn_client<T: Send + Sync + 'static>()
+-> Result<SdkClient<T, UnreadyState>, SdkClientError> {
+    #[cfg(unix)]
+    let (rh, wh) = connect_unix()
+        .await
+        .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
+    #[cfg(windows)]
+    let (rh, wh) = connect_windows()
+        .await
+        .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
+
+    let serialization_client = spawn_pool().cap(512).num_threads(16).op(serialize).call();
+    // TODO: make this deserialization function...
+    let deserialization_client = spawn_pool().cap(512).num_threads(16).op(serialize).call();
+
+    todo!()
+}
 
 #[derive(Debug, Clone)]
 pub struct SdkClient<T: Send + Sync + 'static, S> {
@@ -117,3 +146,5 @@ pub enum SdkClientError {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ReadyState;
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct UnreadyState;

@@ -19,6 +19,16 @@ const DISCORD_WINDOWS_DIR: &str = r"\\?\pipe\discord-ipc-";
 const IPC_CHANNELS: usize = 10;
 const RETRY_ATTEMPTS: usize = 5;
 
+pub(crate) async fn connect_windows() -> Result<(ClientReadHalf, ClientWriteHalf), ConnectionError>
+{
+    let client = Arc::new(get_client_connection().await?);
+    let read_client = ClientReadHalf {
+        inner: client.clone(),
+    };
+    let write_client = ClientWriteHalf { inner: client };
+    Ok((read_client, write_client))
+}
+
 pub(crate) struct ClientWriteHalf {
     inner: Arc<NamedPipeClient>,
 }
@@ -79,15 +89,6 @@ impl AsyncWrite for ClientWriteHalf {
     fn poll_shutdown(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), io::Error>> {
         self.poll_flush(cx)
     }
-}
-
-async fn connect_windows() -> Result<(ClientReadHalf, ClientWriteHalf), ConnectionError> {
-    let client = Arc::new(get_client_connection().await?);
-    let read_client = ClientReadHalf {
-        inner: client.clone(),
-    };
-    let write_client = ClientWriteHalf { inner: client };
-    Ok((read_client, write_client))
 }
 
 async fn get_client_connection() -> Result<NamedPipeClient, ConnectionError> {

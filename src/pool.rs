@@ -2,9 +2,15 @@ use std::thread;
 
 use async_channel::Sender;
 use bon::builder;
+use bytes::Bytes;
 use thiserror::Error;
 use tokio::sync::oneshot::{Sender as OneshotSender, error::RecvError};
 use tracing::{error, instrument};
+
+use crate::{
+    codec::Frame,
+    payload::{Request, common::opcode::Opcode},
+};
 
 #[derive(Debug, Clone)]
 pub(crate) struct Client<M, R>(Sender<(M, OneshotSender<R>)>);
@@ -63,12 +69,40 @@ where
     Client(sndr)
 }
 
+pub(crate) fn serialize(request: &Request) -> Result<Frame, SerdeProcessingError> {
+    let payload = {
+        match request {
+            Request::Connect(connect_request) => Bytes::from(
+                serde_json::to_vec(connect_request)
+                    .map_err(|err| SerdeProcessingError::Serialization(err.to_string()))?,
+            ),
+            Request::Payload(payload_request) => Bytes::from(
+                serde_json::to_vec(payload_request)
+                    .map_err(|err| SerdeProcessingError::Serialization(err.to_string()))?,
+            ),
+        }
+    };
+    Ok(Frame {
+        opcode: Opcode::Hello,
+        len: payload.len() as u32,
+        payload,
+    })
+}
+
 #[derive(Debug, Clone, Error)]
 pub(crate) enum SerdePoolError {
     #[error("the pool could not receive the response as pool channel has been closed")]
     PoolSend,
     #[error("the oneshot channel sender has been killed and channel is closed without messages")]
     OneshotRecv(#[from] RecvError),
+}
+
+#[derive(Debug, Clone, Error)]
+pub enum SerdeProcessingError {
+    #[error("serialization failed: {0}")]
+    Serialization(String),
+    #[error("deserialization failed: {0}")]
+    Deserialization(String),
 }
 
 #[cfg(test)]

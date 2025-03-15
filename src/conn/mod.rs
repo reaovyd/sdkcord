@@ -1,8 +1,8 @@
 #[cfg(unix)]
-mod unix;
+pub(crate) mod unix;
 
 #[cfg(windows)]
-mod windows;
+pub(crate) mod windows;
 
 use thiserror::Error;
 
