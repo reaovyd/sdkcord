@@ -2,6 +2,14 @@
 name = "sdkcord"
 version = "0.1.0"
 edition = "2024"
+authors = ["reaovyd <zackbellzokobell@gmail.com>"]
+readme = "README.md"
+rust-version = "1.85.0"
+description = "A Discord SDK Client that interacts with the IPC socket"
+license = "MIT OR Apache-2.0"
+keywords = ["discord", "sdk", "discord-sdk", "discord-sdk-client"]
+categories = ["api-bindings", "asynchronous", "web-programming"]
+exclude = ["/examples"]
 
 [dependencies]
 serde = { version = "1.0.208", features = ["derive"] }
@@ -11,13 +19,11 @@ bytes = { version = "1.7.1", features = ["serde"] }
 tokio-util = { version = "0.7.11", features = ["codec"] }
 futures = { version = "0.3.30" }
 tracing = { version = "0.1.40", features = ["log"] }
-tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
 strum = { version = "0.27.0" }
 strum_macros = { version = "0.27.0" }
 paste = { version = "1.0.15" }
 bon = { version = "3.2.0" }
 uuid = { version = "1.10.0", features = ["serde", "v4"] }
-anyhow = { version = "1.0.86" }
 reqwest = { version = "0.12.7", features = ["json"] }
 serde_urlencoded = { version = "0.7.1" }
 ordered-float = { version = "5.0.0", features = ["serde"] }
@@ -37,7 +43,6 @@ features = ["rt-multi-thread", "net", "sync", "macros", "io-util"]
 
 [dev-dependencies]
 pretty_assertions = { version = "1.4.0" }
-lazy_static = { version = "1.5.0" }
 
 [features]
 default = []
