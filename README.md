@@ -1,7 +1,7 @@
 ## sdkcord
 A Rust SDK to communicate with the Discord process on your local machine.
 
-### Quick Start
+## Quick Start
 - To get started quickly, you can get a client quickly with the `sdkcord::spawn_client` method, which provides an `SdkClient`. 
 - The `SdkClient` provides a `connect` method which must be called initially before sending any requests.
 
@@ -33,5 +33,5 @@ async fn main() -> Result<()> {
 ```
 Replace the `your_client_id` with your own client ID and replace the `some_channel_id` with an actual `channel_id`. 
 
-### License
+## License
 `sdkcord` is dual-licensed under [MIT](https://github.com/reaovyd/sdkcord/blob/main/LICENSE-MIT) or [Apache License Version 2.0](https://github.com/reaovyd/sdkcord/blob/main/LICENSE-APACHE)
