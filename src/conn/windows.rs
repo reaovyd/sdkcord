@@ -29,7 +29,8 @@ pub(crate) async fn connect_windows() -> Result<(ClientReadHalf, ClientWriteHalf
     Ok((read_client, write_client))
 }
 
-pub(crate) struct ClientWriteHalf {
+#[derive(Debug)]
+pub struct ClientWriteHalf {
     inner: Arc<NamedPipeClient>,
 }
 

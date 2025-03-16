@@ -4,6 +4,9 @@ pub(crate) mod unix;
 #[cfg(windows)]
 pub(crate) mod windows;
 
+#[cfg(windows)]
+pub use windows::*;
+
 use thiserror::Error;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Error)]

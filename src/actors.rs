@@ -184,6 +184,7 @@ where
     W: AsyncWrite + Unpin,
 {
     type Mailbox = BoundedMailbox<Self>;
+
     fn new_mailbox() -> (
         Self::Mailbox,
         <Self::Mailbox as kameo::mailbox::Mailbox<Self>>::Receiver,
