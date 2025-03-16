@@ -1,4 +1,4 @@
-## sdkcord
+# sdkcord
 A Rust SDK to communicate with the Discord process on your local machine.
 
 ## Quick Start
