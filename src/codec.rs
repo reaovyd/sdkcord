@@ -14,7 +14,7 @@ pub(crate) struct Frame {
     pub(crate) payload: Bytes,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub(crate) struct FrameCodec;
 
 const MAX_FRAME_LENGTH: usize = 1_000_000_000;

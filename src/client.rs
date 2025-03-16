@@ -13,40 +13,64 @@ use crate::{
 
 #[cfg(unix)]
 use crate::conn::unix::connect_unix;
+#[cfg(unix)]
+use tokio::net::unix::OwnedWriteHalf;
 
+#[cfg(windows)]
+use crate::conn::windows::ClientWriteHalf;
 #[cfg(windows)]
 use crate::conn::windows::connect_windows;
 
 use tokio::{
-    io::AsyncWrite,
+    io::{AsyncRead, AsyncWrite},
     sync::oneshot::{self},
     time::{Instant, error::Elapsed},
 };
 
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
-pub async fn spawn_client<T: Send + Sync + 'static>()
--> Result<SdkClient<T, UnreadyState>, SdkClientError> {
-    #[cfg(unix)]
+#[cfg(unix)]
+pub async fn spawn_client() -> Result<SdkClient<OwnedWriteHalf, UnreadyState>, SdkClientError> {
     let (rh, wh) = connect_unix()
         .await
         .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
-    #[cfg(windows)]
+    spawn(wh, rh).await
+}
+
+#[cfg(windows)]
+pub async fn spawn_client() -> Result<SdkClient<ClientWriteHalf, UnreadyState>, SdkClientError> {
     let (rh, wh) = connect_windows()
         .await
         .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
+    spawn(wh, rh).await
+}
 
+async fn spawn<T, R>(wh: T, rh: R) -> Result<SdkClient<T, UnreadyState>, SdkClientError>
+where
+    T: Send + Sync + 'static,
+    T: AsyncWrite + Unpin,
+    R: Send + Sync + 'static,
+    R: AsyncRead + Unpin,
+{
     let serializer_client = spawn_pool().cap(512).num_threads(16).op(serialize).call();
     // TODO: make this deserialization function...
     let deserialization_client = spawn_pool().cap(512).num_threads(16).op(deserialize).call();
-    let framed_write = FramedWrite::new(wh, FrameCodec {});
-    let framed_read = FramedRead::new(rh, FrameCodec {});
+    let codec = FrameCodec {};
+    let framed_write = FramedWrite::new(wh, codec);
+    let framed_read = FramedRead::new(rh, codec);
 
     let writer = kameo::spawn(Writer::new(serializer_client, framed_write));
     let coordinator = kameo::spawn(Coordinator::new(writer));
-    let reader = Reader::new(deserialization_client, framed_read, coordinator);
+    kameo::spawn(Reader::new(
+        deserialization_client,
+        framed_read,
+        coordinator.clone(),
+    ));
 
-    todo!()
+    Ok(SdkClient {
+        coordinator,
+        _state: PhantomData,
+    })
 }
 
 #[derive(Debug, Clone)]
