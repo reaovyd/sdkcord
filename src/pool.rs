@@ -70,20 +70,26 @@ where
 }
 
 pub(crate) fn serialize(request: &Request) -> Result<Frame, SerdeProcessingError> {
-    let payload = {
+    let (opcode, payload) = {
         match request {
-            Request::Connect(connect_request) => Bytes::from(
-                serde_json::to_vec(connect_request)
-                    .map_err(|err| SerdeProcessingError::Serialization(err.to_string()))?,
+            Request::Connect(connect_request) => (
+                Opcode::Handshake,
+                Bytes::from(
+                    serde_json::to_vec(connect_request)
+                        .map_err(|err| SerdeProcessingError::Serialization(err.to_string()))?,
+                ),
             ),
-            Request::Payload(payload_request) => Bytes::from(
-                serde_json::to_vec(payload_request)
-                    .map_err(|err| SerdeProcessingError::Serialization(err.to_string()))?,
+            Request::Payload(payload_request) => (
+                Opcode::Frame,
+                Bytes::from(
+                    serde_json::to_vec(payload_request)
+                        .map_err(|err| SerdeProcessingError::Serialization(err.to_string()))?,
+                ),
             ),
         }
     };
     Ok(Frame {
-        opcode: Opcode::Hello,
+        opcode,
         len: payload.len() as u32,
         payload,
     })
