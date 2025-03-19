@@ -98,7 +98,7 @@ jobs:
         uses: ClementTsang/cargo-action@v0.0.5
         with:
           command: test
-          args: --no-run --locked ${{ matrix.features }} --target=${{ matrix.target }}
+          args: --no-run --offline ${{ matrix.features }} --target=${{ matrix.target }}
           use-cross: ${{ matrix.cross }}
           cross-version: 0.2.5
         env:
@@ -192,7 +192,7 @@ jobs:
         uses: ClementTsang/cargo-action@v0.0.5
         with:
           command: clippy
-          args: --all-targets --workspace --target=${{ matrix.target }} --locked
+          args: --all-targets --workspace --target=${{ matrix.target }} --offline
           use-cross: ${{ matrix.cross }}
           cross-version: ${{ matrix.cross-version || '0.2.5' }}
     
@@ -200,6 +200,6 @@ jobs:
         uses: ClementTsang/cargo-action@v0.0.5
         with:
           command: clippy
-          args: --all-targets --workspace --target=${{ matrix.target }} --locked --no-default-features
+          args: --all-targets --workspace --target=${{ matrix.target }} --offline --no-default-features
           use-cross: ${{ matrix.cross }}
           cross-version: ${{ matrix.cross-version || '0.2.5' }}
