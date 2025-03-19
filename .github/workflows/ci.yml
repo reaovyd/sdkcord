@@ -24,13 +24,12 @@ jobs:
   
   # Runs rustfmt + tests + clippy on the main supported platforms.
   supported:
-    name: rustfmt, tests, clippy on ${{ matrix.os }}
+    name: rustfmt, tests, clippy on ${{ matrix.os }} ${{ matrix.features }}
     needs: pre-job
     if: ${{ needs.pre-job.outputs.should_skip != 'true' }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 12
     strategy:
-      fail-fast: false
       matrix:
         features: ["--all-features", "--no-default-features"]
         include:
@@ -132,7 +131,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 12
     strategy:
-      fail-fast: false
       matrix:
         include:
           # x86 or x86-64
