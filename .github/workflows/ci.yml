@@ -8,9 +8,25 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
+  # Check if things should be skipped.
+  pre-job:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - name: Check if this action should be skipped
+        id: skip_check
+        uses: fkirc/skip-duplicate-actions@f75f66ce1886f00957d99748a42c724f4330bdcf # v5.3.1
+        with:
+          skip_after_successful_duplicate: "true"
+          paths: '[".cargo/**", ".github/workflows/ci.yml", "sample_configs/**", "src/**", "tests/**", "build.rs", "Cargo.lock", "Cargo.toml", "clippy.toml", "rustfmt.toml", "Cross.toml"]'
+          do_not_skip: '["workflow_dispatch", "push"]'
+  
   # Runs rustfmt + tests + clippy on the main supported platforms.
   supported:
     name: rustfmt, tests, clippy on ${{ matrix.os }}
+    needs: pre-job
+    if: ${{ needs.pre-job.outputs.should_skip != 'true' }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 12
     strategy:
@@ -111,6 +127,8 @@ jobs:
   # Try running cargo build on all other platforms.
   other-check:
     name: cargo on ${{ matrix.os }}
+    needs: pre-job
+    if: ${{ needs.pre-job.outputs.should_skip != 'true' }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 12
     strategy:
