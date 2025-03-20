@@ -87,7 +87,7 @@ jobs:
           target: ${{ matrix.target }}
 
       - name: Enable Rust cache
-        uses: Swatinem/rust-cache@9bdad043e88c75890e36ad3bbc8d27f0090dd609 # 2.7.3
+        uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.target }}
           cache-all-crates: true
@@ -96,32 +96,38 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Build tests
-        uses: ClementTsang/cargo-action@v0.0.5
-        with:
-          command: test
-          args: --no-run ${{ matrix.features }} --target=${{ matrix.target }}
-          use-cross: ${{ matrix.cross }}
-          cross-version: 0.2.5
+        if: ${{ !matrix.cross }}
+        run: cargo test --no-run ${{ matrix.features }} --target=${{ matrix.target }}
+        env:
+          RUST_BACKTRACE: full
+          
+      - name: Build tests (cross)
+        if: ${{ matrix.cross }}
+        run: cross test --no-run ${{ matrix.features }} --target=${{ matrix.target }}
         env:
           RUST_BACKTRACE: full
 
       - name: Run tests
-        uses: ClementTsang/cargo-action@v0.0.5
-        with:
-          command: test
-          args: --no-fail-fast ${{ matrix.features }} --target=${{ matrix.target }} -- --nocapture --quiet
-          use-cross: ${{ matrix.cross }}
-          cross-version: 0.2.5
+        if: ${{ !matrix.cross }}
+        run: cargo test --no-fail-fast ${{ matrix.features }} --target=${{ matrix.target }} -- --nocapture --quiet
+        env:
+          RUST_BACKTRACE: full
+          
+      - name: Run tests (cross)
+        if: ${{ matrix.cross }}
+        run: cross test --no-fail-fast ${{ matrix.features }} --target=${{ matrix.target }} -- --nocapture --quiet
         env:
           RUST_BACKTRACE: full
 
       - name: Run clippy
-        uses: ClementTsang/cargo-action@v0.0.5
-        with:
-          command: clippy
-          args: ${{ matrix.features }} --all-targets --workspace --target=${{ matrix.target }} -- -D warnings
-          use-cross: ${{ matrix.cross }}
-          cross-version: 0.2.5
+        if: ${{ !matrix.cross }}
+        run: cargo clippy ${{ matrix.features }} --all-targets --workspace --target=${{ matrix.target }} -- -D warnings
+        env:
+          RUST_BACKTRACE: full
+          
+      - name: Run clippy (cross)
+        if: ${{ matrix.cross }}
+        run: cross clippy ${{ matrix.features }} --all-targets --workspace --target=${{ matrix.target }} -- -D warnings
         env:
           RUST_BACKTRACE: full
   
