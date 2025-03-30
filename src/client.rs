@@ -52,9 +52,17 @@ where
     R: Send + Sync + 'static,
     R: AsyncRead + Unpin,
 {
-    let serializer_client = spawn_pool().cap(512).num_threads(16).op(serialize).call();
+    let serializer_client = spawn_pool()
+        .channel_buffer(512)
+        .num_threads(16)
+        .op(serialize)
+        .call();
     // TODO: make this deserialization function...
-    let deserialization_client = spawn_pool().cap(512).num_threads(16).op(deserialize).call();
+    let deserialization_client = spawn_pool()
+        .channel_buffer(512)
+        .num_threads(16)
+        .op(deserialize)
+        .call();
     let codec = FrameCodec {};
     let framed_write = FramedWrite::new(wh, codec);
     let framed_read = FramedRead::new(rh, codec);

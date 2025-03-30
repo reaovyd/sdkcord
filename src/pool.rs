@@ -1,3 +1,10 @@
+//! Serialization and Deserialization Pool
+//!
+//! This is used to create dedicated threads for procesing serialization and deserialization as
+//! they can be expensive operations and can block the main [Tokio][tokio] thread pool
+//!
+//! An interface is exposed to other parts of the library through the [Client] type to perform the
+//! serialization and deserialization operations
 use std::thread;
 
 use async_channel::Sender;
@@ -12,6 +19,10 @@ use crate::{
     payload::{PayloadResponse, Request, common::opcode::Opcode},
 };
 
+/// Generic Serde Client
+///
+/// Used to send and receive either a serialization response or a deserialization response on a
+/// pool of dedicated threads that is separate from the [Tokio][tokio] thread pool
 #[derive(Debug, Clone)]
 pub(crate) struct Client<M, R>(Sender<(M, OneshotSender<R>)>);
 
@@ -20,12 +31,33 @@ where
     M: Send + Sync + 'static,
     R: Send + Sync + 'static,
 {
+    /// Deserialize a message
+    ///
+    /// # Errors
+    /// A [SerdePoolError] is returned on two conditions:
+    /// 1. If the pool could not receive the response
+    /// 2. The client cannot be receive the response because the oneshot channel sender has been
+    ///    dropped
     pub(crate) async fn deserialize(&self, data: M) -> Result<R, SerdePoolError> {
         self.send(data).await
     }
+    /// Serialize a message
+    ///
+    /// # Errors
+    /// A [SerdePoolError] is returned on two conditions:
+    /// 1. If the pool could not receive the response
+    /// 2. The client cannot be receive the response because the oneshot channel sender has been
+    ///    dropped
     pub(crate) async fn serialize(&self, data: M) -> Result<R, SerdePoolError> {
         self.send(data).await
     }
+    /// Helper method used by [serialize] and [deserialize] to send a message to the pool
+    ///
+    /// # Errors
+    /// A [SerdePoolError] is returned on two conditions:
+    /// 1. If the pool could not receive the response
+    /// 2. The client cannot be receive the response because the oneshot channel sender has been
+    ///    dropped
     #[inline(always)]
     async fn send(&self, data: M) -> Result<R, SerdePoolError> {
         let (sndr, recv) = tokio::sync::oneshot::channel();
@@ -37,15 +69,21 @@ where
     }
 }
 
+/// Create a pool of threads to handle serialization or deserialization and return a [Client] to
+/// either deserialize or serialize the provided message.
+///
+/// - `num_threads` is the number of threads to spawn in the pool
+/// - `op`: `deserialize` or `serialize` operation
+/// - `channel_buffer` is the number of messages that can be stored in the async channel
 #[builder]
 #[instrument(skip(num_threads, op))]
-pub(crate) fn spawn_pool<F, M, R>(num_threads: u8, op: F, cap: usize) -> Client<M, R>
+pub(crate) fn spawn_pool<F, M, R>(num_threads: u8, op: F, channel_buffer: usize) -> Client<M, R>
 where
     F: Fn(&M) -> R + Send + Clone + 'static,
     M: Send + Sync + 'static,
     R: Send + Sync + 'static,
 {
-    let (sndr, recv) = async_channel::bounded::<(M, OneshotSender<R>)>(cap);
+    let (sndr, recv) = async_channel::bounded::<(M, OneshotSender<R>)>(channel_buffer);
     thread::spawn(move || {
         let handlers = (0..num_threads).map(|_| {
             let op = op.clone();
@@ -69,6 +107,10 @@ where
     Client(sndr)
 }
 
+/// Serialize a request and creates a [Frame] out of it
+///
+/// # Errors
+/// [SerdeProcessingError] is returned if serialization fails
 pub(crate) fn serialize(request: &Request) -> Result<Frame, SerdeProcessingError> {
     let (opcode, payload) = {
         match request {
@@ -95,22 +137,32 @@ pub(crate) fn serialize(request: &Request) -> Result<Frame, SerdeProcessingError
     })
 }
 
+/// Deserialize a request and creates a [Frame] out of it
+///
+/// # Errors
+/// [SerdeProcessingError] is returned if deserialization fails
 pub(crate) fn deserialize(request: &Frame) -> Result<PayloadResponse, SerdeProcessingError> {
     todo!()
 }
 
+/// Pool Error is returned when sending or receiving a message to or from the pool fails
 #[derive(Debug, Clone, Error)]
 pub(crate) enum SerdePoolError {
+    /// Error when pool could not receive the message
     #[error("the pool could not receive the response as pool channel has been closed")]
     PoolSend,
+    /// Error when oneshot channel is killed and client cannot receive the response
     #[error("the oneshot channel sender has been killed and channel is closed without messages")]
     OneshotRecv(#[from] RecvError),
 }
 
+/// Error that occurs when serialization or deserialization fails
 #[derive(Debug, Clone, Error)]
 pub enum SerdeProcessingError {
+    /// Error that occurs when serialization
     #[error("serialization failed: {0}")]
     Serialization(String),
+    /// Error that occurs when deserialization
     #[error("deserialization failed: {0}")]
     Deserialization(String),
 }
@@ -128,7 +180,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_pool_spawn_op() {
-        let sender = spawn_pool().num_threads(8).op(op).cap(8).call();
+        let sender = spawn_pool().num_threads(8).op(op).channel_buffer(8).call();
         let handlers = (0..4)
             .map(|_| {
                 let tx = sender.clone();
