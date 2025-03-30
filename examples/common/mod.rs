@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{env, str::FromStr};
 
 use sdkcord::payload::{Event, PayloadRequest, common::opcode::Opcode};
 use serde::{Deserialize, Serialize};
@@ -8,7 +8,6 @@ use tokio::{
     net::UnixStream,
 };
 
-const XDG_RUNTIME_DIR: &str = env!("XDG_RUNTIME_DIR");
 const DISCORD_IPC_PREFIX: &str = "discord-ipc-";
 const PROTOCOL_VERSION: u32 = 1;
 
@@ -25,7 +24,8 @@ pub struct RawDiscordIpcClient(UnixStream);
 impl RawDiscordIpcClient {
     pub async fn connect(client_id: &str) -> Self {
         for port_id in 0..10 {
-            let socket_path = format!("{}/{}{}", XDG_RUNTIME_DIR, DISCORD_IPC_PREFIX, port_id);
+            let xdg_runtime_dir = env::var("XDG_RUNTIME_DIR").unwrap();
+            let socket_path = format!("{}/{}{}", xdg_runtime_dir, DISCORD_IPC_PREFIX, port_id);
             if let Ok(mut stream) = UnixStream::connect(socket_path).await {
                 let payload = PayloadReady {
                     v: PROTOCOL_VERSION,
