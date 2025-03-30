@@ -1,3 +1,4 @@
+#![cfg(unix)]
 use common::RawDiscordIpcClient;
 use reqwest::Client;
 use sdkcord::payload::{

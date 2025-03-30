@@ -1,3 +1,4 @@
+#![cfg(unix)]
 use std::{env, str::FromStr};
 
 use sdkcord::payload::{Event, PayloadRequest, common::opcode::Opcode};
