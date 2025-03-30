@@ -1,3 +1,5 @@
+//! A module that provides methods to connect to the IPC socket on Windows systems
+
 use super::ConnectionError;
 use std::{
     io,
@@ -15,10 +17,17 @@ use windows_sys::Win32::Foundation::ERROR_PIPE_BUSY;
 // https://github.com/biomejs/biome/blob/21dd358be5dade01d672916a0ab76bc825ef85cb/crates/biome_cli/src/service/windows.rs#L115
 // taking from this as well since i can't figure this out haha
 
+/// Path to the Discord IPC socket on Windows
 const DISCORD_WINDOWS_DIR: &str = r"\\?\pipe\discord-ipc-";
+/// Max number of IPC channels to try connecting to
 const IPC_CHANNELS: usize = 10;
+/// Number of times to retry connecting to the IPC socket
 const RETRY_ATTEMPTS: usize = 5;
 
+/// Connects to the Discord IPC socket on Windows
+///
+/// # Errors
+/// A [ConnectionError] will be returned if the connection fails
 pub(crate) async fn connect_windows() -> Result<(ClientReadHalf, ClientWriteHalf), ConnectionError>
 {
     let client = Arc::new(get_client_connection().await?);
@@ -29,6 +38,10 @@ pub(crate) async fn connect_windows() -> Result<(ClientReadHalf, ClientWriteHalf
     Ok((read_client, write_client))
 }
 
+/// The write half of the IPC connection to Discord
+///
+/// There is currently no way to split the named pipe client into read and write halves so this is
+/// a wrapper around the client to allow for writing to the IPC connection
 #[derive(Debug)]
 pub struct ClientWriteHalf {
     inner: Arc<NamedPipeClient>,
