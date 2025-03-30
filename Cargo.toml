@@ -2,7 +2,7 @@
 name = "sdkcord"
 version = "0.1.0"
 edition = "2024"
-authors = ["reaovyd <zackbellzokobell@gmail.com>"]
+authors = ["reaovyd <0x259ad@proton.me>"]
 readme = "README.md"
 rust-version = "1.85.0"
 description = "A Rust SDK to communicate with the Discord process on your local machine. "
@@ -12,38 +12,37 @@ categories = ["api-bindings", "asynchronous", "web-programming"]
 exclude = ["/examples"]
 
 [dependencies]
-serde = { version = "1.0.208", features = ["derive"] }
-serde_json = { version = "1.0.125" }
-thiserror = { version = "2.0.4" }
-bytes = { version = "1.7.1", features = ["serde"] }
-tokio-util = { version = "0.7.11", features = ["codec"] }
-futures = { version = "0.3.30" }
-tracing = { version = "0.1.40", features = ["log"] }
-strum = { version = "0.27.0" }
-strum_macros = { version = "0.27.0" }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = { version = "1.0.140" }
+thiserror = { version = "2.0.12" }
+bytes = { version = "1.10.1", features = ["serde"] }
+tokio-util = { version = "0.7.14", features = ["codec"] }
+futures = { version = "0.3.31" }
+tracing = { version = "0.1.41", features = ["log"] }
+strum = { version = "0.27.1" }
+strum_macros = { version = "0.27.1" }
 paste = { version = "1.0.15" }
-bon = { version = "3.2.0" }
-uuid = { version = "1.10.0", features = ["serde", "v4"] }
-reqwest = { version = "0.12.7", features = ["json"] }
+bon = { version = "3.5.1" }
+uuid = { version = "1.16.0", features = ["serde", "v4"] }
+reqwest = { version = "0.12.15", features = ["json"] }
 serde_urlencoded = { version = "0.7.1" }
 ordered-float = { version = "5.0.0", features = ["serde"] }
-url = { version = "2.5.2", features = ["serde"] }
-serde_repr = { version = "0.1.19" }
-serde_with = { version = "3.10.0" }
+url = { version = "2.5.4", features = ["serde"] }
+serde_repr = { version = "0.1.20" }
+serde_with = { version = "3.12.0" }
 async-channel = { version = "2.3.1" }
-kameo = { version = "0.14.0", features = ["macros"] }
+kameo = { version = "0.16.0", features = ["macros"] }
 dashmap = { version = "6.1.0" }
-openssl = { version = "0.10.35", features = ["vendored"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.59.0" }
 
 [dependencies.tokio]
-version = "1.39.3"
+version = "1.44.1"
 features = ["rt-multi-thread", "net", "sync", "macros", "io-util"]
 
 [dev-dependencies]
-pretty_assertions = { version = "1.4.0" }
+pretty_assertions = { version = "1.4.1" }
 anyhow = { version = "1.0.97" }
 tracing-subscriber = { version = "0.3.19" }
 

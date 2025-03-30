@@ -74,8 +74,12 @@ where
 }
 
 #[derive(Debug, Clone)]
-pub struct SdkClient<T: Send + Sync + 'static, S> {
-    coordinator: ActorRef<Coordinator<T>>,
+pub struct SdkClient<W, S>
+where
+    W: Send + Sync + 'static,
+    W: AsyncWrite + Unpin,
+{
+    coordinator: ActorRef<Coordinator<ActorRef<Writer<W>>>>,
     _state: PhantomData<S>,
 }
 
