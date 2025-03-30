@@ -1,11 +1,19 @@
 //! Actors created with the `kameo` crate for handling IPC communication with Discord
 //!
+//! # Actors
 //! We have the following actors:
 //! - [Coordinator]: handles the message received from the [crate::client::SdkClient],
 //!           sends it to the [Writer], and also processes event and response messages
 //!           from the [Reader].
 //! - [Writer]: handles the message sent from the client and sends it to the IPC server
 //! - [Reader]: handles the message sent from the server and sends it to the [Coordinator]
+//!
+//! # Communication Flow
+//! The coordinator actor is the main actor that handles the messages from the client. The messages
+//! that get sent from the client are sent to the writer actor, which then sends it to the IPC
+//! server after serialization. When a response is ready to be received from the IPC server, the
+//! server sends it to the reader actor, which then sends it to the coordinator actor for
+//! processing.
 
 use std::{io, sync::Arc, time::Duration};
 
@@ -58,6 +66,7 @@ where
     T: Send + Sync + 'static,
     T: AsyncWrite + Unpin,
 {
+    /// Creates a new Coordinator actor
     pub(crate) fn new(writer: ActorRef<Writer<T>>) -> Self {
         Self {
             writer,
@@ -66,6 +75,7 @@ where
     }
 }
 
+/// CoordinatorMessage alias for the message sent to the Coordinator actor
 type CoordinatorMessage = (Request, oneshot::Sender<PayloadResponse>);
 
 impl<T> Message<CoordinatorMessage> for Coordinator<ActorRef<Writer<T>>>
@@ -148,9 +158,13 @@ where
     }
 }
 
+/// Reader actor for handling messages from the IPC server
 pub(crate) struct Reader<T, W: Actor> {
+    /// Client for deserializing the frame from IPC server
     deserializer_client: Client<Frame, Result<PayloadResponse, SerdeProcessingError>>,
+    /// Reader reading the frame in from the IPC server
     reader: Option<FramedRead<T, FrameCodec>>,
+    /// Coordinator actor reference to send frame to
     coordinator: ActorRef<W>,
 }
 
@@ -161,6 +175,7 @@ where
     W: Send + Sync + 'static,
     W: AsyncWrite + Unpin,
 {
+    /// Create a new [Reader] actor
     pub(crate) const fn new(
         deserializer_client: Client<Frame, Result<PayloadResponse, SerdeProcessingError>>,
         reader: FramedRead<T, FrameCodec>,
@@ -231,12 +246,16 @@ where
     }
 }
 
+/// Writer actor for handling messages to be written to the IPC server
 pub(crate) struct Writer<T> {
+    /// Client for serializing the message to be sent to the IPC server
     serializer_client: Client<Request, Result<Frame, SerdeProcessingError>>,
+    /// Writer writing the frame out to the IPC server
     writer: FramedWrite<T, FrameCodec>,
 }
 
 impl<T> Writer<T> {
+    /// Create a new [Writer] actor
     pub(crate) const fn new(
         serializer_client: Client<Request, Result<Frame, SerdeProcessingError>>,
         writer: FramedWrite<T, FrameCodec>,
@@ -274,6 +293,7 @@ where
     }
 }
 
+/// Send a response back to the client
 fn send_response(
     pending_requests: &Arc<DashMap<Uuid, oneshot::Sender<PayloadResponse>>>,
     resp: PayloadResponse,
@@ -296,6 +316,7 @@ fn send_response(
     }
 }
 
+/// Process the message read from the IPC server
 async fn process_stream_message_frame<W>(
     frame: Frame,
     coordinator: ActorRef<Coordinator<ActorRef<Writer<W>>>>,
@@ -315,22 +336,30 @@ async fn process_stream_message_frame<W>(
     }
 }
 
+/// Error types for what happens within the [`Coordinator`] actor
 #[derive(Debug, Error)]
 pub(crate) enum CoordinatorError {
+    /// Writing to the IPC server failed
     #[error("discord ipc server is unavailable")]
     IpcWriterUnavailable(Option<Request>),
+    /// The request to be written to the IPC server failed
     #[error("request failed")]
     RequestFailed(WriterError),
+    /// The reques timed out
     #[error("timeout writing to ipc server")]
     WriterTimeout(Option<Request>),
 }
 
+/// Error types for what happens within the [`Writer`] actor
 #[derive(Debug, Error)]
 pub(crate) enum WriterError {
+    /// Serialization of the request failed
     #[error(transparent)]
     Serialization(#[from] SerdeProcessingError),
+    /// The request sent to the IPC server failed
     #[error(transparent)]
     Ipc(#[from] io::Error),
+    /// The request sent to the serialization pool failed
     #[error(transparent)]
     SerializationPool(#[from] SerdePoolError),
 }
