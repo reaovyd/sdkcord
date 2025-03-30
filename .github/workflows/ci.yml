@@ -1,22 +1,212 @@
+# Modified from https://github.com/ClementTsang/bottom/blob/main/.github/workflows/ci.yml
+
 on:
   push:
   pull_request:
 
-env: 
-  CARGO_TERM_COLOR: always
+env:
+  RUST_BACKTRACE: 1
 
 jobs:
-  build_and_test:
-    name: Rust project - latest
+  # Check if things should be skipped.
+  pre-job:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        toolchain:
-          - stable
-          - beta
-          - nightly
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
-      - uses: actions/checkout@v4
-      - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
-      - run: cargo build --verbose
-      - run: cargo test --verbose
+      - name: Check if this action should be skipped
+        id: skip_check
+        uses: fkirc/skip-duplicate-actions@f75f66ce1886f00957d99748a42c724f4330bdcf # v5.3.1
+        with:
+          skip_after_successful_duplicate: "true"
+          paths: '[".cargo/**", ".github/workflows/ci.yml", "sample_configs/**", "src/**", "tests/**", "build.rs", "Cargo.lock", "Cargo.toml", "clippy.toml", "rustfmt.toml", "Cross.toml"]'
+          do_not_skip: '["workflow_dispatch", "push"]'
+  
+  # Runs rustfmt + tests + clippy on the main supported platforms.
+  supported:
+    name: rustfmt, tests, clippy on ${{ matrix.os }} ${{ matrix.features }}
+    needs: pre-job
+    if: ${{ needs.pre-job.outputs.should_skip != 'true' }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            cross: false
+            features: "--all-features"
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            cross: false
+            features: "--no-default-features"
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            cross: true
+            features: "--all-features"
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            cross: true
+            features: "--no-default-features"
+          - os: macos-13
+            target: x86_64-apple-darwin
+            cross: false
+            features: "--all-features"
+          - os: macos-13
+            target: x86_64-apple-darwin
+            cross: false
+            features: "--no-default-features"
+          - os: macos-14
+            target: aarch64-apple-darwin
+            cross: false
+            features: "--all-features"
+          - os: macos-14
+            target: aarch64-apple-darwin
+            cross: false
+            features: "--no-default-features"
+          - os: windows-2019
+            target: x86_64-pc-windows-msvc
+            cross: false
+            features: "--all-features"
+          - os: windows-2019
+            target: x86_64-pc-windows-msvc
+            cross: false
+            features: "--no-default-features"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+          target: ${{ matrix.target }}
+
+      - name: Enable Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+          cache-all-crates: true
+
+      - name: Check cargo fmt
+        run: cargo fmt --all -- --check
+
+      - name: Build tests
+        if: ${{ !matrix.cross }}
+        run: cargo test --no-run ${{ matrix.features }} --target=${{ matrix.target }}
+        env:
+          RUST_BACKTRACE: full
+          
+      - name: Build tests (cross)
+        if: ${{ matrix.cross }}
+        run: cross test --no-run ${{ matrix.features }} --target=${{ matrix.target }}
+        env:
+          RUST_BACKTRACE: full
+
+      - name: Run tests
+        if: ${{ !matrix.cross }}
+        run: cargo test --no-fail-fast ${{ matrix.features }} --target=${{ matrix.target }} -- --nocapture --quiet
+        env:
+          RUST_BACKTRACE: full
+          
+      - name: Run tests (cross)
+        if: ${{ matrix.cross }}
+        run: cross test --no-fail-fast ${{ matrix.features }} --target=${{ matrix.target }} -- --nocapture --quiet
+        env:
+          RUST_BACKTRACE: full
+
+      - name: Run clippy
+        if: ${{ !matrix.cross }}
+        run: cargo clippy ${{ matrix.features }} --all-targets --workspace --target=${{ matrix.target }} -- -D warnings
+        env:
+          RUST_BACKTRACE: full
+          
+      - name: Run clippy (cross)
+        if: ${{ matrix.cross }}
+        run: cross clippy ${{ matrix.features }} --all-targets --workspace --target=${{ matrix.target }} -- -D warnings
+        env:
+          RUST_BACKTRACE: full
+  
+  # Try running cargo build on all other platforms.
+  other-check:
+    name: cargo on ${{ matrix.os }}
+    needs: pre-job
+    if: ${{ needs.pre-job.outputs.should_skip != 'true' }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # x86 or x86-64
+          - os: "ubuntu-latest"
+            target: "i686-unknown-linux-gnu"
+            cross: true
+          
+          - os: "ubuntu-latest"
+            target: "x86_64-unknown-linux-musl"
+            cross: false
+          
+          - os: "ubuntu-latest"
+            target: "i686-unknown-linux-musl"
+            cross: true
+          
+          - os: "windows-2019"
+            target: "i686-pc-windows-msvc"
+            cross: false
+          
+          - os: "windows-2019"
+            target: "x86_64-pc-windows-gnu"
+            cross: false
+          
+          # Beta
+          - os: "ubuntu-latest"
+            target: "x86_64-unknown-linux-gnu"
+            cross: false
+            rust: "beta"
+          
+          - os: "macos-14"
+            target: "aarch64-apple-darwin"
+            cross: false
+            rust: "beta"
+          
+          - os: "windows-2019"
+            target: "x86_64-pc-windows-msvc"
+            cross: false
+            rust: "beta"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+    
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: ${{ matrix.rust || 'stable' }}
+          target: ${{ matrix.target }}
+          components: "clippy"
+    
+      - name: Enable Rust cache
+        uses: Swatinem/rust-cache@9bdad043e88c75890e36ad3bbc8d27f0090dd609 # 2.7.3
+        with:
+          key: ${{ matrix.target }}
+          cache-all-crates: true
+    
+      - name: Clippy (default features)
+        uses: ClementTsang/cargo-action@v0.0.5
+        with:
+          command: clippy
+          args: --all-targets --workspace --target=${{ matrix.target }}
+          use-cross: ${{ matrix.cross }}
+          cross-version: ${{ matrix.cross-version || '0.2.5' }}
+    
+      - name: Clippy (no features enabled)
+        uses: ClementTsang/cargo-action@v0.0.5
+        with:
+          command: clippy
+          args: --all-targets --workspace --target=${{ matrix.target }} --no-default-features
+          use-cross: ${{ matrix.cross }}
+          cross-version: ${{ matrix.cross-version || '0.2.5' }}
