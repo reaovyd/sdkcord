@@ -6,7 +6,7 @@ A Rust SDK to communicate with the Discord process on your local machine.
 - The `SdkClient` provides a `connect` method which must be called initially before sending any requests.
 
 The following example is from [`examples/basic.rs`](https://github.com/reaovyd/sdkcord/blob/main/examples/basic.rs):
-```rust
+```rust no_run
 use anyhow::Result;
 use sdkcord::{
     client::spawn_client,
