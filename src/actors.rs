@@ -1,3 +1,12 @@
+//! Actors created with the `kameo` crate for handling IPC communication with Discord
+//!
+//! We have the following actors:
+//! - [Coordinator]: handles the message received from the [crate::client::SdkClient],
+//!           sends it to the [Writer], and also processes event and response messages
+//!           from the [Reader].
+//! - [Writer]: handles the message sent from the client and sends it to the IPC server
+//! - [Reader]: handles the message sent from the server and sends it to the [Coordinator]
+
 use std::{io, sync::Arc, time::Duration};
 
 use dashmap::DashMap;
@@ -24,11 +33,15 @@ use crate::{
     pool::{Client, SerdePoolError},
 };
 
+/// Hacky way to get the nonce for the connect event
 const CONNECT_UUID: Uuid = Uuid::from_u128(0xdffa20e1_f231_4792_9684_4b8449823bbd);
 
+/// A Coordinator actor
 #[derive(Debug, Clone)]
 pub(crate) struct Coordinator<W> {
+    /// Writer actor reference
     writer: W,
+    /// Pending client requests where we map the nonce to the caller
     pending_requests: Arc<DashMap<Uuid, oneshot::Sender<PayloadResponse>>>,
 }
 
