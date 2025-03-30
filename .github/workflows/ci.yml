@@ -1,4 +1,4 @@
-name: Rust CI - Build and test project
+name: CI
 
 on:
   push:
