@@ -1,10 +1,7 @@
 # sdkcord
 A Rust SDK to communicate with the Discord process on your local machine.
 
-[![Build Status][actions-badge]][actions-url]
-
-[actions-badge]: https://github.com/reaovyd/sdkcord/actions/workflows/ci.yml/badge.svg
-[actions-url]: https://github.com/reaovyd/sdkcord/actions/workflows/ci.yml
+[![CI](https://github.com/reaovyd/sdkcord/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/reaovyd/sdkcord/actions/workflows/ci.yml)
 
 ## Quick Start
 - To get started quickly, you can get a client quickly with the `sdkcord::spawn_client` method, which provides an `SdkClient`. 
