@@ -85,6 +85,7 @@ where
 {
     type Reply = Result<(), CoordinatorError>;
 
+    #[instrument(level = "trace", skip(self))]
     async fn handle(
         &mut self,
         msg: CoordinatorMessage,
@@ -132,6 +133,7 @@ where
 {
     type Reply = ();
 
+    #[instrument(level = "trace", skip(self))]
     async fn handle(
         &mut self,
         mut msg: PayloadResponse,
@@ -197,6 +199,7 @@ where
     W: AsyncWrite + Unpin,
 {
     type Error = ();
+    #[instrument(level = "trace", skip(self, actor_ref))]
     async fn on_start(&mut self, actor_ref: ActorRef<Self>) -> Result<(), Self::Error> {
         // TODO: maybe this looks really weird?
         actor_ref.attach_stream(self.reader.take().unwrap(), (), ());
@@ -214,6 +217,7 @@ where
 {
     type Reply = ();
 
+    #[instrument(level = "trace", skip(self))]
     async fn handle(
         &mut self,
         msg: StreamMessage<Result<Frame, io::Error>, (), ()>,
@@ -237,10 +241,10 @@ where
                 });
             }
             StreamMessage::Started(()) => {
-                info!("started listening to discord ipc");
+                trace!("started listening to discord ipc");
             }
             StreamMessage::Finished(()) => {
-                info!("stopped listening to discord ipc");
+                trace!("stopped listening to discord ipc");
             }
         }
     }
@@ -281,9 +285,8 @@ where
 {
     type Reply = Result<(), WriterError>;
 
-    #[instrument(skip(self, msg))]
+    #[instrument(level = "trace", skip(self))]
     async fn handle(&mut self, msg: Request, _: &mut Context<Self, Self::Reply>) -> Self::Reply {
-        trace!("serializing discord message; msg: {:?}", msg);
         let frame = self.serializer_client.serialize(msg).await??;
         trace!(
             "got response for serializer and sending frame to writer now; frame: {:?}",
@@ -294,6 +297,7 @@ where
 }
 
 /// Send a response back to the client
+#[instrument(level = "trace")]
 fn send_response(
     pending_requests: &Arc<DashMap<Uuid, oneshot::Sender<PayloadResponse>>>,
     resp: PayloadResponse,
@@ -317,6 +321,7 @@ fn send_response(
 }
 
 /// Process the message read from the IPC server
+#[instrument(level = "trace", skip(coordinator, deserializer_client))]
 async fn process_stream_message_frame<W>(
     frame: Frame,
     coordinator: ActorRef<Coordinator<ActorRef<Writer<W>>>>,

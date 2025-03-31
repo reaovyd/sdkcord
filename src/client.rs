@@ -1,3 +1,12 @@
+//! The client library for the IPC server
+//!
+//! # Usage
+//! To actually spin up a client that can be used, you would first need to invoke the [spawn_client]
+//! function to grab an [SdkClient]. To connect to the IPC server and tell Discord that this client
+//! is ready to receive messages, you would call [SdkClient::connect].
+//!
+//! From there, you can send requests to the IPC server by calling [SdkClient::send_request] and
+//! build the request you need with [PayloadRequest].
 use std::{marker::PhantomData, time::Duration};
 
 use kameo::{actor::ActorRef, error::SendError};
@@ -27,8 +36,17 @@ use tokio::{
     time::{Instant, error::Elapsed},
 };
 
+/// Request timeout for the client to receive a response from the server
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
+/// Spawns an [SdkClient].
+///
+/// # Note
+/// The client is not yet ready in the ready state in which you must call [SdkClient::connect] to
+/// connect to the IPC server.
+///
+/// # Errors
+/// [SdkClientError] is returned if the client fails to spawn.
 #[cfg(unix)]
 pub async fn spawn_client() -> Result<SdkClient<OwnedWriteHalf, UnreadyState>, SdkClientError> {
     let (rh, wh) = connect_unix()
@@ -37,6 +55,14 @@ pub async fn spawn_client() -> Result<SdkClient<OwnedWriteHalf, UnreadyState>, S
     spawn(wh, rh).await
 }
 
+/// Spawns an [SdkClient].
+///
+/// # Note
+/// The client is not yet ready in the ready state in which you must call [SdkClient::connect] to
+/// connect to the IPC server.
+///
+/// # Errors
+/// [SdkClientError] is returned if the client fails to spawn.
 #[cfg(windows)]
 pub async fn spawn_client() -> Result<SdkClient<ClientWriteHalf, UnreadyState>, SdkClientError> {
     let (rh, wh) = connect_windows()
@@ -81,6 +107,7 @@ where
     })
 }
 
+/// The client for the Discord IPC server
 #[derive(Debug, Clone)]
 pub struct SdkClient<W, S>
 where
@@ -96,6 +123,14 @@ where
     T: Send + Sync + 'static,
     T: AsyncWrite + Unpin,
 {
+    /// Make a connection call to Discord
+    ///
+    /// This call is made to let Discord know that this client is ready to send and receive
+    /// messages. It is necessary to call this function before sending any requests to the IPC
+    /// server.
+    ///
+    /// # Errors
+    /// An [SdkClientError] is returned if the client fails to connect to the IPC server.
     #[inline(always)]
     pub async fn connect(
         self,
@@ -126,6 +161,14 @@ where
     T: Send + Sync + 'static,
     T: AsyncWrite + Unpin,
 {
+    /// Send a request to the IPC server
+    ///
+    /// As an end user, you would use this function to send a request to the IPC server. The
+    /// request can be constructed using the [PayloadRequest] struct.
+    ///
+    /// # Errors
+    /// A [SdkClientError] is returned if the client fails to send the request or if the server
+    #[allow(clippy::missing_panics_doc)]
     #[inline(always)]
     pub async fn send_request(
         &self,
@@ -172,21 +215,30 @@ where
     }
 }
 
+/// An Error type for when making requests to the IPC server may fail
 #[derive(Debug, Error)]
 pub enum SdkClientError {
+    /// Sending the request has failed and the original [PayloadRequest] is returned
     #[error("failed to send the request!")]
     SendRequest(Option<PayloadRequest>),
-    #[error("internal server received the request, but failed to process it... {0}")]
+    /// The request has been received, but the coordinator has failed to process it
+    #[error("internal server received the request, but failed to process it {0}")]
     InternalCoordinator(String),
-    #[error("response timeout from server! haven't received a response after {0} seconds...")]
+    /// The request has been sent, but the client has failed to receive a response from the server
+    /// in a timely manner
+    #[error("response timeout from server! haven't received a response after {0} seconds")]
     Timeout(Elapsed),
+    /// The response sender has been dropped and the response is unrecoverable
     #[error("server dropped response; response unrecoverable: {0}")]
     ResponseDropped(String),
+    /// The client failed to connect to the IPC server
     #[error("client failed to connect to ipc {0}")]
     ConnectionFailed(String),
 }
 
+#[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ReadyState;
+#[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UnreadyState;

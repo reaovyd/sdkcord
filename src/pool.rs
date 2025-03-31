@@ -76,7 +76,7 @@ where
 /// - `op`: `deserialize` or `serialize` operation
 /// - `channel_buffer` is the number of messages that can be stored in the async channel
 #[builder]
-#[instrument(skip(num_threads, op))]
+#[instrument(level = "trace", skip(op))]
 pub(crate) fn spawn_pool<F, M, R>(num_threads: u8, op: F, channel_buffer: usize) -> Client<M, R>
 where
     F: Fn(&M) -> R + Send + Clone + 'static,
