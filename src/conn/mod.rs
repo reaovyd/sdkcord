@@ -1,13 +1,4 @@
 //! Connection module for the IPC client
-#[cfg(unix)]
-pub(crate) mod unix;
-
-#[cfg(windows)]
-pub(crate) mod windows;
-
-#[cfg(windows)]
-pub use windows::*;
-
 use thiserror::Error;
 
 /// Error returned by the connection methods in the respective platform modules
@@ -19,3 +10,12 @@ pub enum ConnectionError {
     )]
     ConnectionFailed,
 }
+
+#[cfg(unix)]
+pub(crate) mod unix;
+
+#[cfg(windows)]
+pub(crate) mod windows;
+
+#[cfg(windows)]
+pub use windows::*;

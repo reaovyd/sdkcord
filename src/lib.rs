@@ -18,3 +18,6 @@ mod pool;
 
 pub use conn::ConnectionError;
 pub use pool::SerdeProcessingError;
+
+#[cfg(windows)]
+pub use conn::ClientWriteHalf;
