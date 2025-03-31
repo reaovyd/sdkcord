@@ -1,3 +1,4 @@
+//! Connection module for the IPC client
 #[cfg(unix)]
 pub(crate) mod unix;
 

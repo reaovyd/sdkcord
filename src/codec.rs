@@ -1,3 +1,4 @@
+//! Codec logic for encoding and decoding frames.
 use std::io;
 
 use bytes::{Buf, BufMut, Bytes};

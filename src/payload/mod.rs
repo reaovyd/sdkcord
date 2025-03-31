@@ -1,15 +1,40 @@
+//! Payload that is returned and sent to the Discord IPC server
+//!
+//! # Discord RPC
+//! The [Payload] type and the request types are sourced from the [Discord RPC] documentation.
+//!
+//! [Discord RPC]: https://discord.com/developers/docs/topics/rpc
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use strum_macros::EnumString;
 use uuid::Uuid;
 
+/// Payload that is sent/received to/from the Discord IPC server
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct Payload {
+    /// [Command] type
+    ///
+    /// # Note
+    /// This defaults to `DISPATCH` if the [Payload] is a response
     pub cmd: Command,
+    /// Unique nonce to identify the request
     pub nonce: Option<Uuid>,
+    /// [Event] type
+    ///
+    /// # Note
+    /// This will be [Option::None] if the response is a response rather than an event
     pub evt: Option<Event>,
+    /// Data that is part of the response payload
+    ///
+    /// # Note
+    /// This will be [Option::None] for requests, but will always exist for responses and events if
+    /// there is data to be sent back from the server
     pub data: Option<()>,
+    /// Arguments that are part of the request payload
+    ///
+    /// # Note
+    /// This will be [Option::None] for responses, but will always exist for requests
     pub args: Option<Args>,
 }
 
