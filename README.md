@@ -3,6 +3,18 @@ A Rust SDK to communicate with the Discord process on your local machine.
 
 [![CI](https://github.com/reaovyd/sdkcord/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/reaovyd/sdkcord/actions/workflows/ci.yml)
 
+## Installation
+To use the library, add the following to your `Cargo.toml`:
+```toml
+sdkcord = { version = "0.1.0" }
+```
+
+or you can do this through the command line:
+
+```shell
+cargo add sdkcord
+```
+
 ## Quick Start
 - To get started quickly, you can get a client quickly with the `sdkcord::spawn_client` method, which provides an `SdkClient`. 
 - The `SdkClient` provides a `connect` method which must be called initially before sending any requests.
