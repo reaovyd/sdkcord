@@ -1,7 +1,7 @@
 # sdkcord
 A Rust SDK to communicate with the Discord process on your local machine.
 
-[![Build and Test Status][actions-badge]][actions-url]
+[![Build Status][actions-badge]][actions-url]
 [actions-badge]: https://github.com/reaovyd/sdkcord/actions/workflows/ci.yml/badge.svg
 [actions-url]: https://github.com/reaovyd/sdkcord/actions/workflows/ci.yml
 
