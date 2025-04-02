@@ -169,13 +169,27 @@ pub enum SerdeProcessingError {
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
+    use std::{thread, time::Duration};
 
-    use super::spawn_pool;
+    use bytes::Bytes;
+    use pretty_assertions::assert_eq;
+    use tokio::time::sleep;
+
+    use crate::payload::{
+        ConnectRequest, GetChannelArgs, PayloadRequest,
+        common::{channel::ChannelId, opcode::Opcode},
+    };
+
+    use super::{Frame, Request, serialize, spawn_pool};
 
     #[inline(always)]
     const fn op(num: &u32) -> u32 {
         *num + 1
+    }
+
+    #[inline(always)]
+    const fn op_throws_error(_num: &u32) -> u32 {
+        panic!("error");
     }
 
     #[tokio::test]
@@ -190,5 +204,56 @@ mod tests {
         for handler in handlers {
             assert_eq!(4, handler.await.unwrap());
         }
+    }
+
+    #[tokio::test]
+    #[should_panic]
+    async fn test_pool_spawn_op_throws_error() {
+        let sender = spawn_pool()
+            .num_threads(8)
+            .op(op_throws_error)
+            .channel_buffer(8)
+            .call();
+        sender.send(12).await.unwrap();
+    }
+
+    #[tokio::test]
+    #[should_panic]
+    async fn test_pool_spawn_dies() {
+        let sender = spawn_pool().num_threads(0).op(op).channel_buffer(8).call();
+        // necessary to avoid race where sender sends before the pool dies
+        sleep(Duration::from_secs(1)).await;
+        sender.send(12).await.unwrap();
+    }
+
+    #[test]
+    fn test_serialize_connect() {
+        let connect_request = Request::Connect(ConnectRequest::new("abcdef".to_string()));
+        let expected_frame = Frame {
+            opcode: Opcode::Handshake,
+            len: 28,
+            payload: Bytes::from_static(b"{\"v\":1,\"client_id\":\"abcdef\"}"),
+        };
+        let actual_frame = serialize(&connect_request).unwrap();
+        assert_eq!(expected_frame, actual_frame);
+    }
+
+    #[test]
+    fn test_serialize_payload_request() {
+        let connect_request = Request::Payload(
+            PayloadRequest::builder()
+                .request(GetChannelArgs(
+                    ChannelId::builder().channel_id("123").build(),
+                ))
+                .build(),
+        );
+        let expected_frame = Frame {
+            opcode: Opcode::Frame,
+            len: 96,
+            payload: Bytes::from_static(b"{\"cmd\":\"GET_CHANNEL\",\"nonce\":\"130bf161-5978-4368-b659-ae6b8de6e276\",\"args\":{\"channel_id\":\"123\"}}"),
+        };
+        let actual_frame = serialize(&connect_request).unwrap();
+        assert_eq!(expected_frame.opcode, actual_frame.opcode);
+        assert_eq!(expected_frame.len, actual_frame.len);
     }
 }
