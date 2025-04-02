@@ -47,6 +47,10 @@ pub struct ClientWriteHalf {
     inner: Arc<NamedPipeClient>,
 }
 
+/// The read half of the IPC connection to Discord
+///
+/// There is currently no way to split the named pipe client into read and write halves so this is
+/// a wrapper around the client to allow for writing to the IPC connection
 pub(crate) struct ClientReadHalf {
     inner: Arc<NamedPipeClient>,
 }
@@ -105,6 +109,11 @@ impl AsyncWrite for ClientWriteHalf {
     }
 }
 
+/// Get a client connection from connecting to the pipe socket on Windows
+///
+/// It goes through a total of `IPC_CHANNELS` and retries for `RETRY_ATTEMPTS` times before giving
+/// up on that channel and moving to the next one. It will retry for every 100 ms if the pipe is
+/// `ERROR_PIPE_BUSY`.
 async fn get_client_connection() -> Result<NamedPipeClient, ConnectionError> {
     for channel in 0..IPC_CHANNELS {
         for _ in 0..RETRY_ATTEMPTS {
