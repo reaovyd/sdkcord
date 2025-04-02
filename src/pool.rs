@@ -169,7 +169,7 @@ pub enum SerdeProcessingError {
 
 #[cfg(test)]
 mod tests {
-    use std::{thread, time::Duration};
+    use std::time::Duration;
 
     use bytes::Bytes;
     use pretty_assertions::assert_eq;
