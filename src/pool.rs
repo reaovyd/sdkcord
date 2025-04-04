@@ -5,7 +5,7 @@
 //!
 //! An interface is exposed to other parts of the library through the [Client] type to perform the
 //! serialization and deserialization operations
-use std::thread;
+use std::{str::FromStr, thread};
 
 use async_channel::Sender;
 use bon::builder;
@@ -13,10 +13,11 @@ use bytes::Bytes;
 use thiserror::Error;
 use tokio::sync::oneshot::{Sender as OneshotSender, error::RecvError};
 use tracing::{error, instrument};
+use uuid::Uuid;
 
 use crate::{
     codec::Frame,
-    payload::{PayloadResponse, Request, common::opcode::Opcode},
+    payload::{Command, Event, PayloadResponse, Request, common::opcode::Opcode},
 };
 
 /// Generic Serde Client
@@ -137,11 +138,47 @@ pub(crate) fn serialize(request: &Request) -> Result<Frame, SerdeProcessingError
     })
 }
 
-/// Deserialize a request and creates a [Frame] out of it
+/// Deserialize a request and creates a [PayloadResponse] out of it
 ///
 /// # Errors
 /// [SerdeProcessingError] is returned if deserialization fails
-pub(crate) fn deserialize(request: &Frame) -> Result<PayloadResponse, SerdeProcessingError> {
+pub(crate) fn deserialize(frame: &Frame) -> Result<PayloadResponse, SerdeProcessingError> {
+    let payload = serde_json::to_value(&frame.payload)
+        .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))?;
+    let cmd = payload
+        .get("cmd")
+        .ok_or_else(|| {
+            SerdeProcessingError::Deserialization(
+                "failed to get the command from the payload".to_string(),
+            )
+        })?
+        .as_str()
+        .ok_or_else(|| {
+            SerdeProcessingError::Deserialization(
+                "failed to convert the command to a string".to_string(),
+            )
+        })?;
+
+    let cmd = Command::from_str(cmd)
+        .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))?;
+
+    let nonce = payload
+        .get("nonce")
+        .and_then(|nonce| nonce.as_str())
+        .map(|nonce_str| {
+            Uuid::from_str(nonce_str)
+                .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))
+        })
+        .transpose()?;
+    let evt = payload
+        .get("evt")
+        .and_then(|evt| evt.as_str())
+        .map(|evt_str| {
+            Event::from_str(evt_str)
+                .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))
+        })
+        .transpose()?;
+
     todo!()
 }
 
