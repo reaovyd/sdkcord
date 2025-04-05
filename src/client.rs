@@ -87,7 +87,7 @@ where
     // TODO: make this deserialization function...
     let deserialization_client = spawn_pool()
         .channel_buffer(512)
-        .num_threads(16)
+        .num_threads(32)
         .op(deserialize)
         .call();
     let codec = FrameCodec {};

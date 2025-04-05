@@ -1,6 +1,7 @@
 use std::{collections::HashSet, hash::RandomState, iter::FromIterator};
 
 use bon::{Builder, builder};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
@@ -38,7 +39,9 @@ pub struct AuthorizeData {
 // TODO: Add Authenticate data fields
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct AuthenticateData {
-    pub scopes: Vec<OAuth2Scope>,
+    pub access_token: Option<String>,
+    pub scopes: Option<Vec<OAuth2Scope>>,
+    pub expires: Option<DateTime<Utc>>,
 }
 
 impl_request_args_type!(Authenticate);
@@ -48,7 +51,7 @@ impl_request_args_type!(Authorize);
 mod tests {
     use crate::payload::common::oauth2::OAuth2Scope;
 
-    use super::AuthorizeArgs;
+    use super::{AuthenticateData, AuthorizeArgs};
 
     #[test]
     fn construct_args_unique_scopes() {
@@ -62,5 +65,15 @@ mod tests {
             assert!(args.scopes.as_ref().unwrap().contains(&scope));
         }
         assert_eq!(args.scopes.as_ref().unwrap().len(), 2);
+    }
+
+    #[test]
+    fn deserialize_authenticate() {
+        let payload = r##"{"access_token":"6jaC1nd1NFVjAsKEJlt3j2PKlCCBsl","application":{"bot":{"accent_color":null,"avatar":"df7a5c32e954703bfe2e61ad8c14c3dc","avatar_decoration_data":null,"banner":null,"banner_color":null,"bot":true,"clan":null,"discriminator":"4588","flags":0,"global_name":null,"id":"1276759902551015485","primary_guild":null,"public_flags":0,"username":"IPCCord"},"bot_public":true,"bot_require_code_grant":false,"description":"bruh","flags":0,"hook":true,"icon":"df7a5c32e954703bfe2e61ad8c14c3dc","id":"1276759902551015485","integration_types_config":{"1":{"oauth2_install_params":{"permissions":"0","scopes":["applications.commands"]}}},"is_discoverable":false,"is_monetized":false,"is_verified":false,"name":"gameing","storefront_available":false,"summary":"","type":null,"verify_key":"02d2b7977161590c0bdc6a5e67d75dc9333ba0f469a0fd2d2171964516bcc5ac"},"expires":"2024-12-29T08:59:39.827000+00:00","scopes":["identify","rpc","guilds"],"user":{"accent_color":16711680,"avatar":"3a67ea77a12df7de202bcf0d696eeee8","avatar_decoration_data":null,"banner":null,"banner_color":"#ff0000","clan":null,"discriminator":"0","flags":256,"global_name":"day 2","id":"158284148040138752","primary_guild":null,"public_flags":256,"username":"day2"}}"##;
+        let data = serde_json::from_str::<AuthenticateData>(payload).unwrap();
+        assert_eq!(
+            data.access_token,
+            Some("6jaC1nd1NFVjAsKEJlt3j2PKlCCBsl".to_string())
+        );
     }
 }

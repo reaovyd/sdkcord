@@ -41,6 +41,51 @@ pub struct Payload {
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 #[serde(untagged)]
 #[non_exhaustive]
+pub enum Data {
+    Authorize(AuthorizeData),
+    Authenticate(AuthenticateData),
+    // GetGuilds(GetGuildsArgs),
+    // GetChannel(GetChannelArgs),
+    // GetChannels(GetChannelsArgs),
+    // SetUserVoiceSettings(SetUserVoiceSettingsArgs),
+    // SelectVoiceChannel(SelectVoiceChannelArgs),
+    // GetSelectedVoiceChannel(GetSelectedVoiceChannelArgs),
+    // SelectTextChannel(SelectTextChannelArgs),
+    // GetVoiceSettings(GetVoiceSettingsArgs),
+    // SetVoiceSettings(SetVoiceSettingsArgs),
+    // #[cfg(feature = "untested")]
+    // SetCertifiedDevices(SetCertifiedDevicesArgs),
+    // SetActivity(SetActivityArgs),
+    // #[cfg(feature = "untested")]
+    // SendActivityJoinInvite(SendActivityJoinInviteArgs),
+    // #[cfg(feature = "untested")]
+    // CloseActivityRequest(CloseActivityRequestArgs),
+    // GuildStatus(GuildStatusArgs),
+    // GuildCreate(GuildCreateArgs),
+    // ChannelCreate(ChannelCreateArgs),
+    // VoiceChannelSelect(VoiceChannelSelectArgs),
+    // VoiceStateCreate(VoiceStateCreateArgs),
+    // VoiceStateUpdate(VoiceStateUpdateArgs),
+    // VoiceStateDelete(VoiceStateDeleteArgs),
+    // VoiceSettingsUpdate(VoiceSettingsUpdateArgs),
+    // VoiceConnectionStatus(VoiceConnectionStatusArgs),
+    // SpeakingStart(SpeakingStartArgs),
+    // SpeakingStop(SpeakingStopArgs),
+    // MessageCreate(MessageCreateArgs),
+    // MessageUpdate(MessageUpdateArgs),
+    // MessageDelete(MessageDeleteArgs),
+    // NotificationCreate(NotificationCreateArgs),
+    // #[cfg(feature = "untested")]
+    // ActivityJoin(ActivityJoinArgs),
+    // #[cfg(feature = "untested")]
+    // ActivitySpectate(ActivitySpectateArgs),
+    // #[cfg(feature = "untested")]
+    // ActivityJoinRequest(ActivityJoinRequestArgs),
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[serde(untagged)]
+#[non_exhaustive]
 pub enum Args {
     Authorize(AuthorizeArgs),
     Authenticate(AuthenticateArgs),
