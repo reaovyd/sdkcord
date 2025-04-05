@@ -16,6 +16,7 @@ use tokio_util::codec::{FramedRead, FramedWrite};
 use crate::{
     actors::{Coordinator, Reader, Writer},
     codec::FrameCodec,
+    config::Config,
     payload::{ConnectRequest, PayloadRequest, PayloadResponse, Request},
     pool::{deserialize, serialize, spawn_pool},
 };
@@ -80,7 +81,7 @@ where
 {
     let serializer_client = spawn_pool()
         .channel_buffer(512)
-        .num_threads(16)
+        .num_threads(4)
         .op(serialize)
         .call();
     // TODO: make this deserialization function...
@@ -168,7 +169,6 @@ where
     ///
     /// # Errors
     /// A [SdkClientError] is returned if the client fails to send the request or if the server
-    #[allow(clippy::missing_panics_doc)]
     #[inline(always)]
     pub async fn send_request(
         &self,
@@ -234,6 +234,9 @@ pub enum SdkClientError {
     /// The client failed to connect to the IPC server
     #[error("client failed to connect to ipc {0}")]
     ConnectionFailed(String),
+    /// Configuration error
+    #[error("failed to spawn client because of config: {error}")]
+    ConfigFailed { config: Config, error: String },
 }
 
 #[allow(missing_docs)]

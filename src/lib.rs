@@ -9,6 +9,7 @@
 )]
 #![deny(unsafe_code, unreachable_pub)]
 pub mod client;
+pub mod config;
 pub mod payload;
 
 mod actors;
