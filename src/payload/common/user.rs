@@ -55,10 +55,12 @@ impl TryFrom<u8> for PremiumType {
     }
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[repr(transparent)]
+pub struct Flags(u32);
+
 bitflags! {
-    #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
-    #[repr(transparent)]
-    pub struct Flags: u32 {
+    impl Flags: u32 {
         const STAFF = 1 << 0;
         const PARTNER = 1 << 1;
         const HYPESQUAD = 1 << 2;

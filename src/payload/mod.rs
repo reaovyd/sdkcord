@@ -42,8 +42,8 @@ pub struct Payload {
 #[serde(untagged)]
 #[non_exhaustive]
 pub enum Data {
-    Authorize(AuthorizeData),
-    Authenticate(AuthenticateData),
+    Authorize(Box<AuthorizeData>),
+    Authenticate(Box<AuthenticateData>),
     // GetGuilds(GetGuildsArgs),
     // GetChannel(GetChannelArgs),
     // GetChannels(GetChannelsArgs),

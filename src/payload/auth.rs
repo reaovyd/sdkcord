@@ -7,7 +7,10 @@ use serde_with::skip_serializing_none;
 
 use crate::payload::common::oauth2::OAuth2Scope;
 
-use super::macros::impl_request_args_type;
+use super::{
+    common::{application::Application, user::User},
+    macros::impl_request_args_type,
+};
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
@@ -42,6 +45,8 @@ pub struct AuthenticateData {
     pub access_token: Option<String>,
     pub scopes: Option<Vec<OAuth2Scope>>,
     pub expires: Option<DateTime<Utc>>,
+    pub user: Option<User>,
+    pub application: Option<Application>,
 }
 
 impl_request_args_type!(Authenticate);
@@ -49,7 +54,10 @@ impl_request_args_type!(Authorize);
 
 #[cfg(test)]
 mod tests {
-    use crate::payload::{AuthorizeData, common::oauth2::OAuth2Scope};
+    use crate::payload::{
+        AuthorizeData,
+        common::{oauth2::OAuth2Scope, user::Flags},
+    };
 
     use super::{AuthenticateData, AuthorizeArgs};
 
@@ -74,6 +82,13 @@ mod tests {
         assert_eq!(
             data.access_token,
             Some("6jaC1nd1NFVjAsKEJlt3j2PKlCCBsl".to_string())
+        );
+        assert!(
+            data.user
+                .unwrap()
+                .flags
+                .unwrap()
+                .contains(Flags::HYPESQUAD_ONLINE_HOUSE_3),
         );
     }
 
