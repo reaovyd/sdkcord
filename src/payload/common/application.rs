@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct Application {
-    id: Option<String>,
-    name: Option<String>,
-    icon: Option<String>,
-    description: Option<String>,
+    pub id: Option<String>,
+    pub name: Option<String>,
+    pub icon: Option<String>,
+    pub description: Option<String>,
 }

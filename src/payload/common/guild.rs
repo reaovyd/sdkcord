@@ -4,7 +4,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct GuildId {
     #[builder(into)]
-    guild_id: String,
+    pub guild_id: String,
+}
+
+impl From<String> for GuildId {
+    fn from(value: String) -> Self {
+        Self { guild_id: value }
+    }
 }
 
 mod macros {

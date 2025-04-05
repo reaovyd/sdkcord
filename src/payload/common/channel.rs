@@ -4,7 +4,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct ChannelId {
     #[builder(into)]
-    channel_id: String,
+    pub channel_id: String,
+}
+
+impl From<String> for ChannelId {
+    fn from(value: String) -> Self {
+        Self { channel_id: value }
+    }
 }
 
 mod macros {
