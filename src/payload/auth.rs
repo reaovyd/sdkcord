@@ -33,7 +33,7 @@ pub struct AuthorizeArgs {
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct AuthorizeData {
-    pub code: String,
+    pub code: Option<String>,
 }
 
 // TODO: Add Authenticate data fields
@@ -49,7 +49,7 @@ impl_request_args_type!(Authorize);
 
 #[cfg(test)]
 mod tests {
-    use crate::payload::common::oauth2::OAuth2Scope;
+    use crate::payload::{AuthorizeData, common::oauth2::OAuth2Scope};
 
     use super::{AuthenticateData, AuthorizeArgs};
 
@@ -74,6 +74,16 @@ mod tests {
         assert_eq!(
             data.access_token,
             Some("6jaC1nd1NFVjAsKEJlt3j2PKlCCBsl".to_string())
+        );
+    }
+
+    #[test]
+    fn deserialize_authorize() {
+        let payload = r##"{"code":"G4mPcde04btJlhn27sdoJukoXQ2vmn"}"##;
+        let data = serde_json::from_str::<AuthorizeData>(payload).unwrap();
+        assert_eq!(
+            data.code,
+            Some("G4mPcde04btJlhn27sdoJukoXQ2vmn".to_string())
         );
     }
 }
