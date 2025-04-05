@@ -30,7 +30,7 @@ pub struct Payload {
     /// # Note
     /// This will be [Option::None] for requests, but will always exist for responses and events if
     /// there is data to be sent back from the server
-    pub data: Option<()>,
+    pub data: Option<Data>,
     /// Arguments that are part of the request payload
     ///
     /// # Note

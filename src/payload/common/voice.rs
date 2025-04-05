@@ -87,6 +87,15 @@ pub struct AvailableDevice {
     pub name: String,
 }
 
+impl AvailableDevice {
+    pub fn new(id: impl Into<String>, name: impl Into<String>) -> Self {
+        Self {
+            id: id.into(),
+            name: name.into(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct ShortcutKeyCombo {
     #[serde(rename = "type")]
@@ -148,22 +157,11 @@ impl From<VoiceSettingsIO> for VoiceSettingsOutput {
     }
 }
 
-impl<IdT, NameT> From<(IdT, NameT)> for AvailableDevice
-where
-    IdT: Into<String>,
-    NameT: Into<String>,
-{
-    fn from(value: (IdT, NameT)) -> Self {
-        AvailableDevice {
-            id: value.0.into(),
-            name: value.1.into(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use pretty_assertions::assert_eq;
+
+    use crate::payload::common::voice::AvailableDevice;
 
     use super::{
         KeyType, ModeType, ShortcutKeyCombo, VoiceSettings, VoiceSettingsIO, VoiceSettingsInput,
@@ -189,14 +187,14 @@ mod tests {
                 VoiceSettingsIO::builder()
                     .device_id("12")
                     .volume(12.9)
-                    .available_devices([("aasd", "abc").into()])
+                    .available_devices([AvailableDevice::new("aasd", "abc")])
                     .build(),
             ))
             .output(
                 VoiceSettingsIO::builder()
                     .device_id("13")
                     .volume(14.3)
-                    .available_devices([("123", "45").into()])
+                    .available_devices([AvailableDevice::new("123", "45")])
                     .build(),
             )
             .mode(

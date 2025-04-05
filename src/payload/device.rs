@@ -23,7 +23,7 @@ impl_request_args_type!(SetCertifiedDevices);
 mod tests {
     use uuid::Uuid;
 
-    use crate::payload::common::device::{Device, DeviceType};
+    use crate::payload::common::device::{Device, DeviceType, Model, Vendor};
 
     use super::SetCertifiedDevicesArgs;
 
@@ -32,8 +32,8 @@ mod tests {
         let device = Device::builder()
             .device_type(DeviceType::AudioInput)
             .id(Uuid::new_v4())
-            .vendor(("abcv", "asd"))
-            .model(("123", "43"))
+            .vendor(Vendor::new("123", "43"))
+            .model(Model::new("123", "455"))
             .related([Uuid::new_v4(), Uuid::new_v4()])
             .echo_collection(true)
             .noise_suppression(true)

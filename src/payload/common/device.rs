@@ -55,28 +55,20 @@ pub struct Model {
     pub url: String,
 }
 
-impl<NameT, UrlT> From<(NameT, UrlT)> for Vendor
-where
-    NameT: Into<String>,
-    UrlT: Into<String>,
-{
-    fn from(value: (NameT, UrlT)) -> Self {
+impl Vendor {
+    pub fn new(name: impl Into<String>, url: impl Into<String>) -> Self {
         Self {
-            name: value.0.into(),
-            url: value.1.into(),
+            name: name.into(),
+            url: url.into(),
         }
     }
 }
 
-impl<NameT, UrlT> From<(NameT, UrlT)> for Model
-where
-    NameT: Into<String>,
-    UrlT: Into<String>,
-{
-    fn from(value: (NameT, UrlT)) -> Self {
+impl Model {
+    pub fn new(name: impl Into<String>, url: impl Into<String>) -> Self {
         Self {
-            name: value.0.into(),
-            url: value.1.into(),
+            name: name.into(),
+            url: url.into(),
         }
     }
 }

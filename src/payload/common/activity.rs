@@ -135,24 +135,20 @@ pub struct Button {
     pub url: Option<String>,
 }
 
+impl Button {
+    pub fn new(label: impl Into<String>, url: impl Into<String>) -> Self {
+        Button {
+            label: Some(label.into()),
+            url: Some(url.into()),
+        }
+    }
+}
+
 impl From<(u64, u64)> for Timestamps {
     fn from(value: (u64, u64)) -> Self {
         Timestamps {
             start: Some(value.0),
             end: Some(value.1),
-        }
-    }
-}
-
-impl<LabelT, UrlT> From<(LabelT, UrlT)> for Button
-where
-    LabelT: Into<String>,
-    UrlT: Into<String>,
-{
-    fn from(value: (LabelT, UrlT)) -> Self {
-        Button {
-            label: Some(value.0.into()),
-            url: Some(value.1.into()),
         }
     }
 }
