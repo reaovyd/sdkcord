@@ -102,3 +102,9 @@ pub enum OAuth2Scope {
     #[strum(serialize = "weboook.incoming")]
     WebhookIncoming,
 }
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct InstallParams {
+    pub permissions: String,
+    pub scopes: Vec<OAuth2Scope>,
+}

@@ -1,5 +1,6 @@
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
+use strum_macros::EnumString;
 use thiserror::Error;
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
@@ -11,11 +12,11 @@ pub struct User {
     pub banner_color: Option<String>,
     pub clan: Option<String>,
     pub discriminator: Option<String>,
-    pub flags: Option<Flags>,
+    pub flags: Option<UserFlags>,
     pub global_name: Option<String>,
     pub id: Option<String>,
     pub primary_guild: Option<String>,
-    pub public_flags: Option<Flags>,
+    pub public_flags: Option<UserFlags>,
     pub username: Option<String>,
     pub bot: Option<bool>,
     pub system: Option<bool>,
@@ -32,7 +33,7 @@ pub struct AvatarDecoration {
     pub sku: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, EnumString)]
 #[repr(u8)]
 pub enum PremiumType {
     None = 0,
@@ -42,7 +43,7 @@ pub enum PremiumType {
 }
 
 impl TryFrom<u8> for PremiumType {
-    type Error = Error;
+    type Error = UserError;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
@@ -50,17 +51,17 @@ impl TryFrom<u8> for PremiumType {
             1 => Ok(PremiumType::NitroClassic),
             2 => Ok(PremiumType::Nitro),
             3 => Ok(PremiumType::NitroBasic),
-            _ => Err(Error::InvalidPremiumType(value as u32)),
+            _ => Err(UserError::InvalidPremiumType(value as u32)),
         }
     }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 #[repr(transparent)]
-pub struct Flags(u32);
+pub struct UserFlags(u32);
 
 bitflags! {
-    impl Flags: u32 {
+    impl UserFlags: u32 {
         const STAFF = 1 << 0;
         const PARTNER = 1 << 1;
         const HYPESQUAD = 1 << 2;
@@ -80,7 +81,7 @@ bitflags! {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Error)]
-pub enum Error {
+pub enum UserError {
     #[error("PremiumType {0} does not exist...")]
     InvalidPremiumType(u32),
 }

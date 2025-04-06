@@ -56,7 +56,7 @@ impl_request_args_type!(Authorize);
 mod tests {
     use crate::payload::{
         AuthorizeData,
-        common::{oauth2::OAuth2Scope, user::Flags},
+        common::{oauth2::OAuth2Scope, user::UserFlags},
     };
 
     use super::{AuthenticateData, AuthorizeArgs};
@@ -88,7 +88,7 @@ mod tests {
                 .unwrap()
                 .flags
                 .unwrap()
-                .contains(Flags::HYPESQUAD_ONLINE_HOUSE_3),
+                .contains(UserFlags::HYPESQUAD_ONLINE_HOUSE_3),
         );
     }
 

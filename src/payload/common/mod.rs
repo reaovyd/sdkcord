@@ -6,5 +6,6 @@ pub mod guild;
 pub mod oauth2;
 pub mod opcode;
 pub mod pan;
+pub mod team;
 pub mod user;
 pub mod voice;
