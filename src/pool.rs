@@ -19,8 +19,8 @@ use uuid::Uuid;
 use crate::{
     codec::Frame,
     payload::{
-        AuthorizeData, Command, Data, ErrorData, Event, Payload, PayloadResponse, ReadyData,
-        Request, common::opcode::Opcode,
+        AuthenticateData, AuthorizeData, Command, Data, ErrorData, Event, GetGuildData,
+        GetGuildsData, Payload, PayloadResponse, ReadyData, Request, common::opcode::Opcode,
     },
 };
 
@@ -183,79 +183,42 @@ pub(crate) fn deserialize(frame: &Frame) -> Result<PayloadResponse, SerdeProcess
                 .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))
         })
         .transpose()?;
-    match (evt, cmd) {
-        (Some(Event::Error), _) => {
-            let data = payload
-                .get_mut("data")
-                .map(|val| {
-                    serde_json::from_value::<ErrorData>(val.take())
-                        .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))
-                })
-                .transpose()?
-                .map(|data| Data::Error(Box::new(data)));
-            Ok(PayloadResponse(Payload {
-                cmd,
-                nonce,
-                evt,
-                data,
-                args: None,
-            }))
+    let data = {
+        match (evt, cmd) {
+            (Some(Event::Error), _) => {
+                deserialize_data!(payload, ErrorData, Error)
+            }
+            (Some(Event::Ready), _) => {
+                deserialize_data!(payload, ReadyData, Ready)
+            }
+            (Some(evt), Command::Dispatch) => {
+                todo!()
+            }
+            (None, Command::Authorize) => {
+                deserialize_data!(payload, AuthorizeData, Authorize)
+            }
+            (None, Command::Authenticate) => {
+                deserialize_data!(payload, AuthenticateData, Authenticate)
+            }
+            (None, Command::GetGuild) => {
+                deserialize_data!(payload, GetGuildData, GetGuild)
+            }
+            (None, Command::GetGuilds) => {
+                deserialize_data!(payload, GetGuildsData, GetGuilds)
+            }
+            (_, _) => {
+                todo!()
+            }
         }
-        (Some(Event::Ready), _) => {
-            let data = payload
-                .get_mut("data")
-                .map(|val| {
-                    serde_json::from_value::<ReadyData>(val.take())
-                        .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))
-                })
-                .transpose()?
-                .map(|data| Data::Ready(Box::new(data)));
-            Ok(PayloadResponse(Payload {
-                cmd,
-                nonce,
-                evt,
-                data,
-                args: None,
-            }))
-        }
-        (None, Command::Authorize) => {
-            let data = payload
-                .get_mut("data")
-                .map(|val| {
-                    serde_json::from_value::<AuthorizeData>(val.take())
-                        .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))
-                })
-                .transpose()?
-                .map(|data| Data::Authorize(Box::new(data)));
-            Ok(PayloadResponse(Payload {
-                cmd,
-                nonce,
-                evt,
-                data,
-                args: None,
-            }))
-        }
-        (None, Command::Authenticate) => {
-            let data = payload
-                .get_mut("data")
-                .map(|val| {
-                    serde_json::from_value::<AuthorizeData>(val.take())
-                        .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))
-                })
-                .transpose()?
-                .map(|data| Data::Authorize(Box::new(data)));
-            Ok(PayloadResponse(Payload {
-                cmd,
-                nonce,
-                evt,
-                data,
-                args: None,
-            }))
-        }
-        (_, _) => {
-            todo!()
-        }
-    }
+    };
+
+    Ok(PayloadResponse(Payload {
+        cmd,
+        nonce,
+        evt,
+        data,
+        args: None,
+    }))
 }
 
 /// Pool Error is returned when sending or receiving a message to or from the pool fails
@@ -279,6 +242,24 @@ pub enum SerdeProcessingError {
     #[error("deserialization failed: {0}")]
     Deserialization(String),
 }
+
+mod macros {
+    macro_rules! deserialize_data {
+        ($payload: expr, $args_type: ident, $enum_val: ident) => {
+            $payload
+                .get_mut("data")
+                .map(|val| {
+                    serde_json::from_value::<$args_type>(val.take())
+                        .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))
+                })
+                .transpose()?
+                .map(|data| Data::$enum_val(Box::new(data)))
+        };
+    }
+    pub(super) use deserialize_data;
+}
+
+use macros::deserialize_data;
 
 #[cfg(test)]
 mod tests {

@@ -39,6 +39,7 @@ use tokio::{
 
 /// Request timeout for the client to receive a response from the server
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
+const CONNECT_REQUEST_TIMEOUT: Duration = Duration::from_secs(60);
 
 /// Spawns an [SdkClient].
 ///
@@ -146,7 +147,7 @@ where
             .await
             .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
 
-        tokio::time::timeout_at(Instant::now() + REQUEST_TIMEOUT, recv)
+        tokio::time::timeout_at(Instant::now() + CONNECT_REQUEST_TIMEOUT, recv)
             .await
             .map_err(SdkClientError::Timeout)?
             .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;

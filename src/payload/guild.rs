@@ -1,8 +1,12 @@
 use bon::{Builder, builder};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
+use url::Url;
 
-use super::macros::{impl_empty_args_type, impl_event_args_type, impl_request_args_type};
+use super::{
+    common::guild::Guild,
+    macros::{impl_empty_args_type, impl_event_args_type, impl_request_args_type},
+};
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
@@ -17,6 +21,19 @@ pub struct GetGuildArgs {
 pub struct GuildStatusArgs {
     #[builder(into)]
     guild_id: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
+pub struct GetGuildData {
+    pub icon_url: Option<Url>,
+    pub id: Option<String>,
+    pub name: Option<String>,
+    pub vanity_url_code: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
+pub struct GetGuildsData {
+    pub guilds: Option<Vec<Guild>>,
 }
 
 impl_empty_args_type!(GetGuilds);
