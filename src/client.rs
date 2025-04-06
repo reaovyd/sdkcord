@@ -169,20 +169,24 @@ where
     T: Send + Sync + 'static,
     T: AsyncWrite + Unpin,
 {
-    impl_request!(
-    /// Send a authenticate request to the IPC server
-    authenticate; Authenticate);
-    impl_request!(
-    /// Send a authorize request to the IPC server
-    authorize; Authorize);
+    impl_request! {
+        /// Send a authenticate request to the IPC server
+        authenticate; Authenticate
+    }
+    impl_request! {
+        /// Send a authorize request to the IPC server
+        authorize; Authorize
+    }
 
-    impl_request!(
-    /// Send a get guild request to the IPC server
-    get_guild; GetGuild);
+    impl_request! {
+        /// Send a get guild request to the IPC server
+        get_guild; GetGuild
+    }
 
-    impl_request!(
-    /// Send a get guilds request to the IPC server
-    get_guilds; GetGuilds);
+    impl_request! {
+        /// Send a get guilds request to the IPC server
+        get_guilds; GetGuilds
+    }
 
     /// Send a request to the IPC server
     ///
@@ -240,9 +244,11 @@ where
 
 mod macros {
     macro_rules! impl_request {
-        ($(#[$attr:meta])*
-        $request_name: ident;
-        $args_name: ident) => {
+        (
+            $(#[$attr:meta])*
+            $request_name: ident;
+            $args_name: ident
+        ) => {
             paste::paste! {
                 $(#[$attr])*
                 /// # Errors
