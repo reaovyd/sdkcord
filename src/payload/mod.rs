@@ -42,6 +42,8 @@ pub struct Payload {
 #[serde(untagged)]
 #[non_exhaustive]
 pub enum Data {
+    Ready(Box<ReadyData>),
+    Error(Box<ErrorData>),
     Authorize(Box<AuthorizeData>),
     Authenticate(Box<AuthenticateData>),
     // GetGuilds(GetGuildsArgs),
@@ -230,9 +232,11 @@ pub use auth::*;
 pub use channel::*;
 #[cfg(feature = "untested")]
 pub use device::*;
+pub use error::*;
 pub use guild::*;
 pub use message::*;
 pub use notification::*;
+pub use ready::*;
 pub use request::*;
 pub use response::*;
 pub use speaking::*;
@@ -242,10 +246,12 @@ mod activity;
 mod auth;
 mod channel;
 mod device;
+mod error;
 mod guild;
 mod macros;
 mod message;
 mod notification;
+mod ready;
 mod request;
 mod response;
 mod speaking;

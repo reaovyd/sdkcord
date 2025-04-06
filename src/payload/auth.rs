@@ -39,7 +39,6 @@ pub struct AuthorizeData {
     pub code: Option<String>,
 }
 
-// TODO: Add Authenticate data fields
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct AuthenticateData {
     pub access_token: Option<String>,
