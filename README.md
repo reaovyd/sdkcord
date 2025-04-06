@@ -24,24 +24,31 @@ The following example is from [`examples/basic.rs`](https://github.com/reaovyd/s
 use anyhow::Result;
 use sdkcord::{
     client::spawn_client,
-    payload::{GetChannelArgs, PayloadRequest, common::channel::ChannelId},
+    payload::{AuthorizeArgs, common::oauth2::OAuth2Scope},
 };
+use tracing::info;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let subscriber = tracing_subscriber::FmtSubscriber::new();
     tracing::subscriber::set_global_default(subscriber)?;
     let client = spawn_client().await?;
-    let client = client.connect("your_client_id").await?;
-    let request = PayloadRequest::builder()
-        .request(GetChannelArgs(
-            ChannelId::builder()
-                .channel_id("some_channel_id")
+    let client = client.connect("1276759902551015485").await?;
+    let response = client
+        .authorize(
+            AuthorizeArgs::builder()
+                .client_id("1276759902551015485")
+                .scopes([
+                    OAuth2Scope::Rpc,
+                    OAuth2Scope::Identify,
+                    OAuth2Scope::Guilds,
+                    OAuth2Scope::MessagesRead,
+                    OAuth2Scope::RpcNotificationsRead,
+                ])
                 .build(),
-        ))
-        .build();
-    let response = client.send_request(request).await?;
-    println!("{:?}", response);
+        )
+        .await?;
+    info!("Authorize response: {:?}", response);
     Ok(())
 }
 ```
