@@ -1,6 +1,7 @@
 use anyhow::Result;
 use sdkcord::{
     client::spawn_client,
+    config::Config,
     payload::{AuthorizeArgs, common::oauth2::OAuth2Scope},
 };
 use tracing::info;
@@ -9,7 +10,7 @@ use tracing::info;
 async fn main() -> Result<()> {
     let subscriber = tracing_subscriber::FmtSubscriber::new();
     tracing::subscriber::set_global_default(subscriber)?;
-    let client = spawn_client().await?;
+    let client = spawn_client(Config::default()).await?;
     let client = client.connect("1276759902551015485").await?;
     let response = client
         .authorize(

@@ -43,6 +43,7 @@ where
     /// 1. If the pool could not receive the response
     /// 2. The client cannot be receive the response because the oneshot channel sender has been
     ///    dropped
+    #[inline(always)]
     pub(crate) async fn deserialize(&self, data: M) -> Result<R, SerdePoolError> {
         self.send(data).await
     }
@@ -53,6 +54,7 @@ where
     /// 1. If the pool could not receive the response
     /// 2. The client cannot be receive the response because the oneshot channel sender has been
     ///    dropped
+    #[inline(always)]
     pub(crate) async fn serialize(&self, data: M) -> Result<R, SerdePoolError> {
         self.send(data).await
     }

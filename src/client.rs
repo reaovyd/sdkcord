@@ -42,9 +42,6 @@ use tokio::{
     time::Instant,
 };
 
-/// Request timeout for the client to receive a response from the server
-const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
-
 /// Spawns an [SdkClient].
 ///
 /// # Note
@@ -54,11 +51,13 @@ const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 /// # Errors
 /// [SdkClientError] is returned if the client fails to spawn.
 #[cfg(unix)]
-pub async fn spawn_client() -> Result<SdkClient<OwnedWriteHalf, UnreadyState>, SdkClientError> {
+pub async fn spawn_client(
+    config: Config,
+) -> Result<SdkClient<OwnedWriteHalf, UnreadyState>, SdkClientError> {
     let (rh, wh) = connect_unix()
         .await
         .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
-    spawn(wh, rh).await
+    spawn(wh, rh, config).await
 }
 
 /// Spawns an [SdkClient].
@@ -70,14 +69,20 @@ pub async fn spawn_client() -> Result<SdkClient<OwnedWriteHalf, UnreadyState>, S
 /// # Errors
 /// [SdkClientError] is returned if the client fails to spawn.
 #[cfg(windows)]
-pub async fn spawn_client() -> Result<SdkClient<ClientWriteHalf, UnreadyState>, SdkClientError> {
+pub async fn spawn_client(
+    config: Config,
+) -> Result<SdkClient<ClientWriteHalf, UnreadyState>, SdkClientError> {
     let (rh, wh) = connect_windows()
         .await
         .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
-    spawn(wh, rh).await
+    spawn(wh, rh, config).await
 }
 
-async fn spawn<T, R>(wh: T, rh: R) -> Result<SdkClient<T, UnreadyState>, SdkClientError>
+async fn spawn<T, R>(
+    wh: T,
+    rh: R,
+    config: Config,
+) -> Result<SdkClient<T, UnreadyState>, SdkClientError>
 where
     T: Send + Sync + 'static,
     T: AsyncWrite + Unpin,
@@ -85,14 +90,14 @@ where
     R: AsyncRead + Unpin,
 {
     let serializer_client = spawn_pool()
-        .channel_buffer(512)
-        .num_threads(4)
+        .channel_buffer(config.serializer_channel_buffer_size)
+        .num_threads(config.serializer_num_threads)
         .op(serialize)
         .call();
     // TODO: make this deserialization function...
     let deserialization_client = spawn_pool()
-        .channel_buffer(512)
-        .num_threads(32)
+        .channel_buffer(config.deserializer_channel_buffer_size)
+        .num_threads(config.deserializer_num_threads)
         .op(deserialize)
         .call();
     let codec = FrameCodec {};
@@ -109,6 +114,7 @@ where
 
     Ok(SdkClient {
         coordinator,
+        request_timeout: Duration::from_secs(config.request_timeout),
         _state: PhantomData,
     })
 }
@@ -121,6 +127,7 @@ where
     W: AsyncWrite + Unpin,
 {
     coordinator: ActorRef<Coordinator<ActorRef<Writer<W>>>>,
+    request_timeout: Duration,
     _state: PhantomData<S>,
 }
 
@@ -151,12 +158,13 @@ where
             .await
             .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
 
-        tokio::time::timeout_at(Instant::now() + REQUEST_TIMEOUT, recv)
+        tokio::time::timeout_at(Instant::now() + self.request_timeout, recv)
             .await
             .map_err(|_| SdkClientError::Timeout)?
             .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
         Ok(SdkClient {
             coordinator: self.coordinator,
+            request_timeout: self.request_timeout,
             _state: PhantomData,
         })
     }
@@ -234,7 +242,7 @@ where
                 }
             };
         }
-        let resp = tokio::time::timeout_at(Instant::now() + REQUEST_TIMEOUT, recv)
+        let resp = tokio::time::timeout_at(Instant::now() + self.request_timeout, recv)
             .await
             .map_err(|_| SdkClientError::Timeout)?
             .map_err(|err| SdkClientError::ResponseDropped(err.to_string()))?;
