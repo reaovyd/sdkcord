@@ -171,33 +171,17 @@ where
 {
     impl_request!(
     /// Send a authenticate request to the IPC server
-    ///
-    /// # Errors
-    /// A [SdkClientError] is returned if the client fails to send the request or if the server
-    /// responds with an error
     authenticate; Authenticate);
     impl_request!(
     /// Send a authorize request to the IPC server
-    ///
-    /// # Errors
-    /// A [SdkClientError] is returned if the client fails to send the request or if the server
-    /// responds with an error
     authorize; Authorize);
 
     impl_request!(
     /// Send a get guild request to the IPC server
-    ///
-    /// # Errors
-    /// A [SdkClientError] is returned if the client fails to send the request or if the server
-    /// responds with an error
     get_guild; GetGuild);
 
     impl_request!(
     /// Send a get_guilds request to the IPC server
-    ///
-    /// # Errors
-    /// A [SdkClientError] is returned if the client fails to send the request or if the server
-    /// responds with an error
     get_guilds; GetGuilds);
 
     /// Send a request to the IPC server
@@ -261,6 +245,9 @@ mod macros {
         $args_name: ident) => {
             paste::paste! {
                 $(#[$attr])*
+                /// # Errors
+                /// A [SdkClientError] is returned if the client fails to send the request or if the server
+                /// responds with an error
                 pub async fn $request_name(&self, args: [<$args_name Args>]) -> SdkClientResult<[<$args_name Data>]> {
                     let response = self
                         .send_request(PayloadRequest::builder().request(args).build())
