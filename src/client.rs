@@ -12,12 +12,17 @@ use std::{marker::PhantomData, time::Duration};
 use kameo::{actor::ActorRef, error::SendError};
 use thiserror::Error;
 use tokio_util::codec::{FramedRead, FramedWrite};
+use tracing::error;
 
 use crate::{
     actors::{Coordinator, Reader, Writer},
     codec::FrameCodec,
     config::Config,
-    payload::{ConnectRequest, PayloadRequest, PayloadResponse, Request},
+    payload::{
+        AuthenticateArgs, AuthenticateData, AuthorizeArgs, AuthorizeData, ConnectRequest, Data,
+        ErrorData, GetGuildArgs, GetGuildData, GetGuildsArgs, GetGuildsData, PayloadRequest,
+        PayloadResponse, Request,
+    },
     pool::{deserialize, serialize, spawn_pool},
 };
 
@@ -38,8 +43,7 @@ use tokio::{
 };
 
 /// Request timeout for the client to receive a response from the server
-const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
-const CONNECT_REQUEST_TIMEOUT: Duration = Duration::from_secs(60);
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Spawns an [SdkClient].
 ///
@@ -147,9 +151,9 @@ where
             .await
             .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
 
-        tokio::time::timeout_at(Instant::now() + CONNECT_REQUEST_TIMEOUT, recv)
+        tokio::time::timeout_at(Instant::now() + REQUEST_TIMEOUT, recv)
             .await
-            .map_err(SdkClientError::Timeout)?
+            .map_err(|_| SdkClientError::Timeout)?
             .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
         Ok(SdkClient {
             coordinator: self.coordinator,
@@ -158,11 +162,44 @@ where
     }
 }
 
+type SdkClientResult<T> = Result<Box<T>, SdkClientError>;
+
 impl<T> SdkClient<T, ReadyState>
 where
     T: Send + Sync + 'static,
     T: AsyncWrite + Unpin,
 {
+    impl_request!(
+    /// Send a authenticate request to the IPC server
+    ///
+    /// # Errors
+    /// A [SdkClientError] is returned if the client fails to send the request or if the server
+    /// responds with an error
+    authenticate; Authenticate);
+    impl_request!(
+    /// Send a authorize request to the IPC server
+    ///
+    /// # Errors
+    /// A [SdkClientError] is returned if the client fails to send the request or if the server
+    /// responds with an error
+    authorize; Authorize);
+
+    impl_request!(
+    /// Send a get guild request to the IPC server
+    ///
+    /// # Errors
+    /// A [SdkClientError] is returned if the client fails to send the request or if the server
+    /// responds with an error
+    get_guild; GetGuild);
+
+    impl_request!(
+    /// Send a get_guilds request to the IPC server
+    ///
+    /// # Errors
+    /// A [SdkClientError] is returned if the client fails to send the request or if the server
+    /// responds with an error
+    get_guilds; GetGuilds);
+
     /// Send a request to the IPC server
     ///
     /// As an end user, you would use this function to send a request to the IPC server. The
@@ -170,8 +207,9 @@ where
     ///
     /// # Errors
     /// A [SdkClientError] is returned if the client fails to send the request or if the server
+    /// fails
     #[inline(always)]
-    pub async fn send_request(
+    async fn send_request(
         &self,
         request: PayloadRequest,
     ) -> Result<PayloadResponse, SdkClientError> {
@@ -210,11 +248,42 @@ where
         }
         let resp = tokio::time::timeout_at(Instant::now() + REQUEST_TIMEOUT, recv)
             .await
-            .map_err(SdkClientError::Timeout)?
+            .map_err(|_| SdkClientError::Timeout)?
             .map_err(|err| SdkClientError::ResponseDropped(err.to_string()))?;
         Ok(resp)
     }
 }
+
+mod macros {
+    macro_rules! impl_request {
+        ($(#[$attr:meta])*
+        $request_name: ident;
+        $args_name: ident) => {
+            paste::paste! {
+                $(#[$attr])*
+                pub async fn $request_name(&self, args: [<$args_name Args>]) -> SdkClientResult<[<$args_name Data>]> {
+                    let response = self
+                        .send_request(PayloadRequest::builder().request(args).build())
+                        .await?;
+                    if let Some(Data::$args_name(data)) = response.0.data {
+                        Ok(data)
+                    } else if let Some(Data::Error(error)) = response.0.data {
+                        Err(SdkClientError::ResponseError { error })
+                    } else {
+                        error!(
+                            "response should always have data but could not be found... panicking...; final response: {:?}",
+                            response
+                        );
+                        panic!("some form of data should always be returned...");
+                    }
+                }
+            }
+        };
+    }
+    pub(super) use impl_request;
+}
+
+use macros::impl_request;
 
 /// An Error type for when making requests to the IPC server may fail
 #[derive(Debug, Error)]
@@ -227,8 +296,8 @@ pub enum SdkClientError {
     InternalCoordinator(String),
     /// The request has been sent, but the client has failed to receive a response from the server
     /// in a timely manner
-    #[error("response timeout from server! haven't received a response after {0} seconds")]
-    Timeout(Elapsed),
+    #[error("response timeout from server!")]
+    Timeout,
     /// The response sender has been dropped and the response is unrecoverable
     #[error("server dropped response; response unrecoverable: {0}")]
     ResponseDropped(String),
@@ -238,6 +307,9 @@ pub enum SdkClientError {
     /// Configuration error
     #[error("failed to spawn client because of config: {error}")]
     ConfigFailed { config: Config, error: String },
+    /// Response is an error
+    #[error("response sent back an error")]
+    ResponseError { error: Box<ErrorData> },
 }
 
 #[allow(missing_docs)]
