@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use strum_macros::EnumString;
 use thiserror::Error;
 
@@ -21,7 +22,7 @@ pub struct TeamMember {
     pub role: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, EnumString)]
+#[derive(Debug, Clone, Deserialize_repr, Serialize_repr, PartialEq, Eq, Hash, EnumString)]
 #[repr(u8)]
 pub enum MembershipState {
     Invited = 1,

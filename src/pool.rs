@@ -10,6 +10,7 @@ use std::{str::FromStr, thread};
 use async_channel::Sender;
 use bon::builder;
 use bytes::Bytes;
+use serde_json::Value;
 use thiserror::Error;
 use tokio::sync::oneshot::{Sender as OneshotSender, error::RecvError};
 use tracing::{error, instrument};
@@ -17,7 +18,10 @@ use uuid::Uuid;
 
 use crate::{
     codec::Frame,
-    payload::{Command, Event, PayloadResponse, Request, common::opcode::Opcode},
+    payload::{
+        AuthorizeData, Command, Data, ErrorData, Event, Payload, PayloadResponse, ReadyData,
+        Request, common::opcode::Opcode,
+    },
 };
 
 /// Generic Serde Client
@@ -112,6 +116,7 @@ where
 ///
 /// # Errors
 /// [SerdeProcessingError] is returned if serialization fails
+#[inline(always)]
 pub(crate) fn serialize(request: &Request) -> Result<Frame, SerdeProcessingError> {
     let (opcode, payload) = {
         match request {
@@ -143,7 +148,7 @@ pub(crate) fn serialize(request: &Request) -> Result<Frame, SerdeProcessingError
 /// # Errors
 /// [SerdeProcessingError] is returned if deserialization fails
 pub(crate) fn deserialize(frame: &Frame) -> Result<PayloadResponse, SerdeProcessingError> {
-    let payload = serde_json::to_value(&frame.payload)
+    let mut payload = serde_json::from_slice::<Value>(&frame.payload)
         .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))?;
     let cmd = payload
         .get("cmd")
@@ -178,8 +183,79 @@ pub(crate) fn deserialize(frame: &Frame) -> Result<PayloadResponse, SerdeProcess
                 .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))
         })
         .transpose()?;
-
-    todo!()
+    match (evt, cmd) {
+        (Some(Event::Error), _) => {
+            let data = payload
+                .get_mut("data")
+                .map(|val| {
+                    serde_json::from_value::<ErrorData>(val.take())
+                        .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))
+                })
+                .transpose()?
+                .map(|data| Data::Error(Box::new(data)));
+            Ok(PayloadResponse(Payload {
+                cmd,
+                nonce,
+                evt,
+                data,
+                args: None,
+            }))
+        }
+        (Some(Event::Ready), _) => {
+            let data = payload
+                .get_mut("data")
+                .map(|val| {
+                    serde_json::from_value::<ReadyData>(val.take())
+                        .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))
+                })
+                .transpose()?
+                .map(|data| Data::Ready(Box::new(data)));
+            Ok(PayloadResponse(Payload {
+                cmd,
+                nonce,
+                evt,
+                data,
+                args: None,
+            }))
+        }
+        (None, Command::Authorize) => {
+            let data = payload
+                .get_mut("data")
+                .map(|val| {
+                    serde_json::from_value::<AuthorizeData>(val.take())
+                        .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))
+                })
+                .transpose()?
+                .map(|data| Data::Authorize(Box::new(data)));
+            Ok(PayloadResponse(Payload {
+                cmd,
+                nonce,
+                evt,
+                data,
+                args: None,
+            }))
+        }
+        (None, Command::Authenticate) => {
+            let data = payload
+                .get_mut("data")
+                .map(|val| {
+                    serde_json::from_value::<AuthorizeData>(val.take())
+                        .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))
+                })
+                .transpose()?
+                .map(|data| Data::Authorize(Box::new(data)));
+            Ok(PayloadResponse(Payload {
+                cmd,
+                nonce,
+                evt,
+                data,
+                args: None,
+            }))
+        }
+        (_, _) => {
+            todo!()
+        }
+    }
 }
 
 /// Pool Error is returned when sending or receiving a message to or from the pool fails

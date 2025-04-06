@@ -4,4 +4,4 @@ use super::Payload;
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 #[repr(transparent)]
-pub struct PayloadResponse(pub Box<Payload>);
+pub struct PayloadResponse(pub Payload);
