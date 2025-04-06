@@ -39,7 +39,7 @@ use crate::conn::windows::connect_windows;
 use tokio::{
     io::{AsyncRead, AsyncWrite},
     sync::oneshot::{self},
-    time::{Instant, error::Elapsed},
+    time::Instant,
 };
 
 /// Request timeout for the client to receive a response from the server
@@ -181,7 +181,7 @@ where
     get_guild; GetGuild);
 
     impl_request!(
-    /// Send a get_guilds request to the IPC server
+    /// Send a get guilds request to the IPC server
     get_guilds; GetGuilds);
 
     /// Send a request to the IPC server
