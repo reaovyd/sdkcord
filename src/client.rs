@@ -180,7 +180,16 @@ where
         /// Send a select text channel request to the IPC server
         select_text_channel; SelectTextChannel
     }
-
+    impl_evt! {
+        /// Send a subscribe request to the IPC server
+        subscribe;
+        Subscribe
+    }
+    impl_evt! {
+        /// Send a unsubscribe request to the IPC server.
+        unsubscribe;
+        Unsubscribe
+    }
     /// Send a request to the IPC server
     ///
     /// As an end user, you would use this function to send a request to the IPC server. The
@@ -236,6 +245,36 @@ where
 }
 
 mod macros {
+    macro_rules! impl_evt {
+        (
+            $(#[$attr:meta])*
+            $request_name: ident;
+            $args_name: ident
+        ) => {
+            paste::paste! {
+                $(#[$attr])*
+                /// # Errors
+                /// A [SdkClientError] is returned if the client fails to send the request or if the server
+                /// responds with an error
+                pub async fn $request_name<E: EventArgsType>(&self, args: E) -> SdkClientResult<[<$args_name Data>]> {
+                    let response = self
+                        .send_request(PayloadRequest::builder().event().$request_name(args).build())
+                        .await?;
+                    if let Some(Data::$args_name(data)) = response.0.data {
+                        Ok(data)
+                    } else if let Some(Data::Error(error)) = response.0.data {
+                        Err(SdkClientError::ResponseError { error })
+                    } else {
+                        error!(
+                            "response should always have data but could not be found... panicking...; final response: {:?}",
+                            response
+                        );
+                        panic!("some form of data should always be returned...");
+                    }
+                }
+            }
+        };
+    }
     macro_rules! impl_request {
         (
             $(#[$attr:meta])*
@@ -287,10 +326,12 @@ mod macros {
             }
         };
     }
+    pub(super) use impl_evt;
     pub(super) use impl_request;
     pub(super) use impl_spawn_client;
 }
 
+use macros::impl_evt;
 use macros::impl_request;
 use macros::impl_spawn_client;
 

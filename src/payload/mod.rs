@@ -54,6 +54,8 @@ pub enum Data {
     SelectVoiceChannel(Box<SelectVoiceChannelData>),
     GetSelectedVoiceChannel(Box<GetSelectedVoiceChannelData>),
     SelectTextChannel(Box<SelectTextChannelData>),
+    Subscribe(Box<SubscribeData>),
+    Unsubscribe(Box<UnsubscribeData>),
     // GetVoiceSettings(GetVoiceSettingsArgs),
     // SetVoiceSettings(SetVoiceSettingsArgs),
     // #[cfg(feature = "untested")]
@@ -211,6 +213,17 @@ pub enum Event {
     ActivitySpectate,
     ActivityJoinRequest,
 }
+
+#[derive(Debug, Copy, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct EventSubscriptionData {
+    pub evt: Event,
+}
+
+#[derive(Debug, Copy, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct SubscribeData(pub EventSubscriptionData);
+
+#[derive(Debug, Copy, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct UnsubscribeData(pub EventSubscriptionData);
 
 pub trait ArgsType: sealed::Sealed {
     fn args_val(self) -> Args;
