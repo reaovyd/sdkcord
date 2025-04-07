@@ -180,12 +180,12 @@ where
         /// Send a select text channel request to the IPC server
         select_text_channel; SelectTextChannel
     }
-    impl_evt! {
+    impl_evt_req! {
         /// Send a subscribe request to the IPC server
         subscribe;
         Subscribe
     }
-    impl_evt! {
+    impl_evt_req! {
         /// Send a unsubscribe request to the IPC server.
         unsubscribe;
         Unsubscribe
@@ -245,7 +245,7 @@ where
 }
 
 mod macros {
-    macro_rules! impl_evt {
+    macro_rules! impl_evt_req {
         (
             $(#[$attr:meta])*
             $request_name: ident;
@@ -326,12 +326,12 @@ mod macros {
             }
         };
     }
-    pub(super) use impl_evt;
+    pub(super) use impl_evt_req;
     pub(super) use impl_request;
     pub(super) use impl_spawn_client;
 }
 
-use macros::impl_evt;
+use macros::impl_evt_req;
 use macros::impl_request;
 use macros::impl_spawn_client;
 
