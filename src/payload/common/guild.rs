@@ -1,7 +1,13 @@
-use super::level::{
-    ExplicitContentFilterLevel, MessageNotificationLevel, MfaLevel, NsfwLevel, VerificationLevel,
+use super::{
+    level::{
+        ExplicitContentFilterLevel, MessageNotificationLevel, MfaLevel, NsfwLevel,
+        VerificationLevel,
+    },
+    user::{AvatarDecoration, User},
 };
+use bitflags::bitflags;
 use bon::Builder;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
@@ -62,6 +68,42 @@ pub struct Guild {
 pub struct GuildId {
     #[builder(into)]
     pub guild_id: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
+pub struct GuildMember {
+    pub user: Option<User>,
+    pub nick: Option<String>,
+    pub avatar: Option<String>,
+    pub banner: Option<String>,
+    pub roles: Option<Vec<String>>,
+    pub joined_at: Option<DateTime<Utc>>,
+    pub premium_since: Option<DateTime<Utc>>,
+    pub deaf: Option<bool>,
+    pub muted: Option<bool>,
+    pub pending: Option<bool>,
+    pub permissions: Option<String>,
+    pub flags: Option<GuildMemberFlags>,
+    pub communication_disabled_until: Option<DateTime<Utc>>,
+    pub avatar_decoration: Option<AvatarDecoration>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[repr(transparent)]
+pub struct GuildMemberFlags(u32);
+
+bitflags! {
+    impl GuildMemberFlags: u32 {
+        const DID_REJOIN = 1 << 0;
+        const COMPLETED_ONBOARDING = 1 << 1;
+        const BYPASSES_VERIFICATION = 1 << 2;
+        const STARTED_ONBOARDING = 1 << 3;
+        const IS_GUEST = 1 << 4;
+        const STARTED_HOME_ACTIONS = 1 << 5;
+        const COMPLETED_HOME_ACTIONS = 1 << 6;
+        const AUTOMOD_QUARANTINED_USERNAME = 1 << 7;
+        const DM_SETTINGS_UPSELL_ACKNOWLEDGED = 1 << 9;
+    }
 }
 
 impl From<String> for GuildId {

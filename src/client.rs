@@ -5,7 +5,7 @@
 //! function to grab an [SdkClient]. To connect to the IPC server and tell Discord that this client
 //! is ready to receive messages, you would call [SdkClient::connect].
 //!
-//! From there, you can send requests to the IPC server by calling [SdkClient::send_request] and
+//! From there, you can send requests to the IPC server by calling the APIs inside [SdkClient] and
 //! build the request you need with [PayloadRequest].
 use std::{marker::PhantomData, time::Duration};
 
