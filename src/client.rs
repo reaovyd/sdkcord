@@ -180,15 +180,23 @@ where
         /// Send a select text channel request to the IPC server
         select_text_channel; SelectTextChannel
     }
+
     impl_evt_req! {
         /// Send a subscribe request to the IPC server
         subscribe;
         Subscribe
     }
+
     impl_evt_req! {
         /// Send a unsubscribe request to the IPC server.
         unsubscribe;
         Unsubscribe
+    }
+
+    impl_request! {
+        /// Send a set user voice settings request to the IPC server.
+        set_user_voice_settings;
+        SetUserVoiceSettings
     }
     /// Send a request to the IPC server
     ///

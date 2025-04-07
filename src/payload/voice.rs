@@ -1,4 +1,5 @@
 use bon::Builder;
+use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
@@ -11,15 +12,24 @@ use super::{
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
-pub struct SetUserVoiceSettingsArgs {
+pub struct UserVoiceSettings {
     #[builder(into)]
-    user_id: String,
+    pub user_id: Option<String>,
     #[builder(into)]
-    pan: Option<Pan>,
-    volume: Option<u32>,
+    pub pan: Option<Pan>,
+    #[builder(with = |x: f32| {
+        OrderedFloat(x)
+    })]
+    pub volume: Option<OrderedFloat<f32>>,
     #[builder(into)]
-    mute: Option<bool>,
+    pub mute: Option<bool>,
 }
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct SetUserVoiceSettingsArgs(pub UserVoiceSettings);
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct SetUserVoiceSettingsData(pub UserVoiceSettings);
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
