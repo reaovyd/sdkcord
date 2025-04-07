@@ -52,8 +52,8 @@ pub enum Data {
     // GetChannels(GetChannelsArgs),
     // SetUserVoiceSettings(SetUserVoiceSettingsArgs),
     SelectVoiceChannel(Box<SelectVoiceChannelData>),
-    // GetSelectedVoiceChannel(GetSelectedVoiceChannelArgs),
-    // SelectTextChannel(SelectTextChannelArgs),
+    GetSelectedVoiceChannel(Box<GetSelectedVoiceChannelData>),
+    SelectTextChannel(Box<SelectTextChannelData>),
     // GetVoiceSettings(GetVoiceSettingsArgs),
     // SetVoiceSettings(SetVoiceSettingsArgs),
     // #[cfg(feature = "untested")]

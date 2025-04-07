@@ -18,6 +18,9 @@ pub struct SelectTextChannelArgs {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct SelectTextChannelData(pub Option<GetChannelData>);
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct GetChannelData(pub ChannelResponse);
 
 impl_empty_args_type!(ChannelCreate);

@@ -202,6 +202,16 @@ where
         select_voice_channel; SelectVoiceChannel
     }
 
+    impl_request! {
+        /// Send a get selected voice channel request to the IPC server
+        get_selected_voice_channel; GetSelectedVoiceChannel
+    }
+
+    impl_request! {
+        /// Send a select text channel request to the IPC server
+        select_text_channel; SelectTextChannel
+    }
+
     /// Send a request to the IPC server
     ///
     /// As an end user, you would use this function to send a request to the IPC server. The

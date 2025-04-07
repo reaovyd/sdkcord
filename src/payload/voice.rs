@@ -35,10 +35,10 @@ pub struct SelectVoiceChannelArgs {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
-pub struct SelectVoiceChannelData(pub GetChannelData);
+pub struct SelectVoiceChannelData(pub Option<GetChannelData>);
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
-pub struct GetSelectedVoiceChannelData(pub GetChannelData);
+pub struct GetSelectedVoiceChannelData(pub Option<GetChannelData>);
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
