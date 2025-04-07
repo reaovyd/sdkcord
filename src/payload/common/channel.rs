@@ -12,6 +12,9 @@ pub struct ChannelResponse {
     pub bitrate: Option<u32>,
     pub user_limit: Option<u32>,
     pub position: Option<u32>,
+    pub voice_states: Option<Vec<VoiceState>>,
+    // TODO: when we get message object type created
+    // pub messages:
 }
 
 #[derive(Debug, Clone, Deserialize_repr, Serialize_repr, PartialEq, Eq, Hash)]
@@ -74,3 +77,5 @@ mod macros {
 pub(crate) use macros::impl_channel_id_type;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use thiserror::Error;
+
+use super::voice::VoiceState;

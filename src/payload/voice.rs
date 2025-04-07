@@ -4,7 +4,10 @@ use serde_with::skip_serializing_none;
 
 use crate::payload::common::{channel::impl_channel_id_type, pan::Pan, voice::VoiceSettings};
 
-use super::macros::{impl_empty_args_type, impl_event_args_type, impl_request_args_type};
+use super::{
+    GetChannelData,
+    macros::{impl_empty_args_type, impl_event_args_type, impl_request_args_type},
+};
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
@@ -30,6 +33,12 @@ pub struct SelectVoiceChannelArgs {
     #[builder(into)]
     navigate: Option<bool>,
 }
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct SelectVoiceChannelData(pub GetChannelData);
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct GetSelectedVoiceChannelData(pub GetChannelData);
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]

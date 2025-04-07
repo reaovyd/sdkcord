@@ -18,11 +18,7 @@ use crate::{
     actors::{Coordinator, Reader, Writer},
     codec::FrameCodec,
     config::Config,
-    payload::{
-        AuthenticateArgs, AuthenticateData, AuthorizeArgs, AuthorizeData, ConnectRequest, Data,
-        ErrorData, GetGuildArgs, GetGuildData, GetGuildsArgs, GetGuildsData, PayloadRequest,
-        PayloadResponse, Request,
-    },
+    payload::*,
     pool::{deserialize, serialize, spawn_pool},
 };
 
@@ -194,6 +190,16 @@ where
     impl_request! {
         /// Send a get guilds request to the IPC server
         get_guilds; GetGuilds
+    }
+
+    impl_request! {
+        /// Send a get channel request to the IPC server
+        get_channel; GetChannel
+    }
+
+    impl_request! {
+        /// Send a select voice channel request to the IPC server
+        select_voice_channel; SelectVoiceChannel
     }
 
     /// Send a request to the IPC server

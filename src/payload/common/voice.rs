@@ -1,9 +1,36 @@
 use bon::{Builder, builder};
+use chrono::{DateTime, Utc};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use serde_with::skip_serializing_none;
 use strum_macros::EnumString;
+
+use super::{guild::GuildMember, pan::Pan};
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct VoiceState {
+    pub guild_id: Option<String>,
+    pub channel_id: Option<String>,
+    pub user_id: Option<String>,
+    pub member: Option<GuildMember>,
+    pub session_id: Option<String>,
+    pub nick: Option<String>,
+    pub pan: Option<Pan>,
+    pub voice_state: Option<State>,
+    pub request_to_speak_timestamp: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct State {
+    pub deaf: Option<bool>,
+    pub mute: Option<bool>,
+    pub self_deaf: Option<bool>,
+    pub self_mute: Option<bool>,
+    pub self_stream: Option<bool>,
+    pub self_video: Option<bool>,
+    pub suppress: Option<bool>,
+}
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]

@@ -19,8 +19,9 @@ use uuid::Uuid;
 use crate::{
     codec::Frame,
     payload::{
-        AuthenticateData, AuthorizeData, Command, Data, ErrorData, Event, GetGuildData,
-        GetGuildsData, Payload, PayloadResponse, ReadyData, Request, common::opcode::Opcode,
+        AuthenticateData, AuthorizeData, Command, Data, ErrorData, Event, GetChannelData,
+        GetGuildData, GetGuildsData, Payload, PayloadResponse, ReadyData, Request,
+        SelectVoiceChannelData, common::opcode::Opcode,
     },
 };
 
@@ -207,6 +208,12 @@ pub(crate) fn deserialize(frame: &Frame) -> Result<PayloadResponse, SerdeProcess
             }
             (None, Command::GetGuilds) => {
                 deserialize_data!(payload, GetGuildsData, GetGuilds)
+            }
+            (None, Command::GetChannel) => {
+                deserialize_data!(payload, GetChannelData, GetChannel)
+            }
+            (None, Command::SelectVoiceChannel) => {
+                deserialize_data!(payload, SelectVoiceChannelData, SelectVoiceChannel)
             }
             (_, _) => {
                 todo!()

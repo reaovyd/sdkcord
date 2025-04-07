@@ -7,11 +7,11 @@ pub struct Pan {
     #[builder(with = |x: f32| {
         OrderedFloat(x)
     })]
-    left: OrderedFloat<f32>,
+    pub left: OrderedFloat<f32>,
     #[builder(with = |x: f32| {
         OrderedFloat(x)
     })]
-    right: OrderedFloat<f32>,
+    pub right: OrderedFloat<f32>,
 }
 
 impl Pan {
