@@ -36,25 +36,25 @@ pub struct State {
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct VoiceSettings {
     #[builder(into)]
-    input: Option<VoiceSettingsInput>,
+    pub input: Option<VoiceSettingsInput>,
     #[builder(into)]
-    output: Option<VoiceSettingsOutput>,
+    pub output: Option<VoiceSettingsOutput>,
     #[builder(into)]
-    mode: Option<VoiceSettingsMode>,
+    pub mode: Option<VoiceSettingsMode>,
     #[builder(into)]
-    automatic_gain_control: Option<bool>,
+    pub automatic_gain_control: Option<bool>,
     #[builder(into)]
-    echo_cancellation: Option<bool>,
+    pub echo_cancellation: Option<bool>,
     #[builder(into)]
-    noise_suppression: Option<bool>,
+    pub noise_suppression: Option<bool>,
     #[builder(into)]
-    qos: Option<bool>,
+    pub qos: Option<bool>,
     #[builder(into)]
-    silence_warning: Option<bool>,
+    pub silence_warning: Option<bool>,
     #[builder(into)]
-    deaf: Option<bool>,
+    pub deaf: Option<bool>,
     #[builder(into)]
-    mute: Option<bool>,
+    pub mute: Option<bool>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
@@ -66,19 +66,19 @@ pub struct VoiceSettingsOutput(pub VoiceSettingsIO);
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct VoiceSettingsMode {
     #[builder(into)]
-    pub mode_type: ModeType,
+    pub mode_type: Option<ModeType>,
     #[builder(into)]
-    pub auto_threshold: bool,
+    pub auto_threshold: Option<bool>,
     #[builder(with = |x: f32| {
         OrderedFloat(x)
     })]
-    threshold: OrderedFloat<f32>,
+    pub threshold: Option<OrderedFloat<f32>>,
     #[builder(into)]
-    pub shortcut: ShortcutKeyCombo,
+    pub shortcut: Option<Vec<ShortcutKeyCombo>>,
     #[builder(with = |x: f32| {
         OrderedFloat(x)
     })]
-    delay: OrderedFloat<f32>,
+    pub delay: Option<OrderedFloat<f32>>,
 }
 
 #[derive(
@@ -99,7 +99,7 @@ pub struct VoiceSettingsIO {
     #[builder(with = |x: f32| {
         OrderedFloat(x)
     })]
-    volume: Option<OrderedFloat<f32>>,
+    pub volume: Option<OrderedFloat<f32>>,
     #[builder(with = |devices: impl IntoIterator<Item = AvailableDevice>| {
         devices.into_iter().collect()
     })]
@@ -142,16 +142,6 @@ pub enum KeyType {
     MouseButton = 1,
     KeyboardModifierKey = 2,
     GamepadButton = 3,
-}
-
-impl VoiceSettingsMode {
-    pub const fn delay(&self) -> f32 {
-        self.delay.0
-    }
-
-    pub const fn threshold(&self) -> f32 {
-        self.threshold.0
-    }
 }
 
 impl VoiceSettingsInput {
@@ -229,13 +219,11 @@ mod tests {
                     .mode_type(ModeType::PushToTalk)
                     .auto_threshold(true)
                     .threshold(-23.133)
-                    .shortcut(
-                        ShortcutKeyCombo::builder()
-                            .key_type(KeyType::KeyboardKey)
-                            .code(23)
-                            .name("asdf")
-                            .build(),
-                    )
+                    .shortcut([ShortcutKeyCombo::builder()
+                        .key_type(KeyType::KeyboardKey)
+                        .code(23)
+                        .name("asdf")
+                        .build()])
                     .delay(12.32)
                     .build(),
             )

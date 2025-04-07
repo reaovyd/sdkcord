@@ -198,6 +198,18 @@ where
         set_user_voice_settings;
         SetUserVoiceSettings
     }
+
+    impl_request! {
+        /// Send a set voice settings request to the IPC server.
+        set_voice_settings;
+        SetVoiceSettings
+    }
+
+    impl_request! {
+        /// Send a get voice settings request to the IPC server.
+        get_voice_settings;
+        GetVoiceSettings
+    }
     /// Send a request to the IPC server
     ///
     /// As an end user, you would use this function to send a request to the IPC server. The

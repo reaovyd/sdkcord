@@ -50,9 +50,14 @@ pub struct SelectVoiceChannelData(pub Option<GetChannelData>);
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct GetSelectedVoiceChannelData(pub Option<GetChannelData>);
 
-#[skip_serializing_none]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct SetVoiceSettingsArgs(pub VoiceSettings);
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct SetVoiceSettingsData(pub VoiceSettings);
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct GetVoiceSettingsData(pub VoiceSettings);
 
 impl_channel_id_type!(VoiceStateCreateArgs);
 impl_channel_id_type!(VoiceStateUpdateArgs);

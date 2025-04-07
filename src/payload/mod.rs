@@ -56,8 +56,8 @@ pub enum Data {
     SelectTextChannel(Box<SelectTextChannelData>),
     Subscribe(Box<SubscribeData>),
     Unsubscribe(Box<UnsubscribeData>),
-    // GetVoiceSettings(GetVoiceSettingsArgs),
-    // SetVoiceSettings(SetVoiceSettingsArgs),
+    GetVoiceSettings(Box<GetVoiceSettingsData>),
+    SetVoiceSettings(Box<SetVoiceSettingsData>),
     // #[cfg(feature = "untested")]
     // SetCertifiedDevices(SetCertifiedDevicesArgs),
     // SetActivity(SetActivityArgs),
