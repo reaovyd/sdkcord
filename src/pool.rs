@@ -189,41 +189,37 @@ pub(crate) fn deserialize(frame: &Frame) -> Result<PayloadResponse, SerdeProcess
     let data = {
         match (evt, cmd) {
             (Some(Event::Error), _) => {
-                deserialize_data!(payload, ErrorData, Error)
+                deserialize_data!(payload, Error)
             }
             (Some(Event::Ready), _) => {
-                deserialize_data!(payload, ReadyData, Ready)
+                deserialize_data!(payload, Ready)
             }
             (Some(evt), Command::Dispatch) => {
                 todo!()
             }
             (None, Command::Authorize) => {
-                deserialize_data!(payload, AuthorizeData, Authorize)
+                deserialize_data!(payload, Authorize)
             }
             (None, Command::Authenticate) => {
-                deserialize_data!(payload, AuthenticateData, Authenticate)
+                deserialize_data!(payload, Authenticate)
             }
             (None, Command::GetGuild) => {
-                deserialize_data!(payload, GetGuildData, GetGuild)
+                deserialize_data!(payload, GetGuild)
             }
             (None, Command::GetGuilds) => {
-                deserialize_data!(payload, GetGuildsData, GetGuilds)
+                deserialize_data!(payload, GetGuilds)
             }
             (None, Command::GetChannel) => {
-                deserialize_data!(payload, GetChannelData, GetChannel)
+                deserialize_data!(payload, GetChannel)
             }
             (None, Command::SelectVoiceChannel) => {
-                deserialize_data!(payload, SelectVoiceChannelData, SelectVoiceChannel)
+                deserialize_data!(payload, SelectVoiceChannel)
             }
             (None, Command::GetSelectedVoiceChannel) => {
-                deserialize_data!(
-                    payload,
-                    GetSelectedVoiceChannelData,
-                    GetSelectedVoiceChannel
-                )
+                deserialize_data!(payload, GetSelectedVoiceChannel)
             }
             (None, Command::SelectTextChannel) => {
-                deserialize_data!(payload, SelectTextChannelData, SelectTextChannel)
+                deserialize_data!(payload, SelectTextChannel)
             }
             (_, _) => {
                 todo!()
@@ -264,15 +260,17 @@ pub enum SerdeProcessingError {
 
 mod macros {
     macro_rules! deserialize_data {
-        ($payload: expr, $args_type: ident, $enum_val: ident) => {
-            $payload
-                .get_mut("data")
-                .map(|val| {
-                    serde_json::from_value::<$args_type>(val.take())
-                        .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))
-                })
-                .transpose()?
-                .map(|data| Data::$enum_val(Box::new(data)))
+        ($payload: expr, $data_type: ident) => {
+            paste::paste! {
+                $payload
+                    .get_mut("data")
+                    .map(|val| {
+                        serde_json::from_value::<[<$data_type Data>]>(val.take())
+                            .map_err(|err| SerdeProcessingError::Deserialization(err.to_string()))
+                    })
+                    .transpose()?
+                    .map(|data| Data::$data_type(Box::new(data)))
+            }
         };
     }
     pub(super) use deserialize_data;

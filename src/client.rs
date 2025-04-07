@@ -38,41 +38,10 @@ use tokio::{
     time::Instant,
 };
 
-/// Spawns an [SdkClient].
-///
-/// # Note
-/// The client is not yet ready in the ready state in which you must call [SdkClient::connect] to
-/// connect to the IPC server.
-///
-/// # Errors
-/// [SdkClientError] is returned if the client fails to spawn.
 #[cfg(unix)]
-pub async fn spawn_client(
-    config: Config,
-) -> Result<SdkClient<OwnedWriteHalf, UnreadyState>, SdkClientError> {
-    let (rh, wh) = connect_unix()
-        .await
-        .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
-    spawn(wh, rh, config).await
-}
-
-/// Spawns an [SdkClient].
-///
-/// # Note
-/// The client is not yet ready in the ready state in which you must call [SdkClient::connect] to
-/// connect to the IPC server.
-///
-/// # Errors
-/// [SdkClientError] is returned if the client fails to spawn.
+impl_spawn_client! { connect_unix, OwnedWriteHalf }
 #[cfg(windows)]
-pub async fn spawn_client(
-    config: Config,
-) -> Result<SdkClient<ClientWriteHalf, UnreadyState>, SdkClientError> {
-    let (rh, wh) = connect_windows()
-        .await
-        .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
-    spawn(wh, rh, config).await
-}
+impl_spawn_client! { connect_windows, ClientWriteHalf }
 
 async fn spawn<T, R>(
     wh: T,
@@ -132,7 +101,7 @@ where
     T: Send + Sync + 'static,
     T: AsyncWrite + Unpin,
 {
-    /// Make a connection call to Discord
+    /// Connect to Discord
     ///
     /// This call is made to let Discord know that this client is ready to send and receive
     /// messages. It is necessary to call this function before sending any requests to the IPC
@@ -297,10 +266,33 @@ mod macros {
             }
         };
     }
+
+    macro_rules! impl_spawn_client {
+        ($connect: ident, $write_half: ty) => {
+            /// Spawns an [SdkClient] and establishes a connection to the Discord IPC
+            ///
+            /// # Note
+            /// The client is not yet ready in the ready state in which you must call [SdkClient::connect] to
+            /// connect to the IPC server.
+            ///
+            /// # Errors
+            /// [SdkClientError] is returned if the client fails to spawn.
+            pub async fn spawn_client(
+                config: Config,
+            ) -> Result<SdkClient<$write_half, UnreadyState>, SdkClientError> {
+                let (rh, wh) = $connect()
+                    .await
+                    .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
+                spawn(wh, rh, config).await
+            }
+        };
+    }
     pub(super) use impl_request;
+    pub(super) use impl_spawn_client;
 }
 
 use macros::impl_request;
+use macros::impl_spawn_client;
 
 /// An Error type for when making requests to the IPC server may fail
 #[derive(Debug, Error)]
