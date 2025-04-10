@@ -24,8 +24,8 @@ use crate::{
         GetVoiceSettingsData, GuildCreateData, GuildStatusData, Payload, PayloadResponse,
         ReadyData, Request, SelectTextChannelData, SelectVoiceChannelData, SetActivityData,
         SetUserVoiceSettingsData, SetVoiceSettingsData, SubscribeData, UnsubscribeData,
-        VoiceChannelSelectData, VoiceStateCreateData, VoiceStateDeleteData, VoiceStateUpdateData,
-        common::opcode::Opcode,
+        VoiceChannelSelectData, VoiceConnectionStatusData, VoiceStateCreateData,
+        VoiceStateDeleteData, VoiceStateUpdateData, common::opcode::Opcode,
     },
 };
 
@@ -220,8 +220,9 @@ pub(crate) fn deserialize(frame: &Frame) -> Result<PayloadResponse, SerdeProcess
                 Event::VoiceStateDelete => {
                     deserialize_data!(payload, VoiceStateDelete)
                 }
-                Event::VoiceSettingsUpdate => todo!(),
-                Event::VoiceConnectionStatus => todo!(),
+                Event::VoiceConnectionStatus => {
+                    deserialize_data!(payload, VoiceConnectionStatus)
+                }
                 Event::SpeakingStart => todo!(),
                 Event::SpeakingStop => todo!(),
                 Event::MessageCreate => todo!(),

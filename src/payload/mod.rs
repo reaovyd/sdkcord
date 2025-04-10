@@ -72,8 +72,9 @@ pub enum Data {
     VoiceStateCreate(Box<VoiceStateCreateData>),
     VoiceStateUpdate(Box<VoiceStateUpdateData>),
     VoiceStateDelete(Box<VoiceStateDeleteData>),
+    // #[cfg(feature = "untested")]
     // VoiceSettingsUpdate(VoiceSettingsUpdateArgs),
-    // VoiceConnectionStatus(VoiceConnectionStatusArgs),
+    VoiceConnectionStatus(Box<VoiceConnectionStatusData>),
     // SpeakingStart(SpeakingStartArgs),
     // SpeakingStop(SpeakingStopArgs),
     // MessageCreate(MessageCreateArgs),
@@ -118,6 +119,7 @@ pub enum Args {
     VoiceStateCreate(VoiceStateCreateArgs),
     VoiceStateUpdate(VoiceStateUpdateArgs),
     VoiceStateDelete(VoiceStateDeleteArgs),
+    #[cfg(feature = "untested")]
     VoiceSettingsUpdate(VoiceSettingsUpdateArgs),
     VoiceConnectionStatus(VoiceConnectionStatusArgs),
     SpeakingStart(SpeakingStartArgs),

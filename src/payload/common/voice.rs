@@ -9,6 +9,27 @@ use strum_macros::EnumString;
 use super::{guild::GuildMember, pan::Pan};
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct Ping {
+    pub time: Option<u64>,
+    pub value: Option<u64>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum VoiceConnectionState {
+    Disconnected,
+    AwaitingEndpoint,
+    Authenticating,
+    Connecting,
+    Connected,
+    VoiceDisconnected,
+    VoiceConnecting,
+    VoiceConnected,
+    NoRoute,
+    IceChecking,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct VoiceState {
     pub guild_id: Option<String>,
     pub channel_id: Option<String>,

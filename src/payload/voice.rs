@@ -7,7 +7,10 @@ use crate::payload::common::{channel::impl_channel_id_type, pan::Pan, voice::Voi
 
 use super::{
     GetChannelData,
-    common::{user::User, voice::State},
+    common::{
+        user::User,
+        voice::{Ping, State, VoiceConnectionState},
+    },
     macros::{impl_empty_args_type, impl_event_args_type, impl_request_args_type},
 };
 
@@ -49,6 +52,15 @@ pub struct SelectVoiceChannelArgs {
 pub struct VoiceChannelSelectData {
     pub channel_id: Option<String>,
     pub guild_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct VoiceConnectionStatusData {
+    pub state: Option<VoiceConnectionState>,
+    pub hostname: Option<String>,
+    pub pings: Option<Vec<Ping>>,
+    pub average_ping: Option<u32>,
+    pub last_ping: Option<u32>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
@@ -105,6 +117,7 @@ impl_event_args_type!(VoiceChannelSelect);
 impl_event_args_type!(VoiceStateCreate);
 impl_event_args_type!(VoiceStateUpdate);
 impl_event_args_type!(VoiceStateDelete);
+#[cfg(feature = "untested")]
 impl_event_args_type!(VoiceSettingsUpdate);
 impl_event_args_type!(VoiceConnectionStatus);
 
