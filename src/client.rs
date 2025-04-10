@@ -210,6 +210,12 @@ where
         get_voice_settings;
         GetVoiceSettings
     }
+
+    impl_request! {
+        /// Send a get voice settings request to the IPC server.
+        set_activity;
+        SetActivity
+    }
     /// Send a request to the IPC server
     ///
     /// As an end user, you would use this function to send a request to the IPC server. The

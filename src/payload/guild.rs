@@ -23,6 +23,12 @@ pub struct GuildStatusArgs {
     guild_id: String,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct GuildStatusData {
+    pub guild: Option<Guild>,
+    pub online: Option<u32>,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct GetGuildData {
     pub icon_url: Option<Url>,

@@ -60,7 +60,7 @@ pub enum Data {
     SetVoiceSettings(Box<SetVoiceSettingsData>),
     // #[cfg(feature = "untested")]
     // SetCertifiedDevices(SetCertifiedDevicesArgs),
-    // SetActivity(SetActivityArgs),
+    SetActivity(Box<SetActivityData>),
     // #[cfg(feature = "untested")]
     // SendActivityJoinInvite(SendActivityJoinInviteArgs),
     // #[cfg(feature = "untested")]
