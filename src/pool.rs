@@ -19,11 +19,13 @@ use uuid::Uuid;
 use crate::{
     codec::Frame,
     payload::{
-        AuthenticateData, AuthorizeData, Command, Data, ErrorData, Event, GetChannelData,
-        GetGuildData, GetGuildsData, GetSelectedVoiceChannelData, GetVoiceSettingsData, Payload,
-        PayloadResponse, ReadyData, Request, SelectTextChannelData, SelectVoiceChannelData,
-        SetActivityData, SetUserVoiceSettingsData, SetVoiceSettingsData, SubscribeData,
-        UnsubscribeData, common::opcode::Opcode,
+        AuthenticateData, AuthorizeData, ChannelCreateData, Command, Data, ErrorData, Event,
+        GetChannelData, GetGuildData, GetGuildsData, GetSelectedVoiceChannelData,
+        GetVoiceSettingsData, GuildCreateData, GuildStatusData, Payload, PayloadResponse,
+        ReadyData, Request, SelectTextChannelData, SelectVoiceChannelData, SetActivityData,
+        SetUserVoiceSettingsData, SetVoiceSettingsData, SubscribeData, UnsubscribeData,
+        VoiceChannelSelectData, VoiceStateCreateData, VoiceStateDeleteData, VoiceStateUpdateData,
+        common::opcode::Opcode,
     },
 };
 
@@ -196,9 +198,45 @@ pub(crate) fn deserialize(frame: &Frame) -> Result<PayloadResponse, SerdeProcess
             (Some(Event::Ready), _) => {
                 deserialize_data!(payload, Ready)
             }
-            (Some(evt), Command::Dispatch) => {
-                todo!()
-            }
+            (Some(evt), Command::Dispatch) => match evt {
+                Event::GuildStatus => {
+                    deserialize_data!(payload, GuildStatus)
+                }
+                Event::GuildCreate => {
+                    deserialize_data!(payload, GuildCreate)
+                }
+                Event::ChannelCreate => {
+                    deserialize_data!(payload, ChannelCreate)
+                }
+                Event::VoiceChannelSelect => {
+                    deserialize_data!(payload, VoiceChannelSelect)
+                }
+                Event::VoiceStateCreate => {
+                    deserialize_data!(payload, VoiceStateCreate)
+                }
+                Event::VoiceStateUpdate => {
+                    deserialize_data!(payload, VoiceStateUpdate)
+                }
+                Event::VoiceStateDelete => {
+                    deserialize_data!(payload, VoiceStateDelete)
+                }
+                Event::VoiceSettingsUpdate => todo!(),
+                Event::VoiceConnectionStatus => todo!(),
+                Event::SpeakingStart => todo!(),
+                Event::SpeakingStop => todo!(),
+                Event::MessageCreate => todo!(),
+                Event::MessageUpdate => todo!(),
+                Event::MessageDelete => todo!(),
+                Event::NotificationCreate => todo!(),
+                Event::ActivityJoin => todo!(),
+                Event::ActivitySpectate => todo!(),
+                Event::ActivityJoinRequest => todo!(),
+                _ => {
+                    panic!(
+                        "this should not happen since Event::Ready and Event::Error are covered previously"
+                    )
+                }
+            },
             (None, Command::Authorize) => {
                 deserialize_data!(payload, Authorize)
             }

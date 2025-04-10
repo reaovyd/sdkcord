@@ -7,6 +7,7 @@ use crate::payload::common::{channel::impl_channel_id_type, pan::Pan, voice::Voi
 
 use super::{
     GetChannelData,
+    common::{user::User, voice::State},
     macros::{impl_empty_args_type, impl_event_args_type, impl_request_args_type},
 };
 
@@ -42,6 +43,31 @@ pub struct SelectVoiceChannelArgs {
     force: Option<bool>,
     #[builder(into)]
     navigate: Option<bool>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct VoiceChannelSelectData {
+    pub channel_id: Option<String>,
+    pub guild_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct VoiceStateCreateData(pub VoiceStateEvent);
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct VoiceStateDeleteData(pub VoiceStateEvent);
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct VoiceStateUpdateData(pub VoiceStateEvent);
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct VoiceStateEvent {
+    pub mute: Option<bool>,
+    pub nick: Option<String>,
+    pub pan: Option<Pan>,
+    pub user: Option<User>,
+    pub voice_state: Option<State>,
+    pub volume: Option<OrderedFloat<f32>>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]

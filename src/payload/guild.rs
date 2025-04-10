@@ -29,6 +29,12 @@ pub struct GuildStatusData {
     pub online: Option<u32>,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct GuildCreateData {
+    pub id: Option<String>,
+    pub name: Option<String>,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
 pub struct GetGuildData {
     pub icon_url: Option<Url>,
