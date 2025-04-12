@@ -106,9 +106,11 @@ bitflags! {
     }
 }
 
-impl From<String> for GuildId {
-    fn from(value: String) -> Self {
-        Self { guild_id: value }
+impl<T: Into<String>> From<T> for GuildId {
+    fn from(value: T) -> Self {
+        Self {
+            guild_id: value.into(),
+        }
     }
 }
 

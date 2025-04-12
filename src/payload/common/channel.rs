@@ -1,13 +1,11 @@
 use bon::Builder;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash, Builder)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct ChannelResponse {
-    pub id: Option<String>,
+    #[serde(flatten)]
+    pub channel: Channel,
     pub guild_id: Option<String>,
-    pub name: Option<String>,
-    #[serde(rename = "type")]
-    pub channel_type: Option<ChannelType>,
     pub topic: Option<String>,
     pub bitrate: Option<u32>,
     pub user_limit: Option<u32>,
@@ -15,6 +13,14 @@ pub struct ChannelResponse {
     pub voice_states: Option<Vec<VoiceState>>,
     // TODO: when we get message object type created
     // pub messages:
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct Channel {
+    pub id: Option<String>,
+    pub name: Option<String>,
+    #[serde(rename = "type")]
+    pub channel_type: Option<ChannelType>,
 }
 
 #[derive(Debug, Clone, Deserialize_repr, Serialize_repr, PartialEq, Eq, Hash)]
@@ -52,9 +58,11 @@ pub struct ChannelId {
     pub channel_id: String,
 }
 
-impl From<String> for ChannelId {
-    fn from(value: String) -> Self {
-        Self { channel_id: value }
+impl<T: Into<String>> From<T> for ChannelId {
+    fn from(value: T) -> Self {
+        Self {
+            channel_id: value.into(),
+        }
     }
 }
 

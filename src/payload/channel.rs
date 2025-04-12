@@ -5,7 +5,7 @@ use serde_with::skip_serializing_none;
 use crate::payload::common::{channel::impl_channel_id_type, guild::impl_guild_id_type};
 
 use super::{
-    common::channel::{ChannelResponse, ChannelType},
+    common::channel::{Channel, ChannelResponse},
     macros::{impl_empty_args_type, impl_event_args_type, impl_request_args_type},
 };
 
@@ -18,12 +18,7 @@ pub struct SelectTextChannelArgs {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
-pub struct ChannelCreateData {
-    pub id: Option<String>,
-    pub name: Option<String>,
-    #[serde(rename = "type")]
-    pub channel_type: ChannelType,
-}
+pub struct ChannelCreateData(pub Channel);
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct SelectTextChannelData(pub Option<GetChannelData>);
