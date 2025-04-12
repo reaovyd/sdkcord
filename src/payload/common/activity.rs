@@ -61,16 +61,23 @@ impl Activity {
     }
 }
 
+/// Activity type
+///
+/// When you set an activity, you can specify the type of activity you want. For example, in
+/// Discord, you can set your status to "Playing `APPLICATION_NAME`".
+///
+/// The activity type `Streaming` and `Custom` are disabled because Discord does not allow using
+/// these activity types.
 #[derive(
     Debug, Copy, Clone, Deserialize_repr, Serialize_repr, PartialEq, Eq, Hash, EnumString, Display,
 )]
 #[repr(u8)]
 pub enum ActivityType {
     Playing = 0,
-    Streaming = 1,
+    // Streaming = 1,
     Listening = 2,
     Watching = 3,
-    Custom = 4,
+    // Custom = 4,
     Competing = 5,
 }
 
