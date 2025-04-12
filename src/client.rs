@@ -216,6 +216,12 @@ where
         set_activity;
         SetActivity
     }
+
+    impl_request! {
+        /// Send a get voice settings request to the IPC server.
+        get_channels;
+        GetChannels
+    }
     /// Send a request to the IPC server
     ///
     /// As an end user, you would use this function to send a request to the IPC server. The

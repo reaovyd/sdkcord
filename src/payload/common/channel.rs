@@ -1,10 +1,13 @@
 use bon::Builder;
+use thiserror::Error;
+
+use super::voice::VoiceState;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct ChannelResponse {
     #[serde(flatten)]
-    pub channel: Channel,
+    pub channel: Option<Channel>,
     pub guild_id: Option<String>,
     pub topic: Option<String>,
     pub bitrate: Option<u32>,
@@ -19,17 +22,24 @@ pub struct ChannelResponse {
 pub struct Channel {
     pub id: Option<String>,
     pub name: Option<String>,
-    #[serde(rename = "type")]
     pub channel_type: Option<ChannelType>,
 }
 
-#[derive(Debug, Clone, Deserialize_repr, Serialize_repr, PartialEq, Eq, Hash)]
-#[repr(u8)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub enum ChannelType {
     GuildText = 0,
     Dm = 1,
     GuildVoice = 2,
     GroupDm = 3,
+    GuildCategory = 4,
+    GuildAnnouncement = 5,
+    AnnouncementThread = 10,
+    PublicThread = 11,
+    PrivateThread = 12,
+    GuildStageVoice = 13,
+    GuildDirectory = 14,
+    GuildForum = 15,
+    GuildMedia = 16,
 }
 
 impl TryFrom<u8> for ChannelType {
@@ -41,6 +51,15 @@ impl TryFrom<u8> for ChannelType {
             1 => Ok(ChannelType::Dm),
             2 => Ok(ChannelType::GuildVoice),
             3 => Ok(ChannelType::GroupDm),
+            4 => Ok(ChannelType::GuildCategory),
+            5 => Ok(ChannelType::GuildAnnouncement),
+            10 => Ok(ChannelType::AnnouncementThread),
+            11 => Ok(ChannelType::PublicThread),
+            12 => Ok(ChannelType::PrivateThread),
+            13 => Ok(ChannelType::GuildStageVoice),
+            14 => Ok(ChannelType::GuildDirectory),
+            15 => Ok(ChannelType::GuildForum),
+            16 => Ok(ChannelType::GuildMedia),
             _ => Err(ChannelTypeError::InvalidChannelType(value)),
         }
     }
@@ -83,7 +102,3 @@ mod macros {
 }
 
 pub(crate) use macros::impl_channel_id_type;
-use serde_repr::{Deserialize_repr, Serialize_repr};
-use thiserror::Error;
-
-use super::voice::VoiceState;

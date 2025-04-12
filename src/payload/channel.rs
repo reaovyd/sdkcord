@@ -26,6 +26,11 @@ pub struct SelectTextChannelData(pub Option<GetChannelData>);
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct GetChannelData(pub ChannelResponse);
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct GetChannelsData {
+    pub channels: Vec<Channel>,
+}
+
 impl_empty_args_type!(ChannelCreate);
 impl_channel_id_type!(GetChannelArgs);
 impl_guild_id_type!(GetChannelsArgs);

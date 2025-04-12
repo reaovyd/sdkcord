@@ -20,7 +20,7 @@ use crate::{
     codec::Frame,
     payload::{
         AuthenticateData, AuthorizeData, ChannelCreateData, Command, Data, ErrorData, Event,
-        GetChannelData, GetGuildData, GetGuildsData, GetSelectedVoiceChannelData,
+        GetChannelData, GetChannelsData, GetGuildData, GetGuildsData, GetSelectedVoiceChannelData,
         GetVoiceSettingsData, GuildCreateData, GuildStatusData, Payload, PayloadResponse,
         ReadyData, Request, SelectTextChannelData, SelectVoiceChannelData, SetActivityData,
         SetUserVoiceSettingsData, SetVoiceSettingsData, SubscribeData, UnsubscribeData,
@@ -279,6 +279,9 @@ pub(crate) fn deserialize(frame: &Frame) -> Result<PayloadResponse, SerdeProcess
             }
             (None, Command::SetActivity) => {
                 deserialize_data!(payload, SetActivity)
+            }
+            (None, Command::GetChannels) => {
+                deserialize_data!(payload, GetChannels)
             }
             (_, _) => {
                 todo!()

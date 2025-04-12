@@ -49,7 +49,7 @@ pub enum Data {
     GetGuild(Box<GetGuildData>),
     GetGuilds(Box<GetGuildsData>),
     GetChannel(Box<GetChannelData>),
-    // GetChannels(GetChannelsArgs),
+    GetChannels(Box<GetChannelsData>),
     SetUserVoiceSettings(Box<SetUserVoiceSettingsData>),
     SelectVoiceChannel(Box<SelectVoiceChannelData>),
     GetSelectedVoiceChannel(Box<GetSelectedVoiceChannelData>),
