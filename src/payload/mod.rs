@@ -75,8 +75,8 @@ pub enum Data {
     // #[cfg(feature = "untested")]
     // VoiceSettingsUpdate(VoiceSettingsUpdateArgs),
     VoiceConnectionStatus(Box<VoiceConnectionStatusData>),
-    // SpeakingStart(SpeakingStartArgs),
-    // SpeakingStop(SpeakingStopArgs),
+    SpeakingStart(Box<SpeakingStartData>),
+    SpeakingStop(Box<SpeakingStopData>),
     // MessageCreate(MessageCreateArgs),
     // MessageUpdate(MessageUpdateArgs),
     // MessageDelete(MessageDeleteArgs),

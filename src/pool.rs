@@ -23,9 +23,9 @@ use crate::{
         GetChannelData, GetChannelsData, GetGuildData, GetGuildsData, GetSelectedVoiceChannelData,
         GetVoiceSettingsData, GuildCreateData, GuildStatusData, Payload, PayloadResponse,
         ReadyData, Request, SelectTextChannelData, SelectVoiceChannelData, SetActivityData,
-        SetUserVoiceSettingsData, SetVoiceSettingsData, SubscribeData, UnsubscribeData,
-        VoiceChannelSelectData, VoiceConnectionStatusData, VoiceStateCreateData,
-        VoiceStateDeleteData, VoiceStateUpdateData, common::opcode::Opcode,
+        SetUserVoiceSettingsData, SetVoiceSettingsData, SpeakingStartData, SpeakingStopData,
+        SubscribeData, UnsubscribeData, VoiceChannelSelectData, VoiceConnectionStatusData,
+        VoiceStateCreateData, VoiceStateDeleteData, VoiceStateUpdateData, common::opcode::Opcode,
     },
 };
 
@@ -223,8 +223,12 @@ pub(crate) fn deserialize(frame: &Frame) -> Result<PayloadResponse, SerdeProcess
                 Event::VoiceConnectionStatus => {
                     deserialize_data!(payload, VoiceConnectionStatus)
                 }
-                Event::SpeakingStart => todo!(),
-                Event::SpeakingStop => todo!(),
+                Event::SpeakingStart => {
+                    deserialize_data!(payload, SpeakingStart)
+                }
+                Event::SpeakingStop => {
+                    deserialize_data!(payload, SpeakingStop)
+                }
                 Event::MessageCreate => todo!(),
                 Event::MessageUpdate => todo!(),
                 Event::MessageDelete => todo!(),
@@ -234,7 +238,7 @@ pub(crate) fn deserialize(frame: &Frame) -> Result<PayloadResponse, SerdeProcess
                 Event::ActivityJoinRequest => todo!(),
                 _ => {
                     panic!(
-                        "this should not happen since Event::Ready and Event::Error are covered previously"
+                        "this should not happen since Event::Ready and Event::Error are covered previously; unless you have the untested feature on"
                     )
                 }
             },
