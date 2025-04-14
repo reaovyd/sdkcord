@@ -297,7 +297,7 @@ where
 }
 
 /// Send a response back to the client
-#[instrument(level = "trace")]
+#[instrument(level = "trace", skip(pending_requests))]
 fn send_response(
     pending_requests: &Arc<DashMap<Uuid, oneshot::Sender<PayloadResponse>>>,
     resp: PayloadResponse,
@@ -310,7 +310,7 @@ fn send_response(
                     nonce
                 );
             } else {
-                info!("nonce id: [{}] successfully sent to client", nonce)
+                trace!("nonce id: [{}] successfully sent to client", nonce)
             }
         } else {
             error!("nonce cannot be found in pending requests (perhaps client has timed out?)...");
