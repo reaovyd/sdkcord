@@ -31,7 +31,7 @@ use tokio::{
     sync::oneshot,
 };
 use tokio_util::codec::{FramedRead, FramedWrite};
-use tracing::{error, info, instrument, trace};
+use tracing::{error, instrument, trace};
 use uuid::Uuid;
 
 use crate::{
