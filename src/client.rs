@@ -7,7 +7,7 @@
 //!
 //! From there, you can send requests to the IPC server by calling the APIs inside [SdkClient] and
 //! build the request you need with [PayloadRequest].
-use std::{marker::PhantomData, time::Duration};
+use std::{marker::PhantomData, sync::Arc, time::Duration};
 
 use kameo::{actor::ActorRef, error::SendError};
 use thiserror::Error;
@@ -17,20 +17,17 @@ use tracing::error;
 use crate::{
     actors::{Coordinator, Reader, Writer},
     codec::FrameCodec,
-    config::Config,
+    config::{Config, OAuth2Config},
+    oauth2::{OAuth2Error, TokenManager, spawn_refresh_task},
     payload::*,
     pool::{deserialize, serialize, spawn_pool},
 };
 
 #[cfg(unix)]
-use crate::conn::unix::connect_unix;
-#[cfg(unix)]
-use tokio::net::unix::OwnedWriteHalf;
+use {crate::conn::unix::connect_unix, tokio::net::unix::OwnedWriteHalf};
 
 #[cfg(windows)]
-use crate::conn::windows::ClientWriteHalf;
-#[cfg(windows)]
-use crate::conn::windows::connect_windows;
+use {crate::conn::windows::ClientWriteHalf, crate::conn::windows::connect_windows};
 
 use tokio::{
     io::{AsyncRead, AsyncWrite},
@@ -80,12 +77,13 @@ where
     Ok(SdkClient {
         coordinator,
         request_timeout: Duration::from_secs(config.request_timeout),
+        token_manager: None,
         _state: PhantomData,
     })
 }
 
 /// The client for the Discord IPC server
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct SdkClient<W, S>
 where
     W: Send + Sync + 'static,
@@ -93,6 +91,7 @@ where
 {
     coordinator: ActorRef<Coordinator<ActorRef<Writer<W>>>>,
     request_timeout: Duration,
+    pub(crate) token_manager: Option<Arc<TokenManager>>,
     _state: PhantomData<S>,
 }
 
@@ -113,7 +112,8 @@ where
     pub async fn connect(
         self,
         client_id: &str,
-    ) -> Result<SdkClient<T, ReadyState>, SdkClientError> {
+        oauth2_config: OAuth2Config,
+    ) -> Result<Arc<SdkClient<T, ReadyState>>, SdkClientError> {
         let (sndr, recv) = oneshot::channel::<PayloadResponse>();
         self.coordinator
             .tell((
@@ -127,11 +127,30 @@ where
             .await
             .map_err(|_| SdkClientError::Timeout)?
             .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
-        Ok(SdkClient {
+
+        let client = SdkClient {
             coordinator: self.coordinator,
             request_timeout: self.request_timeout,
+            token_manager: None,
             _state: PhantomData,
-        })
+        };
+        let client = Self::enable_oauth2(client, client_id, oauth2_config.clone()).await?;
+        Ok(client)
+    }
+
+    #[inline(always)]
+    async fn enable_oauth2(
+        sdk_client: SdkClient<T, ReadyState>,
+        client_id: &str,
+        oauth2_config: OAuth2Config,
+    ) -> Result<Arc<SdkClient<T, ReadyState>>, SdkClientError> {
+        let mut sdk_client = sdk_client;
+        let token_manager =
+            Arc::new(TokenManager::new(&oauth2_config, client_id, &sdk_client).await?);
+        sdk_client.token_manager = Some(token_manager);
+        let client = Arc::new(sdk_client);
+        spawn_refresh_task(client.clone());
+        Ok(client)
     }
 }
 
@@ -142,41 +161,41 @@ where
     T: Send + Sync + 'static,
     T: AsyncWrite + Unpin,
 {
-    impl_request! {
+    impl_priv_request! {
         /// Send a authenticate request to the IPC server
         authenticate; Authenticate
     }
-    impl_request! {
+    impl_priv_request! {
         /// Send a authorize request to the IPC server
         authorize; Authorize
     }
 
-    impl_request! {
+    impl_pub_request! {
         /// Send a get guild request to the IPC server
         get_guild; GetGuild
     }
 
-    impl_request! {
+    impl_pub_request! {
         /// Send a get guilds request to the IPC server
         get_guilds; GetGuilds
     }
 
-    impl_request! {
+    impl_pub_request! {
         /// Send a get channel request to the IPC server
         get_channel; GetChannel
     }
 
-    impl_request! {
+    impl_pub_request! {
         /// Send a select voice channel request to the IPC server
         select_voice_channel; SelectVoiceChannel
     }
 
-    impl_request! {
+    impl_pub_request! {
         /// Send a get selected voice channel request to the IPC server
         get_selected_voice_channel; GetSelectedVoiceChannel
     }
 
-    impl_request! {
+    impl_pub_request! {
         /// Send a select text channel request to the IPC server
         select_text_channel; SelectTextChannel
     }
@@ -193,32 +212,32 @@ where
         Unsubscribe
     }
 
-    impl_request! {
+    impl_pub_request! {
         /// Send a set user voice settings request to the IPC server.
         set_user_voice_settings;
         SetUserVoiceSettings
     }
 
-    impl_request! {
+    impl_pub_request! {
         /// Send a set voice settings request to the IPC server.
         set_voice_settings;
         SetVoiceSettings
     }
 
-    impl_request! {
+    impl_pub_request! {
         /// Send a get voice settings request to the IPC server.
         get_voice_settings;
         GetVoiceSettings
     }
 
-    impl_request! {
-        /// Send a get voice settings request to the IPC server.
+    impl_pub_request! {
+        /// Send a set activity request to the IPC server.
         set_activity;
         SetActivity
     }
 
-    impl_request! {
-        /// Send a get voice settings request to the IPC server.
+    impl_pub_request! {
+        /// Send a get channels request to the IPC server.
         get_channels;
         GetChannels
     }
@@ -307,18 +326,50 @@ mod macros {
             }
         };
     }
-    macro_rules! impl_request {
+
+    macro_rules! impl_pub_request {
         (
             $(#[$attr:meta])*
             $request_name: ident;
             $args_name: ident
+        ) => {
+            impl_request! {
+                $(#[$attr])*
+                $request_name;
+                $args_name;
+                pub
+            }
+        };
+    }
+
+    macro_rules! impl_priv_request {
+        (
+            $(#[$attr:meta])*
+            $request_name: ident;
+            $args_name: ident
+        ) => {
+            impl_request! {
+                $(#[$attr])*
+                $request_name;
+                $args_name;
+                pub(crate)
+            }
+        };
+    }
+
+    macro_rules! impl_request {
+        (
+            $(#[$attr:meta])*
+            $request_name: ident;
+            $args_name: ident;
+            $viz: vis
         ) => {
             paste::paste! {
                 $(#[$attr])*
                 /// # Errors
                 /// A [SdkClientError] is returned if the client fails to send the request or if the server
                 /// responds with an error
-                pub async fn $request_name(&self, args: [<$args_name Args>]) -> SdkClientResult<[<$args_name Data>]> {
+                $viz async fn $request_name(&self, args: [<$args_name Args>]) -> SdkClientResult<[<$args_name Data>]> {
                     let response = self
                         .send_request(PayloadRequest::builder().request(args).build())
                         .await?;
@@ -343,7 +394,7 @@ mod macros {
             /// Spawns an [SdkClient] and establishes a connection to the Discord IPC
             ///
             /// # Note
-            /// The client is not yet ready in the ready state in which you must call [SdkClient::connect] to
+            /// The client is not yet ready in which you must call [SdkClient::connect] to
             /// connect to the IPC server.
             ///
             /// # Errors
@@ -359,11 +410,15 @@ mod macros {
         };
     }
     pub(super) use impl_evt_req;
+    pub(super) use impl_priv_request;
+    pub(super) use impl_pub_request;
     pub(super) use impl_request;
     pub(super) use impl_spawn_client;
 }
 
 use macros::impl_evt_req;
+use macros::impl_priv_request;
+use macros::impl_pub_request;
 use macros::impl_request;
 use macros::impl_spawn_client;
 
@@ -392,6 +447,9 @@ pub enum SdkClientError {
     /// Response is an error
     #[error("response sent back an error")]
     ResponseError { error: Box<ErrorData> },
+    /// OAuth2 Error
+    #[error("oauth2 error: {0}")]
+    OAuth2(#[from] OAuth2Error),
 }
 
 #[allow(missing_docs)]

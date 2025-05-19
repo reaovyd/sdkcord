@@ -68,6 +68,9 @@ to account for any new fields that Discord may add in the future.
 
 If you find that a response type is missing a field, please feel free to open an issue or a pull request to add that field.
 
+## OAuth2
+Most of the commands that are allowed only work when OAuth2 is enabled. If you want full support of the commands and events that you want to subscribe to, it is **strongly recommended** that you use the OAuth2 feature.
+
 ## Platforms Supported 
 The platforms that are supported will be the major ones as listed here:
 - Linux

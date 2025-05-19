@@ -1,4 +1,22 @@
 use bon::Builder;
+use secrecy::SecretString;
+
+use crate::payload::common::oauth2::OAuth2Scope;
+
+#[derive(Debug, Clone)]
+pub struct OAuth2Config {
+    pub(crate) client_secret: SecretString,
+    pub scopes: Vec<OAuth2Scope>,
+}
+
+impl OAuth2Config {
+    pub fn new(client_secret: &str, scopes: impl IntoIterator<Item = OAuth2Scope>) -> Self {
+        OAuth2Config {
+            client_secret: SecretString::new(client_secret.into()),
+            scopes: scopes.into_iter().collect(),
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Builder)]
 pub struct Config {

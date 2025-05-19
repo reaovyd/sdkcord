@@ -15,6 +15,7 @@ pub mod payload;
 mod actors;
 mod codec;
 mod conn;
+mod oauth2;
 mod pool;
 
 pub use conn::ConnectionError;
