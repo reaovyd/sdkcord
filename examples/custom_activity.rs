@@ -1,15 +1,15 @@
+//! Creating a custom activity
+//!
+//! Client Secret isn't actually required for the SetActivity command
 use std::time::Duration;
 
 use anyhow::Result;
 use sdkcord::{
     client::SdkClient,
-    config::{Config, OAuth2Config},
+    config::Config,
     payload::{
         SetActivityArgs,
-        common::{
-            activity::{Activity, ActivityType, Assets, Party},
-            oauth2::OAuth2Scope,
-        },
+        common::activity::{Activity, ActivityType, Assets, Party},
     },
 };
 use tokio::time::sleep;
@@ -19,24 +19,7 @@ use tracing::info;
 async fn main() -> Result<()> {
     let subscriber = tracing_subscriber::FmtSubscriber::new();
     tracing::subscriber::set_global_default(subscriber)?;
-    let scopes = [
-        OAuth2Scope::Rpc,
-        OAuth2Scope::Identify,
-        OAuth2Scope::Guilds,
-        OAuth2Scope::MessagesRead,
-        OAuth2Scope::RpcNotificationsRead,
-    ];
-    let client = SdkClient::new(
-        Config::default(),
-        "<YOUR_CLIENT_ID_HERE>",
-        Some(
-            OAuth2Config::builder()
-                .client_secret("<YOUR_CLIENT_SECRET_HERE>")
-                .scopes(scopes)
-                .build(),
-        ),
-    )
-    .await?;
+    let client = SdkClient::new(Config::default(), "<YOUR_CLIENT_ID>", None).await?;
     let activity = client
         .set_activity(
             SetActivityArgs::builder()
