@@ -1,6 +1,6 @@
 //! Creating a custom activity
 //!
-//! Client Secret isn't actually required for the SetActivity command
+//! Client Secret and consequently OAuth2 isn't actually required for the SetActivity command
 use std::time::Duration;
 
 use anyhow::Result;
