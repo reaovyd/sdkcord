@@ -3,19 +3,14 @@ use secrecy::SecretString;
 
 use crate::payload::common::oauth2::OAuth2Scope;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Builder)]
 pub struct OAuth2Config {
+    #[builder(into)]
     pub(crate) client_secret: SecretString,
+    #[builder(with = |scopes: impl IntoIterator<Item = OAuth2Scope>| {
+        scopes.into_iter().collect()
+    })]
     pub scopes: Vec<OAuth2Scope>,
-}
-
-impl OAuth2Config {
-    pub fn new(client_secret: &str, scopes: impl IntoIterator<Item = OAuth2Scope>) -> Self {
-        OAuth2Config {
-            client_secret: SecretString::new(client_secret.into()),
-            scopes: scopes.into_iter().collect(),
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Builder)]
@@ -41,7 +36,10 @@ impl Default for Config {
 
 #[cfg(test)]
 mod tests {
-    use super::Config;
+    use crate::payload::common::oauth2::OAuth2Scope;
+
+    use super::{Config, OAuth2Config};
+    use secrecy::ExposeSecret;
 
     #[test]
     fn test_config_build() {
@@ -54,5 +52,14 @@ mod tests {
             .build();
         assert_eq!(config.serializer_channel_buffer_size, 512);
         assert_eq!(config.deserializer_channel_buffer_size, 512);
+    }
+
+    #[test]
+    fn test_oauth2_config_build() {
+        let oauth2_config = OAuth2Config::builder()
+            .client_secret("asd")
+            .scopes([OAuth2Scope::ApplicationsBuildsUpload])
+            .build();
+        assert_eq!(oauth2_config.client_secret.expose_secret(), "asd");
     }
 }

@@ -15,7 +15,7 @@
 //!    refresh token.
 //! 2. A task that is scheduled to run every 12 hours from the time that this client was created.
 
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
 use oauth2::{
     AccessToken, AuthorizationCode, Client as OAuth2Client, ClientId, ClientSecret, EndpointNotSet,
@@ -27,14 +27,13 @@ use reqwest::Client as HttpClient;
 use secrecy::ExposeSecret;
 use thiserror::Error;
 use tokio::{
-    io::AsyncWrite,
     sync::RwLock,
     time::{Instant, interval_at},
 };
 use tracing::error;
 
 use crate::{
-    client::{ReadyState, SdkClient},
+    client::SdkClient,
     config::OAuth2Config,
     payload::{AuthenticateArgs, AuthorizeArgs},
 };
@@ -49,15 +48,11 @@ pub(crate) struct TokenManager {
 }
 
 impl TokenManager {
-    pub(crate) async fn new<W>(
+    pub(crate) async fn new(
         config: &OAuth2Config,
         client_id: &str,
-        sdk_client: &SdkClient<W, ReadyState>,
-    ) -> Result<Self, OAuth2Error>
-    where
-        W: Send + Sync + 'static,
-        W: AsyncWrite + Unpin,
-    {
+        sdk_client: &SdkClient,
+    ) -> Result<Self, OAuth2Error> {
         let client = Client::new(config, client_id)?;
         let refresh_token_data =
             handle_initial_oauth2_flow(sdk_client, &client, client_id, config.clone()).await?;
@@ -70,25 +65,18 @@ impl TokenManager {
         Ok(token_manager)
     }
 
-    async fn check_token_expiration(&self) -> Result<(), OAuth2Error> {
-        let token_data = self.token_data.read().await;
-        let now = Instant::now();
-        if now >= (token_data.expires_at - Duration::from_secs(60 * 30)) {
-            return Err(OAuth2Error::TokenConversion("token expired".to_string()));
-        }
-        Ok(())
-    }
+    // pub(crate) async fn is_token_expired(&self) -> bool {
+    //     let token_data = self.token_data.read().await;
+    //     let now = Instant::now();
+    //     now >= (token_data.expires_at - Duration::from_secs(60 * 30))
+    // }
 
-    async fn refresh_token<W>(
+    async fn refresh_token(
         &self,
         refresh_token_data: RefreshTokenData,
         access_token: AccessToken,
-        sdk_client: &Arc<SdkClient<W, ReadyState>>,
-    ) -> Result<(), OAuth2Error>
-    where
-        W: Send + Sync + 'static,
-        W: AsyncWrite + Unpin,
-    {
+        sdk_client: &SdkClient,
+    ) -> Result<(), OAuth2Error> {
         {
             let mut write_lock = self.token_data.write().await;
             *write_lock = refresh_token_data;
@@ -152,11 +140,7 @@ impl Client {
             .map_err(|err| OAuth2Error::RefreshTokenExchange(err.to_string()))
     }
 }
-pub(crate) fn spawn_refresh_task<W>(sdk_client: Arc<SdkClient<W, ReadyState>>)
-where
-    W: Send + Sync + 'static,
-    W: AsyncWrite + Unpin,
-{
+pub(crate) fn spawn_refresh_task(sdk_client: SdkClient) {
     tokio::task::spawn(async move {
         let mut interval = interval_at(
             Instant::now() + DEFAULT_EXPIRATION_CHECK_PERIOD,
@@ -164,7 +148,7 @@ where
         );
         loop {
             interval.tick().await;
-            let token_manager = sdk_client.token_manager.as_ref().unwrap();
+            let token_manager = sdk_client.token_manager();
             let refresh_data = {
                 let data = token_manager.token_data.read().await;
                 data.clone()
@@ -196,22 +180,18 @@ where
     });
 }
 
-async fn handle_initial_oauth2_flow<W>(
-    client: &SdkClient<W, ReadyState>,
+async fn handle_initial_oauth2_flow(
+    sdk_client: &SdkClient,
     oauth2_client: &Client,
     client_id: &str,
     oauth2_config: OAuth2Config,
-) -> Result<RefreshTokenData, OAuth2Error>
-where
-    W: Send + Sync + 'static,
-    W: AsyncWrite + Unpin,
-{
+) -> Result<RefreshTokenData, OAuth2Error> {
     let authorize_args = AuthorizeArgs::builder()
         .client_id(client_id)
         .scopes(oauth2_config.scopes)
         .build();
 
-    let authorize_data = client
+    let authorize_data = sdk_client
         .authorize(authorize_args)
         .await
         .map_err(|err| OAuth2Error::AuthorizationCodeExchange(err.to_string()))?;
@@ -228,7 +208,7 @@ where
         .access_token(access_token)
         .build();
 
-    client
+    sdk_client
         .authenticate(authenticate_args)
         .await
         .map_err(|err| OAuth2Error::Authenticate(err.to_string()))?;

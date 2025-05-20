@@ -7,7 +7,7 @@
 //!
 //! From there, you can send requests to the IPC server by calling the APIs inside [SdkClient] and
 //! build the request you need with [PayloadRequest].
-use std::{marker::PhantomData, sync::Arc, time::Duration};
+use std::{sync::Arc, time::Duration};
 
 use kameo::{actor::ActorRef, error::SendError};
 use thiserror::Error;
@@ -24,10 +24,10 @@ use crate::{
 };
 
 #[cfg(unix)]
-use {crate::conn::unix::connect_unix, tokio::net::unix::OwnedWriteHalf};
+use {crate::conn::unix::connect_unix, tokio::net::unix::OwnedWriteHalf as WriteHalf};
 
 #[cfg(windows)]
-use {crate::conn::windows::ClientWriteHalf, crate::conn::windows::connect_windows};
+use {crate::conn::windows::ClientWriteHalf as WriteHalf, crate::conn::windows::connect_windows};
 
 use tokio::{
     io::{AsyncRead, AsyncWrite},
@@ -35,132 +35,50 @@ use tokio::{
     time::Instant,
 };
 
-#[cfg(unix)]
-impl_spawn_client! { connect_unix, OwnedWriteHalf }
-#[cfg(windows)]
-impl_spawn_client! { connect_windows, ClientWriteHalf }
-
-async fn spawn<T, R>(
-    wh: T,
-    rh: R,
-    config: Config,
-) -> Result<SdkClient<T, UnreadyState>, SdkClientError>
-where
-    T: Send + Sync + 'static,
-    T: AsyncWrite + Unpin,
-    R: Send + Sync + 'static,
-    R: AsyncRead + Unpin,
-{
-    let serializer_client = spawn_pool()
-        .channel_buffer(config.serializer_channel_buffer_size)
-        .num_threads(config.serializer_num_threads)
-        .op(serialize)
-        .call();
-    // TODO: make this deserialization function...
-    let deserialization_client = spawn_pool()
-        .channel_buffer(config.deserializer_channel_buffer_size)
-        .num_threads(config.deserializer_num_threads)
-        .op(deserialize)
-        .call();
-    let codec = FrameCodec {};
-    let framed_write = FramedWrite::new(wh, codec);
-    let framed_read = FramedRead::new(rh, codec);
-
-    let writer = kameo::spawn(Writer::new(serializer_client, framed_write));
-    let coordinator = kameo::spawn(Coordinator::new(writer));
-    kameo::spawn(Reader::new(
-        deserialization_client,
-        framed_read,
-        coordinator.clone(),
-    ));
-
-    Ok(SdkClient {
-        coordinator,
-        request_timeout: Duration::from_secs(config.request_timeout),
-        token_manager: None,
-        _state: PhantomData,
-    })
-}
-
 /// The client for the Discord IPC server
-#[derive(Debug)]
-pub struct SdkClient<W, S>
-where
-    W: Send + Sync + 'static,
-    W: AsyncWrite + Unpin,
-{
-    coordinator: ActorRef<Coordinator<ActorRef<Writer<W>>>>,
-    request_timeout: Duration,
-    pub(crate) token_manager: Option<Arc<TokenManager>>,
-    _state: PhantomData<S>,
+#[derive(Debug, Clone)]
+pub struct SdkClient {
+    inner: Arc<InnerSdkClient>,
+    token_manager: Option<Arc<TokenManager>>,
 }
 
-impl<T, S> SdkClient<T, S>
-where
-    T: Send + Sync + 'static,
-    T: AsyncWrite + Unpin,
-{
-    /// Connect to Discord
-    ///
-    /// This call is made to let Discord know that this client is ready to send and receive
-    /// messages. It is necessary to call this function before sending any requests to the IPC
-    /// server.
+impl SdkClient {
+    /// Constructs a new client and connects to Discord
     ///
     /// # Errors
     /// An [SdkClientError] is returned if the client fails to connect to the IPC server.
-    #[inline(always)]
-    pub async fn connect(
-        self,
-        client_id: &str,
-        oauth2_config: OAuth2Config,
-    ) -> Result<Arc<SdkClient<T, ReadyState>>, SdkClientError> {
-        let (sndr, recv) = oneshot::channel::<PayloadResponse>();
-        self.coordinator
-            .tell((
-                Request::Connect(ConnectRequest::new(client_id.to_string())),
-                sndr,
-            ))
-            .await
-            .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
-
-        tokio::time::timeout_at(Instant::now() + self.request_timeout, recv)
-            .await
-            .map_err(|_| SdkClientError::Timeout)?
-            .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
-
-        let client = SdkClient {
-            coordinator: self.coordinator,
-            request_timeout: self.request_timeout,
+    pub async fn new(
+        config: Config,
+        client_id: impl Into<String>,
+        oauth2_config: Option<OAuth2Config>,
+    ) -> Result<Self, SdkClientError> {
+        let client_id = client_id.into();
+        let inner = Arc::new(InnerSdkClient::new(config, &client_id).await?);
+        let mut sdk_client = SdkClient {
+            inner,
             token_manager: None,
-            _state: PhantomData,
         };
-        let client = Self::enable_oauth2(client, client_id, oauth2_config.clone()).await?;
-        Ok(client)
+        if let Some(oauth2_config) = oauth2_config {
+            let token_manager =
+                Arc::new(TokenManager::new(&oauth2_config, &client_id, &sdk_client).await?);
+            sdk_client.token_manager = Some(token_manager);
+            // NOTE: cloning this is okay since we will only be cloning a few Arcs!
+            spawn_refresh_task(sdk_client.clone());
+        }
+        Ok(sdk_client)
     }
+    // TODO: oauth2 expiration check on each request?
+    // async fn oauth2_exchange(&self) {
+    //     // i believe the following can happen:
+    //     // 1. consider a user wants to clone many of these SdkClients
+    //     // 2. consider we're at the point that there are many readers now that are performing the
+    //     //    oauth2_exchange
+    //     // 3. reads would happen and say they all find that it is expired.
+    //     // 4. many of the clients would then try to refresh_token by calling the
+    //     //    exchange_refresh_token...
+    //     if self.token_manager().is_token_expired().await {}
+    // }
 
-    #[inline(always)]
-    async fn enable_oauth2(
-        sdk_client: SdkClient<T, ReadyState>,
-        client_id: &str,
-        oauth2_config: OAuth2Config,
-    ) -> Result<Arc<SdkClient<T, ReadyState>>, SdkClientError> {
-        let mut sdk_client = sdk_client;
-        let token_manager =
-            Arc::new(TokenManager::new(&oauth2_config, client_id, &sdk_client).await?);
-        sdk_client.token_manager = Some(token_manager);
-        let client = Arc::new(sdk_client);
-        spawn_refresh_task(client.clone());
-        Ok(client)
-    }
-}
-
-type SdkClientResult<T> = Result<Box<T>, SdkClientError>;
-
-impl<T> SdkClient<T, ReadyState>
-where
-    T: Send + Sync + 'static,
-    T: AsyncWrite + Unpin,
-{
     impl_priv_request! {
         /// Send a authenticate request to the IPC server
         authenticate; Authenticate
@@ -241,6 +159,64 @@ where
         get_channels;
         GetChannels
     }
+
+    pub(crate) fn token_manager(&self) -> &TokenManager {
+        self.token_manager.as_ref().unwrap()
+    }
+}
+
+#[derive(Debug)]
+struct InnerSdkClient {
+    coordinator: ActorRef<Coordinator<ActorRef<Writer<WriteHalf>>>>,
+    request_timeout: Duration,
+}
+
+impl InnerSdkClient {
+    async fn new(config: Config, client_id: &str) -> Result<InnerSdkClient, SdkClientError> {
+        let (rh, wh) = {
+            #[cfg(unix)]
+            {
+                connect_unix()
+                    .await
+                    .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?
+            }
+            #[cfg(windows)]
+            {
+                connect_windows()
+                    .await
+                    .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?
+            }
+        };
+        let coordinator = setup(wh, rh, &config).await;
+        let (sndr, recv) = oneshot::channel::<PayloadResponse>();
+        // Setup Initial IPC connection
+        {
+            coordinator
+                .tell((
+                    Request::Connect(ConnectRequest::new(client_id.to_string())),
+                    sndr,
+                ))
+                .await
+                .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
+
+            tokio::time::timeout_at(
+                Instant::now() + Duration::from_secs(config.request_timeout),
+                recv,
+            )
+            .await
+            .map_err(|_| SdkClientError::Timeout)?
+            .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
+        }
+
+        let request_timeout = Duration::from_secs(config.request_timeout);
+
+        let sdk_client = InnerSdkClient {
+            coordinator,
+            request_timeout,
+        };
+        Ok(sdk_client)
+    }
+
     /// Send a request to the IPC server
     ///
     /// As an end user, you would use this function to send a request to the IPC server. The
@@ -295,6 +271,40 @@ where
     }
 }
 
+async fn setup<W, R>(wh: W, rh: R, config: &Config) -> ActorRef<Coordinator<ActorRef<Writer<W>>>>
+where
+    W: Send + Sync + 'static,
+    W: AsyncWrite + Unpin,
+    R: Send + Sync + 'static,
+    R: AsyncRead + Unpin,
+{
+    let serializer_client = spawn_pool()
+        .channel_buffer(config.serializer_channel_buffer_size)
+        .num_threads(config.serializer_num_threads)
+        .op(serialize)
+        .call();
+    // TODO: make this deserialization function...
+    let deserialization_client = spawn_pool()
+        .channel_buffer(config.deserializer_channel_buffer_size)
+        .num_threads(config.deserializer_num_threads)
+        .op(deserialize)
+        .call();
+    let codec = FrameCodec {};
+    let framed_write = FramedWrite::new(wh, codec);
+    let framed_read = FramedRead::new(rh, codec);
+
+    let writer = kameo::spawn(Writer::new(serializer_client, framed_write));
+    let coordinator = kameo::spawn(Coordinator::new(writer));
+    kameo::spawn(Reader::new(
+        deserialization_client,
+        framed_read,
+        coordinator.clone(),
+    ));
+    coordinator
+}
+
+type SdkClientResult<T> = Result<Box<T>, SdkClientError>;
+
 mod macros {
     macro_rules! impl_evt_req {
         (
@@ -309,6 +319,7 @@ mod macros {
                 /// responds with an error
                 pub async fn $request_name<E: EventArgsType>(&self, args: E) -> SdkClientResult<[<$args_name Data>]> {
                     let response = self
+                        .inner
                         .send_request(PayloadRequest::builder().event().$request_name(args).build())
                         .await?;
                     if let Some(Data::$args_name(data)) = response.0.data {
@@ -371,6 +382,7 @@ mod macros {
                 /// responds with an error
                 $viz async fn $request_name(&self, args: [<$args_name Args>]) -> SdkClientResult<[<$args_name Data>]> {
                     let response = self
+                        .inner
                         .send_request(PayloadRequest::builder().request(args).build())
                         .await?;
                     if let Some(Data::$args_name(data)) = response.0.data {
@@ -388,39 +400,16 @@ mod macros {
             }
         };
     }
-
-    macro_rules! impl_spawn_client {
-        ($connect: ident, $write_half: ty) => {
-            /// Spawns an [SdkClient] and establishes a connection to the Discord IPC
-            ///
-            /// # Note
-            /// The client is not yet ready in which you must call [SdkClient::connect] to
-            /// connect to the IPC server.
-            ///
-            /// # Errors
-            /// [SdkClientError] is returned if the client fails to spawn.
-            pub async fn spawn_client(
-                config: Config,
-            ) -> Result<SdkClient<$write_half, UnreadyState>, SdkClientError> {
-                let (rh, wh) = $connect()
-                    .await
-                    .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?;
-                spawn(wh, rh, config).await
-            }
-        };
-    }
     pub(super) use impl_evt_req;
     pub(super) use impl_priv_request;
     pub(super) use impl_pub_request;
     pub(super) use impl_request;
-    pub(super) use impl_spawn_client;
 }
 
 use macros::impl_evt_req;
 use macros::impl_priv_request;
 use macros::impl_pub_request;
 use macros::impl_request;
-use macros::impl_spawn_client;
 
 /// An Error type for when making requests to the IPC server may fail
 #[derive(Debug, Error)]
@@ -451,10 +440,3 @@ pub enum SdkClientError {
     #[error("oauth2 error: {0}")]
     OAuth2(#[from] OAuth2Error),
 }
-
-#[allow(missing_docs)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ReadyState;
-#[allow(missing_docs)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct UnreadyState;
