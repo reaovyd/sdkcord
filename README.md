@@ -16,8 +16,7 @@ cargo add sdkcord
 ```
 
 ## Quick Start
-- To get started quickly, you can get a client quickly with the `sdkcord::spawn_client` method, which provides an `SdkClient`. 
-- The `SdkClient` provides a `connect` method which must be called initially before sending any requests.
+- To get started quickly, you can get a client with the `sdkcord::spawn_client` method, which provides an `SdkClient`. 
 
 The following example is from [`examples/basic.rs`](https://github.com/reaovyd/sdkcord/blob/main/examples/basic.rs):
 ```rust no_run

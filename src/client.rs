@@ -1,12 +1,16 @@
-//! The client library for the IPC server
+//! The client used to communiate with the Discord Client IPC.
 //!
-//! # Usage
-//! To actually spin up a client that can be used, you would first need to invoke the [spawn_client]
-//! function to grab an [SdkClient]. To connect to the IPC server and tell Discord that this client
-//! is ready to receive messages, you would call [SdkClient::connect].
+//! ## OAuth2
+//! You can enable OAuth2 by providing an [OAuth2Config] when constructing the client. You can find
+//! the scopes used in the [OAuth2Scope][crate::payload::common::oauth2::OAuth2Scope] enum. The ones you will most likely use are:
 //!
-//! From there, you can send requests to the IPC server by calling the APIs inside [SdkClient] and
-//! build the request you need with [PayloadRequest].
+//!  - `Rpc`
+//!  - `Identify`
+//!  - `Guilds`
+//!  - `MessagesRead`
+//!  - `RpcNotificationsRead`
+//!
+//! to get access to all of the commands in the SDK.
 use std::{sync::Arc, time::Duration};
 
 use kameo::{actor::ActorRef, error::SendError};
@@ -44,6 +48,9 @@ pub struct SdkClient {
 
 impl SdkClient {
     /// Constructs a new client and connects to Discord
+    ///
+    /// # OAuth2
+    /// You can provide an [OAuth2Config] through an Option<OAuth2Config> to enable OAuth2.
     ///
     /// # Errors
     /// An [SdkClientError] is returned if the client fails to connect to the IPC server.
