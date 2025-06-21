@@ -39,7 +39,7 @@ oauth2 = { version = "5.0.0" }
 secrecy = { version = "0.10.3" }
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.59.0" }
+windows-sys = { version = "0.60.2" }
 
 [dependencies.tokio]
 version = "1.45.0"
