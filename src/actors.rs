@@ -152,8 +152,13 @@ where
                     // only Event with a nonce is the Error type has a nonce
                     send_response(&pending_requests, msg);
                 }
-                _ => {
+                Some(evt) => {
                     // TODO: send event to some listener...
+                    // 1. Coordinator should have some kind of sender and the client should have
+                    //    the receiver
+                    // 2. Receiver for the client should be created as well and client holds the
+                    //    receiver
+                    // 3. When client :
                 }
             }
         });

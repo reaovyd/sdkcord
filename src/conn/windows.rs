@@ -43,7 +43,7 @@ pub(crate) async fn connect_windows() -> Result<(ClientReadHalf, ClientWriteHalf
 /// There is currently no way to split the named pipe client into read and write halves so this is
 /// a wrapper around the client to allow for writing to the IPC connection
 #[derive(Debug)]
-pub struct ClientWriteHalf {
+pub(crate) struct ClientWriteHalf {
     inner: Arc<NamedPipeClient>,
 }
 
