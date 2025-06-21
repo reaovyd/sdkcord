@@ -8,6 +8,9 @@ use sdkcord::{
     },
 };
 
+const CLIENT_ID: &str = "<YOUR_CLIENT_ID_HERE>";
+const CLIENT_SECRET: &str = "<YOUR_CLIENT_SECRET>";
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let subscriber = tracing_subscriber::FmtSubscriber::new();
@@ -21,17 +24,17 @@ async fn main() -> Result<()> {
     ];
     let client = SdkClient::new(
         Config::default(),
-        "<YOUR_CLIENT_ID_HERE>",
+        CLIENT_ID,
         Some(
             OAuth2Config::builder()
-                .client_secret("<YOUR_SECRET_HERE>")
+                .client_secret(CLIENT_SECRET)
                 .scopes(scopes)
                 .build(),
         ),
     )
     .await?;
     let get_channel_data = client
-        .get_channel(GetChannelArgs(ChannelId::from("<YOUR_CHANNEL_ID_HERE>")))
+        .get_channel(GetChannelArgs(ChannelId::from(CLIENT_ID)))
         .await?;
     println!("Data: {:?}", get_channel_data);
     Ok(())
