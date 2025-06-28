@@ -40,7 +40,7 @@ async fn main() -> Result<()> {
             tracing::info!("Received event: {:?}", evt);
         }
     });
-    let channel_id = ChannelId::from("<YOUR_CLIENT_ID_HERE>");
+    let channel_id = ChannelId::from("<YOUR_CHANNEL_ID_HERE>");
     let evt = client
         .subscribe(VoiceStateCreateArgs(channel_id.clone()))
         .await;
