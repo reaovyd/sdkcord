@@ -7,7 +7,7 @@ use super::{ArgsType, Command, Event, EventArgsType, Payload, RequestArgsType};
 
 const PROTOCOL_VERSION: u32 = 1;
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub(crate) enum Request {
     Connect(ConnectRequest),
     Payload(PayloadRequest),
@@ -29,7 +29,7 @@ impl ConnectRequest {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 #[repr(transparent)]
 pub struct PayloadRequest(pub(crate) Box<Payload>);
 

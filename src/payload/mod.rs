@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 /// Payload that is sent/received to/from the Discord IPC server
 #[skip_serializing_none]
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct Payload {
     /// [Command] type
     ///
@@ -38,7 +38,7 @@ pub struct Payload {
     pub args: Option<Args>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 #[serde(untagged)]
 #[non_exhaustive]
 pub enum Data {
@@ -89,7 +89,7 @@ pub enum Data {
     // ActivityJoinRequest(ActivityJoinRequestArgs),
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 #[serde(untagged)]
 #[non_exhaustive]
 pub enum EventData {
@@ -196,6 +196,7 @@ pub enum Args {
     ActivityJoinRequest(ActivityJoinRequestArgs),
 }
 
+// TODO: is there a better way to handle empty brackets?
 #[derive(Debug, Default, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct EmptyBracket {
     #[serde(flatten)]

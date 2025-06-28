@@ -54,13 +54,13 @@ pub struct VoiceChannelSelectData {
     pub guild_id: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct VoiceConnectionStatusData {
     pub state: Option<VoiceConnectionState>,
     pub hostname: Option<String>,
     pub pings: Option<Vec<Ping>>,
-    pub average_ping: Option<u32>,
-    pub last_ping: Option<u32>,
+    pub average_ping: Option<f32>,
+    pub last_ping: Option<f32>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]

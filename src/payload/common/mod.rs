@@ -4,6 +4,7 @@ pub mod channel;
 pub mod device;
 pub mod guild;
 pub mod level;
+pub mod message;
 pub mod oauth2;
 pub mod opcode;
 pub mod pan;
