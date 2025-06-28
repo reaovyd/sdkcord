@@ -37,7 +37,7 @@ use uuid::Uuid;
 use crate::{
     SerdeProcessingError,
     codec::{Frame, FrameCodec},
-    payload::{Event, PayloadResponse, Request},
+    payload::{Event, EventData, PayloadResponse, Request},
     pool::{Client, SerdePoolError},
 };
 
@@ -51,6 +51,7 @@ pub(crate) struct Coordinator<W> {
     writer: W,
     /// Pending client requests where we map the nonce to the caller
     pending_requests: Arc<DashMap<Uuid, oneshot::Sender<PayloadResponse>>>,
+    evt_queue_tx: async_channel::Sender<EventData>,
 }
 
 impl<T> Actor for Coordinator<ActorRef<Writer<T>>>
@@ -67,15 +68,19 @@ where
     T: AsyncWrite + Unpin,
 {
     /// Creates a new Coordinator actor
-    pub(crate) fn new(writer: ActorRef<Writer<T>>) -> Self {
+    pub(crate) fn new(
+        writer: ActorRef<Writer<T>>,
+        evt_queue_tx: async_channel::Sender<EventData>,
+    ) -> Self {
         Self {
             writer,
             pending_requests: Arc::new(DashMap::new()),
+            evt_queue_tx,
         }
     }
 }
 
-/// CoordinatorMessage alias for the message sent to the Coordinator actor
+/// CoordinatorMessage alias for the message sent to the Coordinator actor from the client
 type CoordinatorMessage = (Request, oneshot::Sender<PayloadResponse>);
 
 impl<T> Message<CoordinatorMessage> for Coordinator<ActorRef<Writer<T>>>
@@ -139,29 +144,29 @@ where
         mut msg: PayloadResponse,
         _: &mut Context<Self, Self::Reply>,
     ) -> Self::Reply {
-        let pending_requests = self.pending_requests.clone();
-
-        tokio::spawn(async move {
-            match msg.0.evt.as_ref() {
-                Some(Event::Ready) => {
-                    // little bit of a hacky way
-                    msg.0.nonce = Some(CONNECT_UUID);
-                    send_response(&pending_requests, msg);
-                }
-                None | Some(Event::Error) => {
-                    // only Event with a nonce is the Error type has a nonce
-                    send_response(&pending_requests, msg);
-                }
-                Some(evt) => {
-                    // TODO: send event to some listener...
-                    // 1. Coordinator should have some kind of sender and the client should have
-                    //    the receiver
-                    // 2. Receiver for the client should be created as well and client holds the
-                    //    receiver
-                    // 3. When client :
-                }
+        match msg.0.evt.as_ref() {
+            Some(Event::Ready) => {
+                // little bit of a hacky way
+                let pending_requests = self.pending_requests.clone();
+                msg.0.nonce = Some(CONNECT_UUID);
+                send_response(pending_requests, msg);
             }
-        });
+            None | Some(Event::Error) => {
+                // only Event with a nonce is the Error type has a nonce
+                let pending_requests = self.pending_requests.clone();
+                send_response(pending_requests, msg);
+            }
+            Some(_evt) => {
+                let evt_queue_tx = self.evt_queue_tx.clone();
+                tokio::spawn(async move {
+                    let evt_data = EventData::from(msg.0.data.unwrap());
+                    evt_queue_tx
+                        .send(evt_data)
+                        .await
+                        .expect("channel closed...");
+                });
+            }
+        }
     }
 }
 
@@ -304,25 +309,29 @@ where
 /// Send a response back to the client
 #[instrument(level = "trace", skip(pending_requests))]
 fn send_response(
-    pending_requests: &Arc<DashMap<Uuid, oneshot::Sender<PayloadResponse>>>,
+    pending_requests: Arc<DashMap<Uuid, oneshot::Sender<PayloadResponse>>>,
     resp: PayloadResponse,
 ) {
-    if let Some(nonce) = resp.0.nonce.as_ref() {
-        if let Some((nonce, sender)) = { pending_requests.remove(nonce) } {
-            if sender.send(resp).is_err() {
-                error!(
-                    "nonce id: [{}] failed to send to client; receiver end may have died!",
-                    nonce
-                );
+    tokio::spawn(async move {
+        if let Some(nonce) = resp.0.nonce.as_ref() {
+            if let Some((nonce, sender)) = { pending_requests.remove(nonce) } {
+                if sender.send(resp).is_err() {
+                    error!(
+                        "nonce id: [{}] failed to send to client; receiver end may have died!",
+                        nonce
+                    );
+                } else {
+                    trace!("nonce id: [{}] successfully sent to client", nonce)
+                }
             } else {
-                trace!("nonce id: [{}] successfully sent to client", nonce)
+                error!(
+                    "nonce cannot be found in pending requests (perhaps client has timed out?)..."
+                );
             }
         } else {
-            error!("nonce cannot be found in pending requests (perhaps client has timed out?)...");
+            error!("nonce cannot be found in the response...");
         }
-    } else {
-        error!("nonce cannot be found in the response...");
-    }
+    });
 }
 
 /// Process the message read from the IPC server

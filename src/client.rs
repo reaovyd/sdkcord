@@ -74,17 +74,10 @@ impl SdkClient {
         }
         Ok(sdk_client)
     }
-    // TODO: oauth2 expiration check on each request?
-    // async fn oauth2_exchange(&self) {
-    //     // i believe the following can happen:
-    //     // 1. consider a user wants to clone many of these SdkClients
-    //     // 2. consider we're at the point that there are many readers now that are performing the
-    //     //    oauth2_exchange
-    //     // 3. reads would happen and say they all find that it is expired.
-    //     // 4. many of the clients would then try to refresh_token by calling the
-    //     //    exchange_refresh_token...
-    //     if self.token_manager().is_token_expired().await {}
-    // }
+
+    pub async fn read_event_queue(&self) -> EventData {
+        self.inner.get_event_data().await
+    }
 
     impl_priv_request! {
         /// Send a authenticate request to the IPC server
@@ -176,6 +169,7 @@ impl SdkClient {
 struct InnerSdkClient {
     coordinator: ActorRef<Coordinator<ActorRef<Writer<WriteHalf>>>>,
     request_timeout: Duration,
+    evt_queue_rx: async_channel::Receiver<EventData>,
 }
 
 impl InnerSdkClient {
@@ -194,7 +188,8 @@ impl InnerSdkClient {
                     .map_err(|err| SdkClientError::ConnectionFailed(err.to_string()))?
             }
         };
-        let coordinator = setup(wh, rh, &config).await;
+        let (evt_queue_tx, evt_queue_rx) = async_channel::bounded::<EventData>(1024);
+        let coordinator = setup(wh, rh, &config, evt_queue_tx).await;
         let (sndr, recv) = oneshot::channel::<PayloadResponse>();
         // Setup Initial IPC connection
         {
@@ -220,8 +215,16 @@ impl InnerSdkClient {
         let sdk_client = InnerSdkClient {
             coordinator,
             request_timeout,
+            evt_queue_rx,
         };
         Ok(sdk_client)
+    }
+
+    async fn get_event_data(&self) -> EventData {
+        self.evt_queue_rx
+            .recv()
+            .await
+            .expect("failed since channel is closed")
     }
 
     /// Send a request to the IPC server
@@ -278,7 +281,12 @@ impl InnerSdkClient {
     }
 }
 
-async fn setup<W, R>(wh: W, rh: R, config: &Config) -> ActorRef<Coordinator<ActorRef<Writer<W>>>>
+async fn setup<W, R>(
+    wh: W,
+    rh: R,
+    config: &Config,
+    evt_queue_tx: async_channel::Sender<EventData>,
+) -> ActorRef<Coordinator<ActorRef<Writer<W>>>>
 where
     W: Send + Sync + 'static,
     W: AsyncWrite + Unpin,
@@ -301,7 +309,7 @@ where
     let framed_read = FramedRead::new(rh, codec);
 
     let writer = kameo::spawn(Writer::new(serializer_client, framed_write));
-    let coordinator = kameo::spawn(Coordinator::new(writer));
+    let coordinator = kameo::spawn(Coordinator::new(writer, evt_queue_tx));
     kameo::spawn(Reader::new(
         deserialization_client,
         framed_read,

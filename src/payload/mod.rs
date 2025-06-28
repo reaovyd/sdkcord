@@ -92,6 +92,66 @@ pub enum Data {
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 #[serde(untagged)]
 #[non_exhaustive]
+pub enum EventData {
+    GuildStatus(Box<GuildStatusData>),
+    GuildCreate(Box<GuildCreateData>),
+    ChannelCreate(Box<ChannelCreateData>),
+    VoiceChannelSelect(Box<VoiceChannelSelectData>),
+    VoiceStateCreate(Box<VoiceStateCreateData>),
+    VoiceStateUpdate(Box<VoiceStateUpdateData>),
+    VoiceStateDelete(Box<VoiceStateDeleteData>),
+    // #[cfg(feature = "untested")]
+    // VoiceSettingsUpdate(VoiceSettingsUpdateArgs),
+    VoiceConnectionStatus(Box<VoiceConnectionStatusData>),
+    SpeakingStart(Box<SpeakingStartData>),
+    SpeakingStop(Box<SpeakingStopData>),
+    // MessageCreate(MessageCreateArgs),
+    // MessageUpdate(MessageUpdateArgs),
+    // MessageDelete(MessageDeleteArgs),
+    // NotificationCreate(NotificationCreateArgs),
+    // #[cfg(feature = "untested")]
+    // ActivityJoin(ActivityJoinArgs),
+    // #[cfg(feature = "untested")]
+    // ActivitySpectate(ActivitySpectateArgs),
+    // #[cfg(feature = "untested")]
+    // ActivityJoinRequest(ActivityJoinRequestArgs),
+}
+
+impl From<Data> for EventData {
+    fn from(data: Data) -> Self {
+        match data {
+            Data::GuildStatus(data) => EventData::GuildStatus(data),
+            Data::GuildCreate(data) => EventData::GuildCreate(data),
+            Data::ChannelCreate(data) => EventData::ChannelCreate(data),
+            Data::VoiceChannelSelect(data) => EventData::VoiceChannelSelect(data),
+            Data::VoiceStateCreate(data) => EventData::VoiceStateCreate(data),
+            Data::VoiceStateUpdate(data) => EventData::VoiceStateUpdate(data),
+            Data::VoiceStateDelete(data) => EventData::VoiceStateDelete(data),
+            // #[cfg(feature = "untested")]
+            // Data::VoiceSettingsUpdate(args) => EventData::VoiceSettingsUpdate(args),
+            Data::VoiceConnectionStatus(data) => EventData::VoiceConnectionStatus(data),
+            Data::SpeakingStart(data) => EventData::SpeakingStart(data),
+            Data::SpeakingStop(data) => EventData::SpeakingStop(data),
+            // Data::MessageCreate(args) => EventData::MessageCreate(args),
+            // Data::MessageUpdate(args) => EventData::MessageUpdate(args),
+            // Data::MessageDelete(args) => EventData::MessageDelete(args),
+            // Data::NotificationCreate(args) => EventData::NotificationCreate(args),
+            // #[cfg(feature = "untested")]
+            // Data::ActivityJoin(args) => EventData::ActivityJoin(args),
+            // #[cfg(feature = "untested")]
+            // Data::ActivitySpectate(args) => EventData::ActivitySpectate(args),
+            // #[cfg(feature = "untested")]
+            // Data::ActivityJoinRequest(args) => EventData::ActivityJoinRequest(args),
+            _ => {
+                panic!("Data variant {:?} cannot be converted to EventData", data)
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[serde(untagged)]
+#[non_exhaustive]
 pub enum Args {
     Authorize(AuthorizeArgs),
     Authenticate(AuthenticateArgs),

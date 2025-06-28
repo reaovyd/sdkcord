@@ -15,11 +15,13 @@ use sdkcord::{
 use tokio::time::sleep;
 use tracing::info;
 
+const CLIENT_ID: &str = "<YOUR_CLIENT_ID_HERE>";
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let subscriber = tracing_subscriber::FmtSubscriber::new();
     tracing::subscriber::set_global_default(subscriber)?;
-    let client = SdkClient::new(Config::default(), "<YOUR_CLIENT_ID>", None).await?;
+    let client = SdkClient::new(Config::default(), CLIENT_ID, None).await?;
     let activity = client
         .set_activity(
             SetActivityArgs::builder()
