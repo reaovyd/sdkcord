@@ -3,8 +3,8 @@
 //! # Actors
 //! We have the following actors:
 //! - [Coordinator]: handles the message received from the [crate::client::SdkClient],
-//!           sends it to the [Writer], and also processes event and response messages
-//!           from the [Reader].
+//!   sends it to the [Writer], and also processes event and response messages
+//!   from the [Reader].
 //! - [Writer]: handles the message sent from the client and sends it to the IPC server
 //! - [Reader]: handles the message sent from the server and sends it to the [Coordinator]
 //!
