@@ -3,6 +3,7 @@ pub mod application;
 pub mod attachment;
 pub mod channel;
 pub mod device;
+pub mod embed;
 pub mod guild;
 pub mod level;
 pub mod message;
