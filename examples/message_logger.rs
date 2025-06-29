@@ -7,10 +7,10 @@ use sdkcord::{
         common::{channel::ChannelId, oauth2::OAuth2Scope},
     },
 };
+use tracing::info;
 
 const CLIENT_ID: &str = "<YOUR_CLIENT_ID>";
 const CLIENT_SECRET: &str = "<YOUR_CLIENT_SECRET>";
-const CHANNEL_ID: &str = "<YOUR_CHANNEL_ID>";
 
 async fn subscribe_to_channel(client: &SdkClient, channel_id: ChannelId) -> Result<()> {
     client
@@ -45,9 +45,33 @@ async fn main() -> Result<()> {
         ),
     )
     .await?;
-    subscribe_to_channel(&client, ChannelId::from(CHANNEL_ID)).await?;
+    let channels = [
+        "<YOUR_CHANNEL_ID>",
+        "<YOUR_CHANNEL_ID>",
+        "<YOUR_CHANNEL_ID>",
+        "<YOUR_CHANNEL_ID>",
+        "<YOUR_CHANNEL_ID>",
+        "<YOUR_CHANNEL_ID>",
+        "<YOUR_CHANNEL_ID>",
+    ];
+    for channel in channels {
+        let channel_id = ChannelId::from(channel);
+        info!("Subscribing to channel: {}", channel_id.channel_id);
+        subscribe_to_channel(&client, channel_id).await?;
+    }
     loop {
         let data = client.read_event_queue().await;
-        println!("Received event: {:?}", data);
+        match data {
+            sdkcord::payload::EventData::MessageCreate(message_create_data) => {
+                info!("MESSAGE CREATED: {:?}", message_create_data);
+            }
+            sdkcord::payload::EventData::MessageUpdate(message_update_data) => {
+                info!("MESSAGE UPDATED: {:?}", message_update_data);
+            }
+            sdkcord::payload::EventData::MessageDelete(message_delete_data) => {
+                info!("MESSAGE DELETED: {:?}", message_delete_data);
+            }
+            _ => {}
+        };
     }
 }
