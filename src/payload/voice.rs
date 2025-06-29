@@ -82,10 +82,10 @@ pub struct VoiceStateEvent {
     pub volume: Option<OrderedFloat<f32>>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct SelectVoiceChannelData(pub Option<GetChannelData>);
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct GetSelectedVoiceChannelData(pub Option<GetChannelData>);
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]

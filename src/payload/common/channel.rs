@@ -1,10 +1,10 @@
 use bon::Builder;
 use thiserror::Error;
 
-use super::voice::VoiceState;
+use super::{message::Message, voice::VoiceState};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct ChannelResponse {
     #[serde(flatten)]
     pub channel: Option<Channel>,
@@ -14,8 +14,7 @@ pub struct ChannelResponse {
     pub user_limit: Option<u32>,
     pub position: Option<u32>,
     pub voice_states: Option<Vec<VoiceState>>,
-    // TODO: when we get message object type created
-    // pub messages:
+    pub messages: Option<Vec<Message>>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]

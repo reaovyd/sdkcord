@@ -73,6 +73,7 @@ pub struct Provider {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[serde(rename_all = "lowercase")]
 pub enum EmbedType {
     Rich,
     Image,
