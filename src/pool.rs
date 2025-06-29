@@ -21,11 +21,12 @@ use crate::{
     payload::{
         AuthenticateData, AuthorizeData, ChannelCreateData, Command, Data, ErrorData, Event,
         GetChannelData, GetChannelsData, GetGuildData, GetGuildsData, GetSelectedVoiceChannelData,
-        GetVoiceSettingsData, GuildCreateData, GuildStatusData, Payload, PayloadResponse,
-        ReadyData, Request, SelectTextChannelData, SelectVoiceChannelData, SetActivityData,
-        SetUserVoiceSettingsData, SetVoiceSettingsData, SpeakingStartData, SpeakingStopData,
-        SubscribeData, UnsubscribeData, VoiceChannelSelectData, VoiceConnectionStatusData,
-        VoiceStateCreateData, VoiceStateDeleteData, VoiceStateUpdateData, common::opcode::Opcode,
+        GetVoiceSettingsData, GuildCreateData, GuildStatusData, MessageCreateData,
+        MessageDeleteData, MessageUpdateData, Payload, PayloadResponse, ReadyData, Request,
+        SelectTextChannelData, SelectVoiceChannelData, SetActivityData, SetUserVoiceSettingsData,
+        SetVoiceSettingsData, SpeakingStartData, SpeakingStopData, SubscribeData, UnsubscribeData,
+        VoiceChannelSelectData, VoiceConnectionStatusData, VoiceStateCreateData,
+        VoiceStateDeleteData, VoiceStateUpdateData, common::opcode::Opcode,
     },
 };
 
@@ -229,9 +230,15 @@ pub(crate) fn deserialize(frame: &Frame) -> Result<PayloadResponse, SerdeProcess
                 Event::SpeakingStop => {
                     deserialize_data!(payload, SpeakingStop)
                 }
-                Event::MessageCreate => todo!(),
-                Event::MessageUpdate => todo!(),
-                Event::MessageDelete => todo!(),
+                Event::MessageCreate => {
+                    deserialize_data!(payload, MessageCreate)
+                }
+                Event::MessageUpdate => {
+                    deserialize_data!(payload, MessageUpdate)
+                }
+                Event::MessageDelete => {
+                    deserialize_data!(payload, MessageDelete)
+                }
                 Event::NotificationCreate => todo!(),
                 Event::ActivityJoin => todo!(),
                 Event::ActivitySpectate => todo!(),

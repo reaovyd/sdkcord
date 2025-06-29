@@ -8,8 +8,9 @@ use sdkcord::{
     },
 };
 
-const CLIENT_ID: &str = "<YOUR_CLIENT_ID_HERE>";
+const CLIENT_ID: &str = "<YOUR_CLIENT_ID>";
 const CLIENT_SECRET: &str = "<YOUR_CLIENT_SECRET>";
+const CHANNEL_ID: &str = "<YOUR_CHANNEL_ID>";
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -34,7 +35,7 @@ async fn main() -> Result<()> {
     )
     .await?;
     let get_channel_data = client
-        .get_channel(GetChannelArgs(ChannelId::from(CLIENT_ID)))
+        .get_channel(GetChannelArgs(ChannelId::from(CHANNEL_ID)))
         .await?;
     println!("Data: {:?}", get_channel_data);
     Ok(())
