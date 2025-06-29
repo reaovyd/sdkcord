@@ -4,6 +4,8 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use strum_macros::EnumString;
 use thiserror::Error;
 
+use super::guild::{Clan, PrimaryGuild};
+
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct User {
     pub accent_color: Option<u32>,
@@ -11,12 +13,12 @@ pub struct User {
     pub avatar_decoration_data: Option<AvatarDecoration>,
     pub banner: Option<String>,
     pub banner_color: Option<String>,
-    pub clan: Option<String>,
+    pub clan: Option<Clan>,
     pub discriminator: Option<String>,
     pub flags: Option<UserFlags>,
     pub global_name: Option<String>,
     pub id: Option<String>,
-    pub primary_guild: Option<String>,
+    pub primary_guild: Option<PrimaryGuild>,
     pub public_flags: Option<UserFlags>,
     pub username: Option<String>,
     pub bot: Option<bool>,

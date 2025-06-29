@@ -11,6 +11,20 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct PrimaryGuild(pub MentionGuildInfo);
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct Clan(pub MentionGuildInfo);
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct MentionGuildInfo {
+    pub identity_guild_id: Option<String>,
+    pub identity_enabled: Option<bool>,
+    pub tag: Option<String>,
+    pub badge: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct Guild {
     pub id: Option<String>,
     pub name: Option<String>,
