@@ -1,4 +1,5 @@
 use bon::Builder;
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use thiserror::Error;
 
 use super::{message::Message, voice::VoiceState};
@@ -24,7 +25,9 @@ pub struct Channel {
     pub channel_type: Option<ChannelType>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Deserialize_repr, Serialize_repr, PartialEq, Eq, Hash)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[repr(u8)]
 pub enum ChannelType {
     GuildText = 0,
     Dm = 1,

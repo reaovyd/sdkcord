@@ -17,7 +17,7 @@ pub struct Message {
     pub id: Option<String>,
     pub mention_everyone: Option<bool>,
     pub mention_roles: Option<Vec<String>>,
-    pub mentions: Option<Vec<String>>,
+    pub mentions: Option<Vec<User>>,
     pub nick: Option<String>,
     pub pinned: Option<bool>,
     pub timestamp: Option<DateTime<Utc>>,

@@ -26,6 +26,7 @@ pub struct User {
     pub verified: Option<bool>,
     pub email: Option<String>,
     pub premium_type: Option<PremiumType>,
+    pub collectibles: Option<Vec<Collectible>>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
@@ -56,6 +57,35 @@ impl TryFrom<u8> for PremiumType {
             _ => Err(UserError::InvalidPremiumType(value as u32)),
         }
     }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct Collectible {
+    pub nameplate: Option<Nameplate>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub struct Nameplate {
+    pub sku_id: Option<String>,
+    pub asset: Option<String>,
+    pub label: Option<String>,
+    pub palette: Option<Palette>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[serde(rename_all = "lowercase")]
+pub enum Palette {
+    Crimson,
+    Berry,
+    Sky,
+    Teal,
+    Forest,
+    BubbleGum,
+    Violet,
+    Cobalt,
+    Clover,
+    Lemon,
+    White,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
