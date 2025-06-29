@@ -31,7 +31,8 @@ pub struct User {
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct AvatarDecoration {
     pub asset: Option<String>,
-    pub sku: Option<String>,
+    pub sku_id: Option<String>,
+    pub expires_at: Option<u32>,
 }
 
 #[derive(Debug, Clone, Deserialize_repr, Serialize_repr, PartialEq, Eq, Hash, EnumString)]

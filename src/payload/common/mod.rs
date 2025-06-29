@@ -1,5 +1,6 @@
 pub mod activity;
 pub mod application;
+pub mod attachment;
 pub mod channel;
 pub mod device;
 pub mod guild;
