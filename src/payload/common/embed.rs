@@ -5,7 +5,7 @@ use url::Url;
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct Embed {
     pub author: Option<Author>,
-    pub color: Option<String>,
+    pub color: Option<Color>,
     pub content_scan_version: Option<u32>,
     pub fields: Option<Vec<Field>>,
     pub footer: Option<Footer>,
@@ -20,6 +20,13 @@ pub struct Embed {
     pub embed_type: EmbedType,
     pub url: Option<Url>,
     pub video: Option<Video>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[serde(untagged)]
+pub enum Color {
+    String(String),
+    Int(u32),
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
