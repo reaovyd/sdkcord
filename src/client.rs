@@ -357,8 +357,7 @@ mod macros {
                 /// A [SdkClientError] is returned if the client fails to send the request or if the server
                 /// responds with an error
                 pub async fn $request_name<E: EventArgsType>(&self, args: E) -> SdkClientResult<[<$args_name Data>]> {
-                    if let Some(ref mgr) = token_manager
-                        && mgr.is_token_expired().await
+                    if let Some(ref mgr) = self.token_manager
                     {
                         mgr.refresh_token().await?;
                     }
@@ -425,8 +424,7 @@ mod macros {
                 /// A [SdkClientError] is returned if the client fails to send the request or if the server
                 /// responds with an error
                 $viz async fn $request_name(&self, args: [<$args_name Args>]) -> SdkClientResult<[<$args_name Data>]> {
-                    if let Some(ref mgr) = token_manager
-                        && mgr.is_token_expired().await
+                    if let Some(ref mgr) = self.token_manager
                     {
                         mgr.refresh_token().await?;
                     }

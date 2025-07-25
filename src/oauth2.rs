@@ -69,12 +69,14 @@ impl TokenManager {
         Ok(token_manager)
     }
 
-    pub(crate) async fn is_token_expired(&self) -> bool {
-        let token_data = self.refresh_token.read().await;
-        is_token_expired(&token_data)
-    }
-
     pub(crate) async fn refresh_token(&self) -> Result<(), OAuth2Error> {
+        if !self.is_token_expired().await {
+            return Ok(());
+        }
+        // when read guards start dropping from above, many clients on other threads can contend
+        // for the write lock in which case we need to do another check if one other client wins
+        // the race and updates it and the other clients do another check to prevent another write
+        // and call
         let mut write_lock = self.refresh_token.write().await;
         if !is_token_expired(&write_lock) {
             return Ok(());
@@ -85,6 +87,11 @@ impl TokenManager {
             .await?;
         *write_lock = RefreshTokenData::try_from(refresh_token_data)?;
         Ok(())
+    }
+
+    async fn is_token_expired(&self) -> bool {
+        let token_data = self.refresh_token.read().await;
+        is_token_expired(&token_data)
     }
 }
 
