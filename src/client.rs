@@ -22,7 +22,7 @@ use crate::{
     actors::{Coordinator, Reader, Writer},
     codec::FrameCodec,
     config::{Config, OAuth2Config},
-    oauth2::{OAuth2Error, TokenManager, spawn_refresh_task},
+    oauth2::{OAuth2Error, TokenManager},
     payload::*,
     pool::{deserialize, serialize, spawn_pool},
 };
@@ -61,31 +61,23 @@ impl SdkClient {
     ) -> Result<Self, SdkClientError> {
         let client_id = client_id.into();
         let inner = Arc::new(InnerSdkClient::new(config, &client_id).await?);
-        let mut sdk_client = SdkClient {
-            inner,
-            token_manager: None,
+        let token_manager = {
+            if let Some(oauth2_config) = oauth2_config {
+                let token_manager =
+                    Arc::new(TokenManager::new(oauth2_config, &client_id, inner.clone()).await?);
+                Some(token_manager)
+            } else {
+                None
+            }
         };
-        if let Some(oauth2_config) = oauth2_config {
-            let token_manager =
-                Arc::new(TokenManager::new(&oauth2_config, &client_id, &sdk_client).await?);
-            sdk_client.token_manager = Some(token_manager);
-            // NOTE: cloning this is okay since we will only be cloning a few Arcs!
-            spawn_refresh_task(sdk_client.clone());
-        }
-        Ok(sdk_client)
+        Ok(SdkClient {
+            inner,
+            token_manager,
+        })
     }
 
     pub async fn read_event_queue(&self) -> EventData {
         self.inner.get_event_data().await
-    }
-
-    impl_priv_request! {
-        /// Send a authenticate request to the IPC server
-        authenticate; Authenticate
-    }
-    impl_priv_request! {
-        /// Send a authorize request to the IPC server
-        authorize; Authorize
     }
 
     impl_pub_request! {
@@ -159,20 +151,53 @@ impl SdkClient {
         get_channels;
         GetChannels
     }
-
-    pub(crate) fn token_manager(&self) -> &TokenManager {
-        self.token_manager.as_ref().unwrap()
-    }
 }
 
 #[derive(Debug)]
-struct InnerSdkClient {
+pub(crate) struct InnerSdkClient {
     coordinator: ActorRef<Coordinator<ActorRef<Writer<WriteHalf>>>>,
     request_timeout: Duration,
     evt_queue_rx: async_channel::Receiver<EventData>,
 }
 
 impl InnerSdkClient {
+    pub(crate) async fn authenticate(
+        &self,
+        args: AuthenticateArgs,
+    ) -> SdkClientResult<AuthenticateData> {
+        let response = self
+            .send_request(PayloadRequest::builder().request(args).build())
+            .await?;
+        if let Some(Data::Authenticate(data)) = response.0.data {
+            Ok(data)
+        } else if let Some(Data::Error(error)) = response.0.data {
+            Err(SdkClientError::ResponseError { error })
+        } else {
+            error!(
+                "response should always have data but could not be found... panicking...; final response: {:?}",
+                response
+            );
+            panic!("some form of data should always be returned...");
+        }
+    }
+
+    pub(crate) async fn authorize(&self, args: AuthorizeArgs) -> SdkClientResult<AuthorizeData> {
+        let response = self
+            .send_request(PayloadRequest::builder().request(args).build())
+            .await?;
+        if let Some(Data::Authorize(data)) = response.0.data {
+            Ok(data)
+        } else if let Some(Data::Error(error)) = response.0.data {
+            Err(SdkClientError::ResponseError { error })
+        } else {
+            error!(
+                "response should always have data but could not be found... panicking...; final response: {:?}",
+                response
+            );
+            panic!("some form of data should always be returned...");
+        }
+    }
+
     async fn new(config: Config, client_id: &str) -> Result<InnerSdkClient, SdkClientError> {
         let (rh, wh) = {
             #[cfg(unix)]
