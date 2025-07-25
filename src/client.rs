@@ -323,7 +323,6 @@ where
         .num_threads(config.serializer_num_threads)
         .op(serialize)
         .call();
-    // TODO: make this deserialization function...
     let deserialization_client = spawn_pool()
         .channel_buffer(config.deserializer_channel_buffer_size)
         .num_threads(config.deserializer_num_threads)
@@ -358,6 +357,11 @@ mod macros {
                 /// A [SdkClientError] is returned if the client fails to send the request or if the server
                 /// responds with an error
                 pub async fn $request_name<E: EventArgsType>(&self, args: E) -> SdkClientResult<[<$args_name Data>]> {
+                    if let Some(ref mgr) = token_manager
+                        && mgr.is_token_expired().await
+                    {
+                        mgr.refresh_token().await?;
+                    }
                     let response = self
                         .inner
                         .send_request(PayloadRequest::builder().event().$request_name(args).build())
@@ -421,6 +425,11 @@ mod macros {
                 /// A [SdkClientError] is returned if the client fails to send the request or if the server
                 /// responds with an error
                 $viz async fn $request_name(&self, args: [<$args_name Args>]) -> SdkClientResult<[<$args_name Data>]> {
+                    if let Some(ref mgr) = token_manager
+                        && mgr.is_token_expired().await
+                    {
+                        mgr.refresh_token().await?;
+                    }
                     let response = self
                         .inner
                         .send_request(PayloadRequest::builder().request(args).build())

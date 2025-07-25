@@ -74,26 +74,18 @@ impl TokenManager {
         is_token_expired(&token_data)
     }
 
-    // async fn refresh_token(
-    //     &self,
-    //     refresh_token_data: RefreshTokenData,
-    //     access_token: AccessToken,
-    //     sdk_client: &SdkClient,
-    // ) -> Result<(), OAuth2Error> {
-    //     {
-    //         let mut write_lock = self.token_data.write().await;
-    //         *write_lock = refresh_token_data;
-    //     }
-    //     sdk_client
-    //         .authenticate(
-    //             AuthenticateArgs::builder()
-    //                 .access_token(access_token.into_secret())
-    //                 .build(),
-    //         )
-    //         .await
-    //         .map_err(|err| OAuth2Error::Authenticate(err.to_string()))?;
-    //     Ok(())
-    // }
+    pub(crate) async fn refresh_token(&self) -> Result<(), OAuth2Error> {
+        let mut write_lock = self.refresh_token.write().await;
+        if !is_token_expired(&write_lock) {
+            return Ok(());
+        }
+        let refresh_token_data = self
+            .oauth2_client
+            .exchange_refresh_token(&write_lock)
+            .await?;
+        *write_lock = RefreshTokenData::try_from(refresh_token_data)?;
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone)]
