@@ -80,32 +80,32 @@ impl SdkClient {
         self.inner.get_event_data().await
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a get guild request to the IPC server
         get_guild; GetGuild
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a get guilds request to the IPC server
         get_guilds; GetGuilds
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a get channel request to the IPC server
         get_channel; GetChannel
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a select voice channel request to the IPC server
         select_voice_channel; SelectVoiceChannel
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a get selected voice channel request to the IPC server
         get_selected_voice_channel; GetSelectedVoiceChannel
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a select text channel request to the IPC server
         select_text_channel; SelectTextChannel
     }
@@ -122,31 +122,31 @@ impl SdkClient {
         Unsubscribe
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a set user voice settings request to the IPC server.
         set_user_voice_settings;
         SetUserVoiceSettings
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a set voice settings request to the IPC server.
         set_voice_settings;
         SetVoiceSettings
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a get voice settings request to the IPC server.
         get_voice_settings;
         GetVoiceSettings
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a set activity request to the IPC server.
         set_activity;
         SetActivity
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a get channels request to the IPC server.
         get_channels;
         GetChannels
@@ -381,49 +381,18 @@ mod macros {
         };
     }
 
-    macro_rules! impl_pub_request {
-        (
-            $(#[$attr:meta])*
-            $request_name: ident;
-            $args_name: ident
-        ) => {
-            impl_request! {
-                $(#[$attr])*
-                $request_name;
-                $args_name;
-                pub
-            }
-        };
-    }
-
-    macro_rules! impl_priv_request {
-        (
-            $(#[$attr:meta])*
-            $request_name: ident;
-            $args_name: ident
-        ) => {
-            impl_request! {
-                $(#[$attr])*
-                $request_name;
-                $args_name;
-                pub(crate)
-            }
-        };
-    }
-
     macro_rules! impl_request {
         (
             $(#[$attr:meta])*
             $request_name: ident;
-            $args_name: ident;
-            $viz: vis
+            $args_name: ident
         ) => {
             paste::paste! {
                 $(#[$attr])*
                 /// # Errors
                 /// A [SdkClientError] is returned if the client fails to send the request or if the server
                 /// responds with an error
-                $viz async fn $request_name(&self, args: [<$args_name Args>]) -> SdkClientResult<[<$args_name Data>]> {
+                pub async fn $request_name(&self, args: [<$args_name Args>]) -> SdkClientResult<[<$args_name Data>]> {
                     if let Some(ref mgr) = self.token_manager
                     {
                         mgr.refresh_token().await?;
@@ -448,14 +417,10 @@ mod macros {
         };
     }
     pub(super) use impl_evt_req;
-    pub(super) use impl_priv_request;
-    pub(super) use impl_pub_request;
     pub(super) use impl_request;
 }
 
 use macros::impl_evt_req;
-use macros::impl_priv_request;
-use macros::impl_pub_request;
 use macros::impl_request;
 
 /// An Error type for when making requests to the IPC server may fail

@@ -15,31 +15,27 @@
 //!    refresh token.
 //! 2. A task that is scheduled to run every 12 hours from the time that this client was created.
 
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 
 use oauth2::{
-    AccessToken, AuthorizationCode, Client as OAuth2Client, ClientId, ClientSecret, EndpointNotSet,
-    EndpointSet, RefreshToken, RevocationErrorResponseType, StandardErrorResponse,
-    StandardRevocableToken, TokenResponse, TokenUrl,
+    AuthorizationCode, Client as OAuth2Client, ClientId, ClientSecret, EndpointNotSet, EndpointSet,
+    RefreshToken, RevocationErrorResponseType, StandardErrorResponse, StandardRevocableToken,
+    TokenResponse, TokenUrl,
     basic::{BasicClient, BasicErrorResponse, BasicTokenIntrospectionResponse, BasicTokenResponse},
 };
 use reqwest::Client as HttpClient;
 use secrecy::ExposeSecret;
 use thiserror::Error;
-use tokio::{
-    sync::RwLock,
-    time::{Instant, interval_at},
-};
+use tokio::{sync::RwLock, time::Instant};
 use tracing::error;
 
 use crate::{
-    client::{InnerSdkClient, SdkClient},
+    client::InnerSdkClient,
     config::OAuth2Config,
     payload::{AuthenticateArgs, AuthorizeArgs},
 };
 
 const DISCORD_TOKEN_URI: &str = "https://discord.com/api/oauth2/token";
-const DEFAULT_EXPIRATION_CHECK_PERIOD: Duration = Duration::from_secs(60 * 60 * 12);
 
 #[derive(Debug)]
 pub(crate) struct TokenManager {
@@ -55,7 +51,8 @@ impl TokenManager {
         sdk_client: Arc<InnerSdkClient>,
     ) -> Result<Self, OAuth2Error> {
         let oauth2_client = OAuth2TokenClient::new(&config, client_id)?;
-        // TODO: If the token file we read is corrupted OR the format is bad from parsing OR the file
+        // TODO: read a token file initially first before trying auth calls
+        // If the token file we read is corrupted OR the format is bad from parsing OR the file
         // doesn't exist, then we will handle the this by calling again and it should write to the
         // file
         let refresh_token =
@@ -85,7 +82,10 @@ impl TokenManager {
             .oauth2_client
             .exchange_refresh_token(&write_lock)
             .await?;
-        *write_lock = RefreshTokenData::try_from(refresh_token_data)?;
+        *write_lock = RefreshTokenData::try_from(&refresh_token_data)?;
+        drop(write_lock);
+        let access_token = refresh_token_data.access_token().clone().into_secret();
+        authenticate(&self.sdk_client, access_token).await?;
         Ok(())
     }
 
