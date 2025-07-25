@@ -44,7 +44,7 @@ const DEFAULT_EXPIRATION_CHECK_PERIOD: Duration = Duration::from_secs(60 * 60 * 
 #[derive(Debug)]
 pub(crate) struct TokenManager {
     oauth2_client: OAuth2TokenClient,
-    token: RwLock<RefreshTokenData>,
+    refresh_token: RwLock<RefreshTokenData>,
     sdk_client: Arc<InnerSdkClient>,
 }
 
@@ -58,22 +58,21 @@ impl TokenManager {
         // TODO: If the token file we read is corrupted OR the format is bad from parsing OR the file
         // doesn't exist, then we will handle the this by calling again and it should write to the
         // file
-        let token =
+        let refresh_token =
             handle_initial_oauth2_flow(&sdk_client, &oauth2_client, client_id, config).await?;
         let token_manager = Self {
             oauth2_client,
-            token: RwLock::new(token),
+            refresh_token: RwLock::new(refresh_token),
             sdk_client,
         };
 
         Ok(token_manager)
     }
 
-    // pub(crate) async fn is_token_expired(&self) -> bool {
-    //     let token_data = self.token_data.read().await;
-    //     let now = Instant::now();
-    //     now >= (token_data.expires_at - Duration::from_secs(60 * 30))
-    // }
+    pub(crate) async fn is_token_expired(&self) -> bool {
+        let token_data = self.refresh_token.read().await;
+        is_token_expired(&token_data)
+    }
 
     // async fn refresh_token(
     //     &self,
@@ -183,6 +182,10 @@ impl OAuth2TokenClient {
 //         }
 //     });
 // }
+
+fn is_token_expired(refresh_token: &RefreshTokenData) -> bool {
+    Instant::now() > refresh_token.expires_at
+}
 
 async fn authorize(
     sdk_client: &InnerSdkClient,
