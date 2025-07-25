@@ -142,45 +142,6 @@ impl OAuth2TokenClient {
             .map_err(|err| OAuth2Error::RefreshTokenExchange(err.to_string()))
     }
 }
-// pub(crate) fn spawn_refresh_task(sdk_client: SdkClient) {
-//     tokio::task::spawn(async move {
-//         let mut interval = interval_at(
-//             Instant::now() + DEFAULT_EXPIRATION_CHECK_PERIOD,
-//             DEFAULT_EXPIRATION_CHECK_PERIOD,
-//         );
-//         loop {
-//             interval.tick().await;
-//             let token_manager = sdk_client.token_manager();
-//             let refresh_data = {
-//                 let data = token_manager.token_data.read().await;
-//                 data.clone()
-//             };
-//             let token = match token_manager
-//                 .client
-//                 .exchange_refresh_token(&refresh_data)
-//                 .await
-//             {
-//                 Ok(token) => token,
-//                 Err(e) => {
-//                     error!("failed to exchange refresh token: {}", e);
-//                     continue;
-//                 }
-//             };
-//             let new_access_token = token.access_token().clone();
-//             if let Err(e) = token_manager
-//                 .refresh_token(
-//                     RefreshTokenData::try_from(token).unwrap(),
-//                     new_access_token,
-//                     &sdk_client,
-//                 )
-//                 .await
-//             {
-//                 error!("failed to refresh token: {}", e);
-//                 continue;
-//             }
-//         }
-//     });
-// }
 
 fn is_token_expired(refresh_token: &RefreshTokenData) -> bool {
     Instant::now() > refresh_token.expires_at
