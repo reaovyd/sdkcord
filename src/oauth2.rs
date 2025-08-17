@@ -29,7 +29,7 @@ use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tokio::sync::RwLock;
-use tracing::{error, info};
+use tracing::error;
 
 use crate::{
     client::InnerSdkClient,

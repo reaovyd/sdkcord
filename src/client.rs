@@ -65,6 +65,15 @@ impl SdkClient {
             if let Some(oauth2_config) = oauth2_config {
                 let token_manager =
                     Arc::new(TokenManager::new(oauth2_config, &client_id, inner.clone()).await?);
+                let token_refresh_task = token_manager.clone();
+                tokio::spawn(async move {
+                    loop {
+                        tokio::time::sleep(Duration::from_secs(5)).await;
+                        if let Err(e) = token_refresh_task.refresh_token().await {
+                            error!("failed to refresh token from refresh task: {}", e);
+                        }
+                    }
+                });
                 Some(token_manager)
             } else {
                 None
