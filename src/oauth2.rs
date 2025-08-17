@@ -53,11 +53,6 @@ impl TokenManager {
         sdk_client: Arc<InnerSdkClient>,
     ) -> Result<Self, OAuth2Error> {
         let oauth2_client = OAuth2TokenClient::new(&config, client_id)?;
-        // TODO: read a token file initially first before trying auth calls
-        // If the token file we read is corrupted OR the format is bad from parsing OR the file
-        // doesn't exist, then we will handle this by calling again and it should write to the
-        // file
-        //
         // 1. Check if the token file exists. If it doesn't exist, then move to creating a new
         //    token and it should write to the file.
         // 2. If it does exist, then read from the file and parse the token data into TokenData.
@@ -88,6 +83,7 @@ impl TokenManager {
                 }
             }
         };
+
         let token_manager = Self {
             oauth2_client,
             token_data: RwLock::new(token_data),
