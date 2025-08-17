@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 authors = ["reaovyd <0x259ad@proton.me>"]
 readme = "README.md"
-rust-version = "1.85.0"
+rust-version = "1.89.0"
 description = "A Rust SDK to communicate with the Discord process on your local machine. "
 license = "MIT OR Apache-2.0"
 keywords = ["discord", "sdk", "discord-sdk", "discord-sdk-client"]
@@ -37,6 +37,7 @@ chrono = { version = "0.4.41", features = ["serde"] }
 bitflags = { version = "2.9.1", features = ["serde"] }
 oauth2 = { version = "5.0.0" }
 secrecy = { version = "0.10.3" }
+dirs = { version = "6.0.0" }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.60.2", features = ["Win32"] }

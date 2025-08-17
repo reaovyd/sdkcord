@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use bon::Builder;
 use secrecy::SecretString;
 
@@ -11,6 +13,14 @@ pub struct OAuth2Config {
         scopes.into_iter().collect()
     })]
     pub scopes: Vec<OAuth2Scope>,
+    #[builder(default = {
+        let mut config_path = dirs::config_dir().unwrap();
+        config_path.push("sdkcord");
+        std::fs::create_dir_all(&config_path).unwrap();
+        config_path.push("sdkcord.json");
+        config_path
+    })]
+    pub config_path: PathBuf,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Builder)]
