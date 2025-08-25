@@ -53,13 +53,6 @@ impl TokenManager {
         sdk_client: Arc<InnerSdkClient>,
     ) -> Result<Self, OAuth2Error> {
         let oauth2_client = OAuth2TokenClient::new(&config, client_id)?;
-        // 1. Check if the token file exists. If it doesn't exist, then move to creating a new
-        //    token and it should write to the file.
-        // 2. If it does exist, then read from the file and parse the token data into TokenData.
-        // 3. If the TokenData file fails to parse, then we will move to creating a new token and it
-        //    should write to the file as well.
-        // 4. If the TokenData file succeeds in parsing, then read from the file and deserialize it into
-        //    TokenData
 
         let token_data = {
             match File::open(&config.config_path) {
