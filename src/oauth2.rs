@@ -67,6 +67,7 @@ impl TokenManager {
                     let mut buf = String::new();
                     if let Ok(_) = file.read_to_string(&mut buf)
                         && let Ok(data) = serde_json::from_str::<TokenData>(&buf)
+                        && !is_token_expired(&data)
                     {
                         authenticate(&sdk_client, data.access_token.clone().into_secret()).await?;
                         data
