@@ -22,7 +22,7 @@ use crate::{
     actors::{Coordinator, Reader, Writer},
     codec::FrameCodec,
     config::{Config, OAuth2Config},
-    oauth2::{OAuth2Error, TokenManager, spawn_refresh_task},
+    oauth2::{OAuth2Error, TokenManager},
     payload::*,
     pool::{deserialize, serialize, spawn_pool},
 };
@@ -61,59 +61,60 @@ impl SdkClient {
     ) -> Result<Self, SdkClientError> {
         let client_id = client_id.into();
         let inner = Arc::new(InnerSdkClient::new(config, &client_id).await?);
-        let mut sdk_client = SdkClient {
-            inner,
-            token_manager: None,
+        let token_manager = {
+            if let Some(oauth2_config) = oauth2_config {
+                let token_manager =
+                    Arc::new(TokenManager::new(oauth2_config, &client_id, inner.clone()).await?);
+                let token_refresh_task = token_manager.clone();
+                tokio::spawn(async move {
+                    loop {
+                        tokio::time::sleep(Duration::from_secs(5)).await;
+                        if let Err(e) = token_refresh_task.refresh_token().await {
+                            error!("failed to refresh token from refresh task: {}", e);
+                        }
+                    }
+                });
+                Some(token_manager)
+            } else {
+                None
+            }
         };
-        if let Some(oauth2_config) = oauth2_config {
-            let token_manager =
-                Arc::new(TokenManager::new(&oauth2_config, &client_id, &sdk_client).await?);
-            sdk_client.token_manager = Some(token_manager);
-            // NOTE: cloning this is okay since we will only be cloning a few Arcs!
-            spawn_refresh_task(sdk_client.clone());
-        }
-        Ok(sdk_client)
+        Ok(SdkClient {
+            inner,
+            token_manager,
+        })
     }
 
     pub async fn read_event_queue(&self) -> EventData {
         self.inner.get_event_data().await
     }
 
-    impl_priv_request! {
-        /// Send a authenticate request to the IPC server
-        authenticate; Authenticate
-    }
-    impl_priv_request! {
-        /// Send a authorize request to the IPC server
-        authorize; Authorize
-    }
-
-    impl_pub_request! {
+    impl_request! {
         /// Send a get guild request to the IPC server
         get_guild; GetGuild
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a get guilds request to the IPC server
         get_guilds; GetGuilds
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a get channel request to the IPC server
         get_channel; GetChannel
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a select voice channel request to the IPC server
         select_voice_channel; SelectVoiceChannel
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a get selected voice channel request to the IPC server
         get_selected_voice_channel; GetSelectedVoiceChannel
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a select text channel request to the IPC server
         select_text_channel; SelectTextChannel
     }
@@ -130,49 +131,82 @@ impl SdkClient {
         Unsubscribe
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a set user voice settings request to the IPC server.
         set_user_voice_settings;
         SetUserVoiceSettings
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a set voice settings request to the IPC server.
         set_voice_settings;
         SetVoiceSettings
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a get voice settings request to the IPC server.
         get_voice_settings;
         GetVoiceSettings
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a set activity request to the IPC server.
         set_activity;
         SetActivity
     }
 
-    impl_pub_request! {
+    impl_request! {
         /// Send a get channels request to the IPC server.
         get_channels;
         GetChannels
     }
-
-    pub(crate) fn token_manager(&self) -> &TokenManager {
-        self.token_manager.as_ref().unwrap()
-    }
 }
 
 #[derive(Debug)]
-struct InnerSdkClient {
+pub(crate) struct InnerSdkClient {
     coordinator: ActorRef<Coordinator<ActorRef<Writer<WriteHalf>>>>,
     request_timeout: Duration,
     evt_queue_rx: async_channel::Receiver<EventData>,
 }
 
 impl InnerSdkClient {
+    pub(crate) async fn authenticate(
+        &self,
+        args: AuthenticateArgs,
+    ) -> SdkClientResult<AuthenticateData> {
+        let response = self
+            .send_request(PayloadRequest::builder().request(args).build())
+            .await?;
+        if let Some(Data::Authenticate(data)) = response.0.data {
+            Ok(data)
+        } else if let Some(Data::Error(error)) = response.0.data {
+            Err(SdkClientError::ResponseError { error })
+        } else {
+            error!(
+                "response should always have data but could not be found... panicking...; final response: {:?}",
+                response
+            );
+            panic!("some form of data should always be returned...");
+        }
+    }
+
+    pub(crate) async fn authorize(&self, args: AuthorizeArgs) -> SdkClientResult<AuthorizeData> {
+        let response = self
+            .send_request(PayloadRequest::builder().request(args).build())
+            .await?;
+        if let Some(Data::Authorize(data)) = response.0.data {
+            Ok(data)
+        } else if let Some(Data::Error(error)) = response.0.data {
+            Err(SdkClientError::ResponseError { error })
+        } else {
+            error!(
+                "response should always have data but could not be found... panicking...; final response: {:?}",
+                response
+            );
+            panic!("some form of data should always be returned...");
+        }
+    }
+
     async fn new(config: Config, client_id: &str) -> Result<InnerSdkClient, SdkClientError> {
         let (rh, wh) = {
             #[cfg(unix)]
@@ -298,7 +332,6 @@ where
         .num_threads(config.serializer_num_threads)
         .op(serialize)
         .call();
-    // TODO: make this deserialization function...
     let deserialization_client = spawn_pool()
         .channel_buffer(config.deserializer_channel_buffer_size)
         .num_threads(config.deserializer_num_threads)
@@ -333,6 +366,10 @@ mod macros {
                 /// A [SdkClientError] is returned if the client fails to send the request or if the server
                 /// responds with an error
                 pub async fn $request_name<E: EventArgsType>(&self, args: E) -> SdkClientResult<[<$args_name Data>]> {
+                    if let Some(ref mgr) = self.token_manager
+                    {
+                        mgr.refresh_token().await?;
+                    }
                     let response = self
                         .inner
                         .send_request(PayloadRequest::builder().event().$request_name(args).build())
@@ -353,49 +390,22 @@ mod macros {
         };
     }
 
-    macro_rules! impl_pub_request {
-        (
-            $(#[$attr:meta])*
-            $request_name: ident;
-            $args_name: ident
-        ) => {
-            impl_request! {
-                $(#[$attr])*
-                $request_name;
-                $args_name;
-                pub
-            }
-        };
-    }
-
-    macro_rules! impl_priv_request {
-        (
-            $(#[$attr:meta])*
-            $request_name: ident;
-            $args_name: ident
-        ) => {
-            impl_request! {
-                $(#[$attr])*
-                $request_name;
-                $args_name;
-                pub(crate)
-            }
-        };
-    }
-
     macro_rules! impl_request {
         (
             $(#[$attr:meta])*
             $request_name: ident;
-            $args_name: ident;
-            $viz: vis
+            $args_name: ident
         ) => {
             paste::paste! {
                 $(#[$attr])*
                 /// # Errors
                 /// A [SdkClientError] is returned if the client fails to send the request or if the server
                 /// responds with an error
-                $viz async fn $request_name(&self, args: [<$args_name Args>]) -> SdkClientResult<[<$args_name Data>]> {
+                pub async fn $request_name(&self, args: [<$args_name Args>]) -> SdkClientResult<[<$args_name Data>]> {
+                    if let Some(ref mgr) = self.token_manager
+                    {
+                        mgr.refresh_token().await?;
+                    }
                     let response = self
                         .inner
                         .send_request(PayloadRequest::builder().request(args).build())
@@ -416,14 +426,10 @@ mod macros {
         };
     }
     pub(super) use impl_evt_req;
-    pub(super) use impl_priv_request;
-    pub(super) use impl_pub_request;
     pub(super) use impl_request;
 }
 
 use macros::impl_evt_req;
-use macros::impl_priv_request;
-use macros::impl_pub_request;
 use macros::impl_request;
 
 /// An Error type for when making requests to the IPC server may fail

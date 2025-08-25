@@ -15,8 +15,9 @@
 //!    refresh token.
 //! 2. A task that is scheduled to run every 12 hours from the time that this client was created.
 
-use std::time::Duration;
+use std::{fs::File, io::Read, path::PathBuf, sync::Arc};
 
+use chrono::{DateTime, Utc};
 use oauth2::{
     AccessToken, AuthorizationCode, Client as OAuth2Client, ClientId, ClientSecret, EndpointNotSet,
     EndpointSet, RefreshToken, RevocationErrorResponseType, StandardErrorResponse,
@@ -25,81 +26,103 @@ use oauth2::{
 };
 use reqwest::Client as HttpClient;
 use secrecy::ExposeSecret;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use tokio::{
-    sync::RwLock,
-    time::{Instant, interval_at},
-};
+use tokio::sync::RwLock;
 use tracing::error;
 
 use crate::{
-    client::SdkClient,
+    client::InnerSdkClient,
     config::OAuth2Config,
     payload::{AuthenticateArgs, AuthorizeArgs},
 };
 
 const DISCORD_TOKEN_URI: &str = "https://discord.com/api/oauth2/token";
-const DEFAULT_EXPIRATION_CHECK_PERIOD: Duration = Duration::from_secs(60 * 60 * 12);
 
 #[derive(Debug)]
 pub(crate) struct TokenManager {
-    client: Client,
-    token_data: RwLock<RefreshTokenData>,
+    oauth2_client: OAuth2TokenClient,
+    token_data: RwLock<TokenData>,
+    sdk_client: Arc<InnerSdkClient>,
 }
 
 impl TokenManager {
     pub(crate) async fn new(
-        config: &OAuth2Config,
+        config: OAuth2Config,
         client_id: &str,
-        sdk_client: &SdkClient,
+        sdk_client: Arc<InnerSdkClient>,
     ) -> Result<Self, OAuth2Error> {
-        let client = Client::new(config, client_id)?;
-        let refresh_token_data =
-            handle_initial_oauth2_flow(sdk_client, &client, client_id, config.clone()).await?;
+        let oauth2_client = OAuth2TokenClient::new(&config, client_id)?;
+
+        let token_data = {
+            match File::open(&config.config_path) {
+                Ok(mut file) => {
+                    let mut buf = String::new();
+                    if let Ok(_) = file.read_to_string(&mut buf)
+                        && let Ok(data) = serde_json::from_str::<TokenData>(&buf)
+                        && !is_token_expired(&data)
+                    {
+                        authenticate(&sdk_client, data.access_token.clone().into_secret()).await?;
+                        data
+                    } else {
+                        drop(file);
+                        handle_initial_oauth2_flow(&sdk_client, &oauth2_client, client_id, config)
+                            .await?
+                    }
+                }
+                Err(err) => {
+                    error!("failed to open token file: {}", err);
+                    handle_initial_oauth2_flow(&sdk_client, &oauth2_client, client_id, config)
+                        .await?
+                }
+            }
+        };
 
         let token_manager = Self {
-            client,
-            token_data: RwLock::new(refresh_token_data),
+            oauth2_client,
+            token_data: RwLock::new(token_data),
+            sdk_client,
         };
 
         Ok(token_manager)
     }
 
-    // pub(crate) async fn is_token_expired(&self) -> bool {
-    //     let token_data = self.token_data.read().await;
-    //     let now = Instant::now();
-    //     now >= (token_data.expires_at - Duration::from_secs(60 * 30))
-    // }
-
-    async fn refresh_token(
-        &self,
-        refresh_token_data: RefreshTokenData,
-        access_token: AccessToken,
-        sdk_client: &SdkClient,
-    ) -> Result<(), OAuth2Error> {
-        {
-            let mut write_lock = self.token_data.write().await;
-            *write_lock = refresh_token_data;
+    pub(crate) async fn refresh_token(&self) -> Result<(), OAuth2Error> {
+        if !self.is_self_token_data_expired().await {
+            return Ok(());
         }
-        sdk_client
-            .authenticate(
-                AuthenticateArgs::builder()
-                    .access_token(access_token.into_secret())
-                    .build(),
-            )
-            .await
-            .map_err(|err| OAuth2Error::Authenticate(err.to_string()))?;
+        // when read guards start dropping from above, many clients on other threads can contend
+        // for the write lock in which case we need to do another check if one other client wins
+        // the race and updates it and the other clients do another check to prevent another write
+        // and call
+        let mut write_lock = self.token_data.write().await;
+        if !is_token_expired(&write_lock) {
+            return Ok(());
+        }
+        let refresh_token_data = self
+            .oauth2_client
+            .exchange_refresh_token(&write_lock)
+            .await?;
+        *write_lock = TokenData::try_from(&refresh_token_data)?;
+        let access_token = write_lock.access_token.clone().into_secret();
+        drop(write_lock);
+        authenticate(&self.sdk_client, access_token).await?;
         Ok(())
+    }
+
+    async fn is_self_token_data_expired(&self) -> bool {
+        let token_data = self.token_data.read().await;
+        is_token_expired(&token_data)
     }
 }
 
 #[derive(Debug, Clone)]
-struct Client {
+struct OAuth2TokenClient {
     http_client: HttpClient,
     oauth2_client: DiscordOAuth2Client,
 }
 
-impl Client {
+impl OAuth2TokenClient {
     fn new(config: &OAuth2Config, client_id: &str) -> Result<Self, OAuth2Error> {
         let oauth2_client = BasicClient::new(ClientId::new(client_id.to_string()))
             .set_client_secret(ClientSecret::new(
@@ -131,61 +154,25 @@ impl Client {
 
     async fn exchange_refresh_token(
         &self,
-        refresh_token_data: &RefreshTokenData,
+        token_data: &TokenData,
     ) -> Result<BasicTokenResponse, OAuth2Error> {
         self.oauth2_client
-            .exchange_refresh_token(&refresh_token_data.refresh_token)
+            .exchange_refresh_token(&token_data.refresh_token)
             .request_async(&self.http_client)
             .await
             .map_err(|err| OAuth2Error::RefreshTokenExchange(err.to_string()))
     }
 }
-pub(crate) fn spawn_refresh_task(sdk_client: SdkClient) {
-    tokio::task::spawn(async move {
-        let mut interval = interval_at(
-            Instant::now() + DEFAULT_EXPIRATION_CHECK_PERIOD,
-            DEFAULT_EXPIRATION_CHECK_PERIOD,
-        );
-        loop {
-            interval.tick().await;
-            let token_manager = sdk_client.token_manager();
-            let refresh_data = {
-                let data = token_manager.token_data.read().await;
-                data.clone()
-            };
-            let token = match token_manager
-                .client
-                .exchange_refresh_token(&refresh_data)
-                .await
-            {
-                Ok(token) => token,
-                Err(e) => {
-                    error!("failed to exchange refresh token: {}", e);
-                    continue;
-                }
-            };
-            let new_access_token = token.access_token().clone();
-            if let Err(e) = token_manager
-                .refresh_token(
-                    RefreshTokenData::try_from(token).unwrap(),
-                    new_access_token,
-                    &sdk_client,
-                )
-                .await
-            {
-                error!("failed to refresh token: {}", e);
-                continue;
-            }
-        }
-    });
+
+fn is_token_expired(token_data: &TokenData) -> bool {
+    Utc::now() > token_data.expires_at
 }
 
-async fn handle_initial_oauth2_flow(
-    sdk_client: &SdkClient,
-    oauth2_client: &Client,
+async fn authorize(
+    sdk_client: &InnerSdkClient,
     client_id: &str,
     oauth2_config: OAuth2Config,
-) -> Result<RefreshTokenData, OAuth2Error> {
+) -> Result<String, OAuth2Error> {
     let authorize_args = AuthorizeArgs::builder()
         .client_id(client_id)
         .scopes(oauth2_config.scopes)
@@ -196,14 +183,15 @@ async fn handle_initial_oauth2_flow(
         .await
         .map_err(|err| OAuth2Error::AuthorizationCodeExchange(err.to_string()))?;
 
-    let code = authorize_data
+    authorize_data
         .code
-        .ok_or_else(|| OAuth2Error::AuthorizationCodeExchange("code missing".to_string()))?;
+        .ok_or_else(|| OAuth2Error::AuthorizationCodeExchange("code missing".to_string()))
+}
 
-    let token = oauth2_client.exchange_code(&code).await?;
-    let access_token = token.access_token().clone().into_secret();
-    let refresh_token_data = RefreshTokenData::try_from(token)?;
-
+async fn authenticate(
+    sdk_client: &InnerSdkClient,
+    access_token: String,
+) -> Result<(), OAuth2Error> {
     let authenticate_args = AuthenticateArgs::builder()
         .access_token(access_token)
         .build();
@@ -212,40 +200,77 @@ async fn handle_initial_oauth2_flow(
         .authenticate(authenticate_args)
         .await
         .map_err(|err| OAuth2Error::Authenticate(err.to_string()))?;
-
-    Ok(refresh_token_data)
+    Ok(())
 }
 
-#[derive(Debug, Clone)]
-pub(crate) struct RefreshTokenData {
+async fn write_token_data_to_file(
+    config_path: &PathBuf,
+    token_data: &TokenData,
+) -> Result<(), OAuth2Error> {
+    let file = File::create(config_path).map_err(|err| OAuth2Error::TokenDataWrite {
+        file_name: config_path.to_owned(),
+        err: err.to_string(),
+    })?;
+    serde_json::to_writer(file, token_data).map_err(|err| OAuth2Error::TokenDataWrite {
+        file_name: config_path.to_owned(),
+        err: err.to_string(),
+    })?;
+    Ok(())
+}
+
+async fn handle_initial_oauth2_flow(
+    sdk_client: &InnerSdkClient,
+    oauth2_client: &OAuth2TokenClient,
+    client_id: &str,
+    oauth2_config: OAuth2Config,
+) -> Result<TokenData, OAuth2Error> {
+    let config_path = oauth2_config.config_path.clone();
+    let code = authorize(sdk_client, client_id, oauth2_config).await?;
+
+    let token = oauth2_client.exchange_code(&code).await?;
+    let token_data = TokenData::try_from(&token)?;
+    let access_token = token.access_token().clone().into_secret();
+
+    authenticate(sdk_client, access_token).await?;
+    write_token_data_to_file(&config_path, &token_data).await?;
+    Ok(token_data)
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct TokenData {
     refresh_token: RefreshToken,
-    pub expires_at: Instant,
+    access_token: AccessToken,
+    expires_at: DateTime<Utc>,
 }
 
-impl RefreshTokenData {
-    pub(crate) const fn new(refresh_token: RefreshToken, expires_at: Instant) -> Self {
-        Self {
-            refresh_token,
-            expires_at,
-        }
-    }
-}
-
-impl TryFrom<BasicTokenResponse> for RefreshTokenData {
+impl TryFrom<BasicTokenResponse> for TokenData {
     type Error = OAuth2Error;
 
     fn try_from(token: BasicTokenResponse) -> Result<Self, Self::Error> {
+        TokenData::try_from(&token)
+    }
+}
+
+impl TryFrom<&BasicTokenResponse> for TokenData {
+    type Error = OAuth2Error;
+
+    fn try_from(token: &BasicTokenResponse) -> Result<Self, Self::Error> {
         let expires_in = token
             .expires_in()
             .ok_or("expires_in missing")
             .map_err(|err| OAuth2Error::TokenConversion(err.to_string()))?;
-        let expires_at = Instant::now() + expires_in;
+        let expires_at = Utc::now() + expires_in;
         let refresh_token = token
             .refresh_token()
             .ok_or("refresh_token missing")
             .map_err(|err| OAuth2Error::TokenConversion(err.to_string()))?
             .to_owned();
-        Ok(Self::new(refresh_token, expires_at))
+        let access_token = token.access_token().clone();
+        Ok(Self {
+            access_token,
+            refresh_token,
+            expires_at,
+        })
     }
 }
 
@@ -280,4 +305,6 @@ pub enum OAuth2Error {
     HttpClient(String),
     #[error("token failed to convert: {0}")]
     TokenConversion(String),
+    #[error("failed to write token data to {file_name}: {err}")]
+    TokenDataWrite { file_name: PathBuf, err: String },
 }

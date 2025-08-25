@@ -1,3 +1,5 @@
+use std::{path::PathBuf, time::Duration};
+
 use bon::Builder;
 use secrecy::SecretString;
 
@@ -11,6 +13,18 @@ pub struct OAuth2Config {
         scopes.into_iter().collect()
     })]
     pub scopes: Vec<OAuth2Scope>,
+    #[builder(default = {
+        let mut config_path = dirs::config_dir().unwrap();
+        config_path.push("sdkcord");
+        std::fs::create_dir_all(&config_path).unwrap();
+        config_path.push("sdkcord.json");
+        config_path
+    })]
+    pub config_path: PathBuf,
+    #[builder(default = {Duration::from_secs(5)}, with = |secs: u64| {
+        Duration::from_secs(secs)
+    })]
+    pub refresh_token_timer: Duration,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Builder)]
