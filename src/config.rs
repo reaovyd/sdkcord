@@ -1,4 +1,4 @@
-use std::{path::PathBuf, time::Duration};
+use std::path::PathBuf;
 
 use bon::Builder;
 use secrecy::SecretString;
@@ -21,10 +21,8 @@ pub struct OAuth2Config {
         config_path
     })]
     pub config_path: PathBuf,
-    #[builder(default = {Duration::from_secs(5)}, with = |secs: u64| {
-        Duration::from_secs(secs)
-    })]
-    pub refresh_token_timer: Duration,
+    #[builder(default = 5u64)]
+    pub refresh_token_timer: u64,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Builder)]

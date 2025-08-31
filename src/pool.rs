@@ -103,8 +103,10 @@ where
             let recv = recv.clone();
             thread::spawn(move || loop {
                 if let Ok((data, sender)) = recv.recv_blocking()
-                && sender.send(op(&data)).is_err() {
-                    error!("sender failed to send job response data! the receiving task may have likely died before it received the value.");
+                {
+                    if sender.send(op(&data)).is_err() {
+                        error!("sender failed to send job response data! the receiving task may have likely died before it received the value.");
+                    }
                 } else {
                     error!("channel is closed. closing receiver end and exiting");
                     recv.close();

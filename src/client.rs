@@ -50,7 +50,7 @@ impl SdkClient {
     /// Constructs a new client and connects to Discord
     ///
     /// # OAuth2
-    /// You can provide an [OAuth2Config] through an Option<OAuth2Config> to enable OAuth2.
+    /// You can provide an [OAuth2Config] through an [`Option<OAuth2Config>`] to enable OAuth2.
     ///
     /// # Errors
     /// An [SdkClientError] is returned if the client fails to connect to the IPC server.
@@ -63,12 +63,13 @@ impl SdkClient {
         let inner = Arc::new(InnerSdkClient::new(config, &client_id).await?);
         let token_manager = {
             if let Some(oauth2_config) = oauth2_config {
+                let refresh_token_timer = oauth2_config.refresh_token_timer;
                 let token_manager =
                     Arc::new(TokenManager::new(oauth2_config, &client_id, inner.clone()).await?);
                 let token_refresh_task = token_manager.clone();
                 tokio::spawn(async move {
                     loop {
-                        tokio::time::sleep(Duration::from_secs(5)).await;
+                        tokio::time::sleep(Duration::from_secs(refresh_token_timer)).await;
                         if let Err(e) = token_refresh_task.refresh_token().await {
                             error!("failed to refresh token from refresh task: {}", e);
                         }
