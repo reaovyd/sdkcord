@@ -13,7 +13,7 @@
 //! to get access to all of the commands in the SDK.
 use std::{sync::Arc, time::Duration};
 
-use kameo::{actor::ActorRef, error::SendError};
+use kameo::{Actor, actor::ActorRef, error::SendError};
 use thiserror::Error;
 use tokio_util::codec::{FramedRead, FramedWrite};
 use tracing::error;
@@ -342,9 +342,9 @@ where
     let framed_write = FramedWrite::new(wh, codec);
     let framed_read = FramedRead::new(rh, codec);
 
-    let writer = kameo::spawn(Writer::new(serializer_client, framed_write));
-    let coordinator = kameo::spawn(Coordinator::new(writer, evt_queue_tx));
-    kameo::spawn(Reader::new(
+    let writer = Writer::spawn(Writer::new(serializer_client, framed_write));
+    let coordinator = Coordinator::spawn(Coordinator::new(writer, evt_queue_tx));
+    Reader::spawn(Reader::new(
         deserialization_client,
         framed_read,
         coordinator.clone(),

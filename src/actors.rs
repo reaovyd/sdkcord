@@ -59,7 +59,12 @@ where
     T: Send + Sync + 'static,
     T: AsyncWrite + Unpin,
 {
+    type Args = Self;
     type Error = CoordinatorError;
+
+    async fn on_start(args: Self::Args, _: ActorRef<Self>) -> Result<Self, Self::Error> {
+        Ok(args)
+    }
 }
 
 impl<T> Coordinator<ActorRef<Writer<T>>>
@@ -122,7 +127,6 @@ where
                     SendError::MailboxFull(req) => {
                         CoordinatorError::IpcWriterUnavailable(Some(req))
                     }
-                    SendError::HandlerError(err) => CoordinatorError::RequestFailed(err),
                     SendError::Timeout(req) => CoordinatorError::WriterTimeout(req),
                 }
             })?;
@@ -209,11 +213,16 @@ where
     W: AsyncWrite + Unpin,
 {
     type Error = ();
-    #[instrument(level = "trace", skip(self, actor_ref))]
-    async fn on_start(&mut self, actor_ref: ActorRef<Self>) -> Result<(), Self::Error> {
-        // TODO: maybe this looks really weird?
-        actor_ref.attach_stream(self.reader.take().unwrap(), (), ());
-        Ok(())
+
+    type Args = Self;
+
+    #[instrument(level = "trace", skip(args, actor_ref))]
+    async fn on_start(
+        mut args: Self::Args,
+        actor_ref: ActorRef<Self>,
+    ) -> Result<Self, Self::Error> {
+        actor_ref.attach_stream(args.reader.take().unwrap(), (), ());
+        Ok(args)
     }
 }
 
@@ -286,6 +295,12 @@ where
     T: Send + Sync + 'static,
 {
     type Error = WriterError;
+
+    type Args = Self;
+
+    async fn on_start(args: Self::Args, _: ActorRef<Self>) -> Result<Self, Self::Error> {
+        Ok(args)
+    }
 }
 
 impl<T> Message<Request> for Writer<T>
