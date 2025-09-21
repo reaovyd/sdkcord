@@ -376,9 +376,6 @@ pub(crate) enum CoordinatorError {
     /// Writing to the IPC server failed
     #[error("discord ipc server is unavailable")]
     IpcWriterUnavailable(Option<Request>),
-    /// The request to be written to the IPC server failed
-    #[error("request failed")]
-    RequestFailed(WriterError),
     /// The reques timed out
     #[error("timeout writing to ipc server")]
     WriterTimeout(Option<Request>),
