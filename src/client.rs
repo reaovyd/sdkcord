@@ -19,7 +19,7 @@ use tokio_util::codec::{FramedRead, FramedWrite};
 use tracing::error;
 
 use crate::{
-    actors::{Coordinator, Reader, Writer},
+    actors::{Coordinator, Reader, ReaderArgs, Writer},
     codec::FrameCodec,
     config::{Config, OAuth2Config},
     oauth2::{OAuth2Error, TokenManager},
@@ -344,11 +344,10 @@ where
 
     let writer = Writer::spawn(Writer::new(serializer_client, framed_write));
     let coordinator = Coordinator::spawn(Coordinator::new(writer, evt_queue_tx));
-    Reader::spawn(Reader::new(
-        deserialization_client,
-        framed_read,
-        coordinator.clone(),
-    ));
+    Reader::spawn(ReaderArgs {
+        reader: Reader::new(deserialization_client, coordinator.clone()),
+        framed_reader: framed_read,
+    });
     coordinator
 }
 

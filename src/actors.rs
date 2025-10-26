@@ -15,7 +15,7 @@
 //! server sends it to the reader actor, which then sends it to the coordinator actor for
 //! processing.
 
-use std::{io, sync::Arc, time::Duration};
+use std::{io, marker::PhantomData, sync::Arc, time::Duration};
 
 use dashmap::DashMap;
 use futures::SinkExt;
@@ -178,29 +178,30 @@ where
 pub(crate) struct Reader<T, W: Actor> {
     /// Client for deserializing the frame from IPC server
     deserializer_client: Client<Frame, Result<PayloadResponse, SerdeProcessingError>>,
-    /// Reader reading the frame in from the IPC server
-    reader: Option<FramedRead<T, FrameCodec>>,
     /// Coordinator actor reference to send frame to
     coordinator: ActorRef<W>,
+    _pd: PhantomData<T>,
+}
+
+pub(crate) struct ReaderArgs<T, W: Actor> {
+    pub(crate) framed_reader: FramedRead<T, FrameCodec>,
+    pub(crate) reader: Reader<T, W>,
 }
 
 impl<T, W> Reader<T, Coordinator<ActorRef<Writer<W>>>>
 where
-    T: Send + Sync + 'static,
-    T: AsyncRead + Unpin,
     W: Send + Sync + 'static,
     W: AsyncWrite + Unpin,
 {
     /// Create a new [Reader] actor
-    pub(crate) const fn new(
+    pub(crate) fn new(
         deserializer_client: Client<Frame, Result<PayloadResponse, SerdeProcessingError>>,
-        reader: FramedRead<T, FrameCodec>,
         coordinator: ActorRef<Coordinator<ActorRef<Writer<W>>>>,
     ) -> Self {
         Self {
             deserializer_client,
-            reader: Some(reader),
             coordinator,
+            _pd: Default::default(),
         }
     }
 }
@@ -214,15 +215,12 @@ where
 {
     type Error = ();
 
-    type Args = Self;
+    type Args = ReaderArgs<T, Coordinator<ActorRef<Writer<W>>>>;
 
     #[instrument(level = "trace", skip(args, actor_ref))]
-    async fn on_start(
-        mut args: Self::Args,
-        actor_ref: ActorRef<Self>,
-    ) -> Result<Self, Self::Error> {
-        actor_ref.attach_stream(args.reader.take().unwrap(), (), ());
-        Ok(args)
+    async fn on_start(args: Self::Args, actor_ref: ActorRef<Self>) -> Result<Self, Self::Error> {
+        actor_ref.attach_stream(args.framed_reader, (), ());
+        Ok(args.reader)
     }
 }
 
